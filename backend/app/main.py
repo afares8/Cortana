@@ -39,6 +39,10 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 async def healthz():
     return {"status": "ok"}
 
+@app.get("/api/v1/test")
+async def test_api_v1():
+    return {"status": "api_v1_working"}
+
 
 @app.on_event("startup")
 async def startup_event():
