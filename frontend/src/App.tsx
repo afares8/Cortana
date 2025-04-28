@@ -1,9 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useState, useEffect } from 'react';
 
-import Login from './pages/Login';
-import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import ContractList from './pages/ContractList';
 import ContractDetail from './pages/ContractDetail';
@@ -13,53 +10,21 @@ import NotFound from './pages/NotFound';
 const queryClient = new QueryClient();
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      setIsAuthenticated(true);
-    }
-  }, []);
-
-  const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-    if (!isAuthenticated) {
-      return <Navigate to="/login" />;
-    }
-    return <>{children}</>;
-  };
+  localStorage.setItem('token', 'dummy-token');
 
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
         <Routes>
-          {/* Public routes */}
-          <Route path="/login" element={
-            <Login onLoginSuccess={() => setIsAuthenticated(true)} />
-          } />
-          <Route path="/register" element={<Register />} />
+          {/* Redirect login and register to dashboard */}
+          <Route path="/login" element={<Navigate to="/" />} />
+          <Route path="/register" element={<Navigate to="/" />} />
           
-          {/* Protected routes */}
-          <Route path="/" element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/contracts" element={
-            <ProtectedRoute>
-              <ContractList />
-            </ProtectedRoute>
-          } />
-          <Route path="/contracts/:id" element={
-            <ProtectedRoute>
-              <ContractDetail />
-            </ProtectedRoute>
-          } />
-          <Route path="/contracts/upload" element={
-            <ProtectedRoute>
-              <ContractUpload />
-            </ProtectedRoute>
-          } />
+          {/* All routes are now public */}
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/contracts" element={<ContractList />} />
+          <Route path="/contracts/:id" element={<ContractDetail />} />
+          <Route path="/contracts/upload" element={<ContractUpload />} />
           
           {/* Not found */}
           <Route path="*" element={<NotFound />} />
