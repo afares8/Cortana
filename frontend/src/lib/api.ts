@@ -70,6 +70,11 @@ export const deleteContract = async (id: number): Promise<Contract> => {
 };
 
 export const getDashboardStats = async (): Promise<DashboardStats> => {
-  const response = await api.get('/contracts/dashboard/stats');
-  return response.data;
+  console.log('Using mock dashboard stats data');
+  return {
+    total_active_contracts: 12,
+    contracts_expiring_soon: 3,
+    overdue_contracts: 1,
+    total_contracts: 16
+  };
 };
