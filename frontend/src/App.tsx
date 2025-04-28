@@ -11,7 +11,20 @@ const queryClient = new QueryClient();
 
 if (typeof window !== 'undefined') {
   localStorage.setItem('token', 'dummy-token');
+  
+  const path = window.location.pathname;
+  if (path === '/login' || path === '/register') {
+    window.location.href = '/';
+  }
 }
+
+const RedirectToDashboard = () => {
+  useEffect(() => {
+    window.location.href = '/';
+  }, []);
+  
+  return null;
+};
 
 function App() {
   useEffect(() => {
@@ -22,9 +35,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <Router>
         <Routes>
-          {/* Direct redirects for login and register */}
-          <Route path="/login" element={<Navigate to="/" replace />} />
-          <Route path="/register" element={<Navigate to="/" replace />} />
+          {/* Direct redirects for login and register using custom component */}
+          <Route path="/login" element={<RedirectToDashboard />} />
+          <Route path="/register" element={<RedirectToDashboard />} />
           
           {/* All routes are now public */}
           <Route path="/" element={<Dashboard />} />
