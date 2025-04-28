@@ -1,34 +1,44 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useEffect } from 'react';
 
 import Dashboard from './pages/Dashboard';
 import ContractList from './pages/ContractList';
 import ContractDetail from './pages/ContractDetail';
 import ContractUpload from './pages/ContractUpload';
-import NotFound from './pages/NotFound';
 
 const queryClient = new QueryClient();
 
-function App() {
-  localStorage.setItem('token', 'dummy-token');
+function AuthWrapper() {
+  useEffect(() => {
+    localStorage.setItem('token', 'dummy-token');
+  }, []);
 
+  const location = useLocation();
+  
+  if (location.pathname === '/login' || location.pathname === '/register') {
+    return <Navigate to="/" replace />;
+  }
+  
+  return (
+    <Routes>
+      {/* All routes are now public */}
+      <Route path="/" element={<Dashboard />} />
+      <Route path="/contracts" element={<ContractList />} />
+      <Route path="/contracts/:id" element={<ContractDetail />} />
+      <Route path="/contracts/upload" element={<ContractUpload />} />
+      
+      {/* Catch-all redirect to dashboard */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
+
+function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
-        <Routes>
-          {/* Redirect login and register to dashboard */}
-          <Route path="/login" element={<Navigate to="/" />} />
-          <Route path="/register" element={<Navigate to="/" />} />
-          
-          {/* All routes are now public */}
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/contracts" element={<ContractList />} />
-          <Route path="/contracts/:id" element={<ContractDetail />} />
-          <Route path="/contracts/upload" element={<ContractUpload />} />
-          
-          {/* Not found */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthWrapper />
       </Router>
     </QueryClientProvider>
   );
