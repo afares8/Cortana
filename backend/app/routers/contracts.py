@@ -27,7 +27,6 @@ async def get_contracts(
     status: Optional[str] = None,
     skip: int = 0,
     limit: int = 100,
-    current_user: User = Depends(get_current_active_user),
 ) -> Any:
     """
     Retrieve contracts with optional filtering.
@@ -65,7 +64,6 @@ async def create_contract(
     responsible_lawyer: str = Form(...),
     description: Optional[str] = Form(None),
     file: UploadFile = File(...),
-    current_user: User = Depends(get_current_active_user),
 ) -> Any:
     """
     Create new contract with uploaded file.
@@ -97,7 +95,6 @@ async def create_contract(
 @router.get("/{contract_id}", response_model=Contract)
 async def get_contract(
     contract_id: int,
-    current_user: User = Depends(get_current_active_user),
 ) -> Any:
     """
     Get a specific contract by ID.
@@ -112,7 +109,6 @@ async def get_contract(
 async def update_contract(
     contract_id: int,
     contract_in: ContractUpdate,
-    current_user: User = Depends(get_current_active_user),
 ) -> Any:
     """
     Update a contract.
@@ -128,7 +124,6 @@ async def update_contract(
 @router.delete("/{contract_id}", response_model=Contract)
 async def delete_contract(
     contract_id: int,
-    current_user: User = Depends(get_current_active_user),
 ) -> Any:
     """
     Delete a contract.
@@ -144,9 +139,7 @@ async def delete_contract(
 
 
 @router.get("/dashboard/stats")
-async def get_dashboard_stats(
-    current_user: User = Depends(get_current_active_user),
-) -> Any:
+async def get_dashboard_stats() -> Any:
     """
     Get dashboard statistics.
     """
