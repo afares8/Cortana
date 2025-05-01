@@ -57,7 +57,7 @@ export default function Layout({ children, title }: LayoutProps) {
                 key={item.path}
                 to={item.path === '' ? '/' : `/${item.path}`}
                 onClick={() => {
-                  console.log(`Navigating to: ${item.path === '' ? '/' : `/${item.path}`}, current hash: ${location.hash}`);
+                  navigate(item.path === '' ? '/' : `/${item.path}`);
                 }}
                 className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
                   (location.hash === `#/${item.path}` || 
@@ -97,7 +97,7 @@ export default function Layout({ children, title }: LayoutProps) {
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   }`}
                   onClick={() => {
-                    console.log(`Mobile: Navigating to: ${item.path === '' ? '/' : `/${item.path}`}, current hash: ${location.hash}`);
+                    navigate(item.path === '' ? '/' : `/${item.path}`);
                     setMobileMenuOpen(false);
                   }}
                 >
