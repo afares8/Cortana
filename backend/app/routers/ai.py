@@ -23,7 +23,7 @@ from app.db.init_db import (
     ai_queries_db, 
     contract_anomalies_db
 )
-from app.ai.contract_intelligence import (
+from app.services.ai.contract_intelligence import (
     extract_clauses,
     calculate_risk_score,
     detect_anomalies,
