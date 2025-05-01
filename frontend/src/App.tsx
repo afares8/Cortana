@@ -40,8 +40,8 @@ function App() {
           {/* All routes are now public */}
           <Route path="/" element={<Dashboard />} />
           <Route path="contracts" element={<ContractList />} />
-          <Route path="contracts/:id" element={<ContractDetail />} />
           <Route path="contracts/upload" element={<ContractUpload />} />
+          <Route path="contracts/:id" element={<ContractDetail />} />
           
           {/* AI features */}
           <Route path="ai-dashboard" element={<AIDashboard />} />
