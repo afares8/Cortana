@@ -56,10 +56,8 @@ export default function Layout({ children, title }: LayoutProps) {
               <Link
                 key={item.path}
                 to={item.path === '' ? '/' : `/${item.path}`}
-                onClick={(e) => {
-                  e.preventDefault();
+                onClick={() => {
                   console.log(`Navigating to: ${item.path === '' ? '/' : `/${item.path}`}, current hash: ${location.hash}`);
-                  navigate(item.path === '' ? '/' : `/${item.path}`);
                 }}
                 className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
                   (location.hash === `#/${item.path}` || (item.path === '' && location.hash === '#/'))
@@ -94,11 +92,9 @@ export default function Layout({ children, title }: LayoutProps) {
                       ? 'bg-gray-100 text-gray-900'
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   }`}
-                  onClick={(e) => {
-                    e.preventDefault();
+                  onClick={() => {
                     console.log(`Mobile: Navigating to: ${item.path === '' ? '/' : `/${item.path}`}, current hash: ${location.hash}`);
                     setMobileMenuOpen(false);
-                    navigate(item.path === '' ? '/' : `/${item.path}`);
                   }}
                 >
                   <span className="mr-2">{item.icon}</span>
