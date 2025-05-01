@@ -26,12 +26,12 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
-app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["auth"])
+app.include_router(auth, prefix=f"{settings.API_V1_STR}/auth", tags=["auth"])
 app.include_router(
-    contracts.router, prefix=f"{settings.API_V1_STR}/contracts", tags=["contracts"]
+    contracts, prefix=f"{settings.API_V1_STR}/contracts", tags=["contracts"]
 )
 app.include_router(
-    ai.router, prefix=f"{settings.API_V1_STR}/ai", tags=["ai"]
+    ai, prefix=f"{settings.API_V1_STR}/ai", tags=["ai"]
 )
 
 os.makedirs("uploads", exist_ok=True)
