@@ -1,5 +1,5 @@
 import { ReactNode, useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface LayoutProps {
   children: ReactNode;
@@ -17,10 +17,15 @@ export default function Layout({ children, title }: LayoutProps) {
   };
 
   const navItems = [
-    { path: '/', label: 'Dashboard', icon: '📊' },
-    { path: '/contracts', label: 'Contracts', icon: '📄' },
-    { path: '/contracts/upload', label: 'Upload Contract', icon: '📤' },
-    { path: '/ai-dashboard', label: 'AI Command Center', icon: '🧠' },
+    { path: '', label: 'Dashboard', icon: '📊' },
+    { path: 'contracts', label: 'Contracts', icon: '📄' },
+    { path: 'contracts/upload', label: 'Upload Contract', icon: '📤' },
+    { path: 'ai-dashboard', label: 'AI Command Center', icon: '🧠' },
+    { path: 'legal/clients', label: 'Legal Clients', icon: '👥' },
+    { path: 'legal/contracts', label: 'Legal Contracts', icon: '📑' },
+    { path: 'legal/workflows', label: 'Workflows', icon: '🔄' },
+    { path: 'legal/tasks', label: 'Tasks', icon: '✅' },
+    { path: 'legal/audit-logs', label: 'Audit Logs', icon: '📝' },
   ];
 
   return (
@@ -48,18 +53,20 @@ export default function Layout({ children, title }: LayoutProps) {
           {/* Desktop menu */}
           <nav className="hidden md:flex space-x-4">
             {navItems.map((item) => (
-              <Link
+              <button
                 key={item.path}
-                to={item.path}
+                onClick={() => navigate(item.path === '' ? '/' : `/${item.path}`)}
                 className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
-                  location.pathname === item.path
+                  (location.hash === `#/${item.path}` || 
+                   (item.path === '' && location.hash === '#/') ||
+                   (item.path !== '' && location.hash.startsWith(`#/${item.path}`)))
                     ? 'bg-gray-100 text-gray-900'
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                 }`}
               >
                 <span className="mr-2">{item.icon}</span>
                 {item.label}
-              </Link>
+              </button>
             ))}
             <button 
               onClick={handleLogout}
@@ -76,19 +83,23 @@ export default function Layout({ children, title }: LayoutProps) {
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
               {navItems.map((item) => (
-                <Link
+                <button
                   key={item.path}
-                  to={item.path}
-                  className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
-                    location.pathname === item.path
+                  onClick={() => {
+                    navigate(item.path === '' ? '/' : `/${item.path}`);
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`flex w-full items-center px-3 py-2 text-sm font-medium rounded-md text-left ${
+                    (location.hash === `#/${item.path}` || 
+                     (item.path === '' && location.hash === '#/') ||
+                     (item.path !== '' && location.hash.startsWith(`#/${item.path}`)))
                       ? 'bg-gray-100 text-gray-900'
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   }`}
-                  onClick={() => setMobileMenuOpen(false)}
                 >
                   <span className="mr-2">{item.icon}</span>
                   {item.label}
-                </Link>
+                </button>
               ))}
               <button 
                 onClick={() => {

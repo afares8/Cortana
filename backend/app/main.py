@@ -8,6 +8,8 @@ from app.core.config import settings
 from app.db.init_db import init_db
 from app.routers import auth, contracts, ai
 from app.services.email import setup_scheduler
+from app.legal.routers import router as legal_router
+from app.legal.services import init_legal_db
 
 logging.basicConfig(
     level=logging.INFO,
@@ -26,12 +28,15 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
-app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["auth"])
+app.include_router(auth, prefix=f"{settings.API_V1_STR}/auth", tags=["auth"])
 app.include_router(
-    contracts.router, prefix=f"{settings.API_V1_STR}/contracts", tags=["contracts"]
+    contracts, prefix=f"{settings.API_V1_STR}/contracts", tags=["contracts"]
 )
 app.include_router(
-    ai.router, prefix=f"{settings.API_V1_STR}/ai", tags=["ai"]
+    ai, prefix=f"{settings.API_V1_STR}/ai", tags=["ai"]
+)
+app.include_router(
+    legal_router, prefix=f"{settings.API_V1_STR}/legal", tags=["legal"]
 )
 
 os.makedirs("uploads", exist_ok=True)
@@ -52,6 +57,7 @@ async def startup_event():
     logger.info("Initializing application...")
     
     init_db()
+    init_legal_db()
     
     scheduler = setup_scheduler()
     scheduler.start()
