@@ -6,7 +6,7 @@ import logging
 
 from app.core.config import settings
 from app.db.init_db import init_db
-from app.routers import auth, contracts
+from app.routers import auth, contracts, ai
 from app.services.email import setup_scheduler
 
 logging.basicConfig(
@@ -29,6 +29,9 @@ app.add_middleware(
 app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["auth"])
 app.include_router(
     contracts.router, prefix=f"{settings.API_V1_STR}/contracts", tags=["contracts"]
+)
+app.include_router(
+    ai.router, prefix=f"{settings.API_V1_STR}/ai", tags=["ai"]
 )
 
 os.makedirs("uploads", exist_ok=True)

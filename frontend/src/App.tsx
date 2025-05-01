@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard';
 import ContractList from './pages/ContractList';
 import ContractDetail from './pages/ContractDetail';
 import ContractUpload from './pages/ContractUpload';
+import AIDashboard from './pages/AIDashboard';
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,10 @@ function App() {
           <Route path="/contracts" element={<ContractList />} />
           <Route path="/contracts/:id" element={<ContractDetail />} />
           <Route path="/contracts/upload" element={<ContractUpload />} />
+          
+          {/* AI features */}
+          <Route path="/ai-dashboard" element={<AIDashboard />} />
+          <Route path="/contracts/:id/analyze" element={<ContractDetail />} />
           
           {/* Catch-all redirect to dashboard */}
           <Route path="*" element={<Navigate to="/" replace />} />

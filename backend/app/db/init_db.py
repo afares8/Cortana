@@ -1,10 +1,18 @@
 from app.db.base import InMemoryDB
 from app.models.user import UserInDB
 from app.models.contract import ContractInDB
+from app.models.ai_models import ExtractedClause, RiskScore, ComplianceCheck, AuditLog, AIQuery, ContractAnomaly
 from app.core.security import get_password_hash
 
 users_db = InMemoryDB[UserInDB](UserInDB)
 contracts_db = InMemoryDB[ContractInDB](ContractInDB)
+
+extracted_clauses_db = InMemoryDB[ExtractedClause](ExtractedClause)
+risk_scores_db = InMemoryDB[RiskScore](RiskScore)
+compliance_checks_db = InMemoryDB[ComplianceCheck](ComplianceCheck)
+audit_logs_db = InMemoryDB[AuditLog](AuditLog)
+ai_queries_db = InMemoryDB[AIQuery](AIQuery)
+contract_anomalies_db = InMemoryDB[ContractAnomaly](ContractAnomaly)
 
 def init_db() -> None:
     """Initialize the database with some sample data."""
