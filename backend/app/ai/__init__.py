@@ -6,3 +6,5 @@ from app.services.ai.contract_intelligence import (
     detect_anomalies,
     process_contract
 )
+
+from app.services.ai.mistral_client import mistral_client
