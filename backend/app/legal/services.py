@@ -32,7 +32,7 @@ LEGAL_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 
 def create_client(client_data: Dict[str, Any]) -> Client:
     """Create a new client."""
-    client = clients_db.create(Client(**client_data))
+    client = clients_db.create(obj_in=Client(**client_data))
     
     create_audit_log(
         entity_type="client",
@@ -120,10 +120,10 @@ def create_contract(contract_data: Dict[str, Any]) -> Contract:
         file_path = save_contract_file(file_content, file_extension)
     
     contract_dict = {**contract_data, "file_path": file_path}
-    contract = contracts_db.create(Contract(**contract_dict))
+    contract = contracts_db.create(obj_in=Contract(**contract_dict))
     
     version = contract_versions_db.create(
-        ContractVersion(
+        obj_in=ContractVersion(
             id=1,  # First version
             contract_id=contract.id,
             version=1,
@@ -192,7 +192,7 @@ def update_contract(contract_id: int, contract_data: Dict[str, Any]) -> Optional
             contracts_db.update(contract_id, {"file_path": file_path})
             
             contract_versions_db.create(
-                ContractVersion(
+                obj_in=ContractVersion(
                     id=len(versions) + 1,
                     contract_id=contract_id,
                     version=latest_version + 1,
@@ -263,7 +263,7 @@ def create_workflow_template(template_data: Dict[str, Any]) -> WorkflowTemplate:
     if "id" not in template_data:
         template_data["id"] = str(uuid.uuid4())
     
-    template = workflow_templates_db.create(WorkflowTemplate(**template_data))
+    template = workflow_templates_db.create(obj_in=WorkflowTemplate(**template_data))
     
     create_audit_log(
         entity_type="workflow_template",
@@ -348,7 +348,7 @@ def create_workflow_instance(instance_data: Dict[str, Any]) -> Optional[Workflow
     instance_data["current_step_id"] = template.steps[0].step_id if template.steps else ""
     instance_data["status"] = "pending"
     
-    instance = workflow_instances_db.create(WorkflowInstance(**instance_data))
+    instance = workflow_instances_db.create(obj_in=WorkflowInstance(**instance_data))
     
     create_audit_log(
         entity_type="workflow_instance",
@@ -418,7 +418,7 @@ def update_workflow_step(instance_id: int, step_id: str, step_data: Dict[str, An
 
 def create_task(task_data: Dict[str, Any]) -> Task:
     """Create a new task."""
-    task = tasks_db.create(Task(**task_data))
+    task = tasks_db.create(obj_in=Task(**task_data))
     
     create_audit_log(
         entity_type="task",
@@ -518,7 +518,7 @@ def create_audit_log(
 ) -> AuditLog:
     """Create a new audit log entry."""
     audit_log = audit_logs_db.create(
-        AuditLog(
+        obj_in=AuditLog(
             id=len(audit_logs_db.get_multi()) + 1,
             entity_type=entity_type,
             entity_id=entity_id,
