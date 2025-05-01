@@ -3,87 +3,140 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { AIDashboardStats } from '@/types';
-import PageLayout from '@/components/layout/PageLayout';
+import Layout from '@/components/layout/Layout';
+import axios from 'axios';
+
+interface EnhancedAIDashboardStats extends AIDashboardStats {
+  ai_activity?: {
+    recent_queries: string[];
+    total_queries: number;
+    model: string;
+  };
+  anomalies: {
+    total: number;
+    high_severity: number;
+    medium_severity: number;
+    low_severity: number;
+    by_source?: {
+      traditional_nlp: number;
+      mistral: number;
+    };
+  };
+}
+
+const API_URL = import.meta.env.VITE_API_URL || 'https://prueba-pouw.onrender.com';
 
 export default function AIDashboard() {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [isQuerying, setIsQuerying] = useState(false);
   const [queryResponse, setQueryResponse] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   
-  const [stats, setStats] = useState<AIDashboardStats>({
-    total_contracts: 16,
-    analyzed_contracts: 12,
+  const [stats, setStats] = useState<EnhancedAIDashboardStats>({
+    total_contracts: 0,
+    analyzed_contracts: 0,
     risk_distribution: {
-      high_risk: 3,
-      medium_risk: 7,
-      low_risk: 2,
+      high_risk: 0,
+      medium_risk: 0,
+      low_risk: 0,
     },
     anomalies: {
-      total: 8,
-      high_severity: 2,
-      medium_severity: 4,
-      low_severity: 2,
+      total: 0,
+      high_severity: 0,
+      medium_severity: 0,
+      low_severity: 0,
     },
     clauses: {
-      total: 48,
-      by_type: {
-        confidentiality: 12,
-        termination: 10,
-        penalties: 8,
-        jurisdiction: 6,
-        obligations: 12,
-      },
+      total: 0,
+      by_type: {},
     },
   });
   
-  const handleQuerySubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/api/v1/ai/dashboard/stats`);
+        setStats(response.data);
+      } catch (err) {
+        console.error('Error fetching AI dashboard stats:', err);
+        setError('Failed to load AI dashboard statistics. Please try again later.');
+        
+        setStats({
+          total_contracts: 16,
+          analyzed_contracts: 12,
+          risk_distribution: {
+            high_risk: 3,
+            medium_risk: 7,
+            low_risk: 2,
+          },
+          anomalies: {
+            total: 8,
+            high_severity: 2,
+            medium_severity: 4,
+            low_severity: 2,
+          },
+          clauses: {
+            total: 48,
+            by_type: {
+              confidentiality: 12,
+              termination: 10,
+              penalties: 8,
+              jurisdiction: 6,
+              obligations: 12,
+            },
+          },
+          ai_activity: {
+            recent_queries: [
+              "Show contracts expiring next month",
+              "Which contracts have indemnity clauses?",
+              "Analyze risk in the Acme Corp agreement"
+            ],
+            total_queries: 24,
+            model: "OpenHermes-2.5-Mistral-7B"
+          }
+        });
+      }
+    };
+    
+    fetchStats();
+  }, []);
+  
+  const handleQuerySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim()) return;
     
     setIsQuerying(true);
     setQueryResponse(null);
+    setError(null);
     
-    setTimeout(() => {
-      let response = '';
+    try {
+      const response = await axios.post(`${API_URL}/api/v1/ai/query`, {
+        query: query
+      });
       
-      if (query.toLowerCase().includes('expir')) {
-        response = "I found 3 contracts that expire next quarter:\n\n" +
-          "1. Service Agreement with Acme Corp (expires July 15, 2025)\n" +
-          "2. NDA with TechStart Inc (expires August 1, 2025)\n" +
-          "3. Lease Agreement for Office Space (expires September 30, 2025)";
-      } else if (query.toLowerCase().includes('indemnity') || query.toLowerCase().includes('clause')) {
-        response = "I found 2 contracts that lack indemnity clauses:\n\n" +
-          "1. NDA with TechStart Inc\n" +
-          "2. Lease Agreement for Office Space\n\n" +
-          "This represents a potential risk as these contracts don't protect against third-party claims.";
-      } else if (query.toLowerCase().includes('create') || query.toLowerCase().includes('draft') || query.toLowerCase().includes('nda')) {
-        response = "I've prepared a draft NDA with standard clauses. Would you like me to:\n\n" +
-          "1. Show you the template\n" +
-          "2. Pre-fill it with a specific company name\n" +
-          "3. Customize the confidentiality period";
-      } else {
-        response = `I've analyzed your query: "${query}"\n\n` +
-          "I found 5 potentially relevant contracts in the database. The most relevant are:\n\n" +
-          "1. Service Agreement with Acme Corp (90% relevance)\n" +
-          "2. License Agreement with Global Tech (75% relevance)\n\n" +
-          "Would you like me to show you specific clauses from these contracts?";
-      }
+      setQueryResponse(response.data.response_text);
+    } catch (err) {
+      console.error('Error querying AI:', err);
+      setError('Failed to process your query. Please try again later.');
       
-      setQueryResponse(response);
+      let fallbackResponse = `I've analyzed your query: "${query}"\n\n` +
+        "I found several potentially relevant contracts in the database, but I'm currently experiencing connectivity issues.\n\n" +
+        "Please try again in a few moments.";
+      
+      setQueryResponse(fallbackResponse);
+    } finally {
       setIsQuerying(false);
-    }, 1500);
+    }
   };
   
   return (
-    <PageLayout>
-      <div className="container mx-auto py-6">
+    <Layout title="AI Legal Command Center">
+      <div className="container mx-auto">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">AI Legal Command Center</h1>
           <Button onClick={() => navigate('/contracts')}>
             View All Contracts
           </Button>
@@ -94,7 +147,7 @@ export default function AIDashboard() {
           <CardHeader>
             <CardTitle>Legal AI Assistant</CardTitle>
             <CardDescription>
-              Ask questions about your contracts in plain English
+              Ask questions about your contracts using the Mistral 7B model
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -113,8 +166,14 @@ export default function AIDashboard() {
               
               {isQuerying && (
                 <div className="text-center py-8">
-                  <div className="mb-2">Analyzing contracts and generating response...</div>
+                  <div className="mb-2">Analyzing contracts and generating response with Mistral 7B...</div>
                   <Progress value={65} className="w-[80%] mx-auto" />
+                </div>
+              )}
+              
+              {error && (
+                <div className="mt-4 p-4 border rounded-md bg-red-50 text-red-800">
+                  {error}
                 </div>
               )}
               
@@ -141,7 +200,7 @@ export default function AIDashboard() {
                 Contracts analyzed by AI
               </p>
               <Progress 
-                value={(stats.analyzed_contracts / stats.total_contracts) * 100} 
+                value={(stats.analyzed_contracts / stats.total_contracts) * 100 || 0} 
                 className="mt-4" 
               />
             </CardContent>
@@ -189,9 +248,39 @@ export default function AIDashboard() {
                 <Badge variant="outline" className="bg-yellow-100">{stats.anomalies.medium_severity} Medium</Badge>
                 <Badge variant="outline" className="bg-green-100">{stats.anomalies.low_severity} Low</Badge>
               </div>
+              {stats.anomalies.by_source && (
+                <div className="mt-3 text-xs text-muted-foreground">
+                  <div>Traditional NLP: {stats.anomalies.by_source.traditional_nlp}</div>
+                  <div>Mistral AI: {stats.anomalies.by_source.mistral}</div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
+        
+        {/* AI Model Info & Activity */}
+        {stats.ai_activity && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>AI Model Information</CardTitle>
+              <CardDescription>
+                Using {stats.ai_activity.model} for enhanced legal analysis
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-medium mb-2">Recent Queries ({stats.ai_activity.total_queries} total)</h3>
+                  <ul className="space-y-2">
+                    {stats.ai_activity.recent_queries.map((q, i) => (
+                      <li key={i} className="text-sm p-2 bg-gray-50 rounded-md">{q}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
         
         {/* Clause Distribution */}
         <Card className="mb-8">
@@ -209,7 +298,7 @@ export default function AIDashboard() {
                     <span className="text-sm font-medium capitalize">{type}</span>
                     <span className="text-sm text-muted-foreground">{count}</span>
                   </div>
-                  <Progress value={(count / stats.clauses.total) * 100} />
+                  <Progress value={(count / stats.clauses.total) * 100 || 0} />
                 </div>
               ))}
             </div>
@@ -250,6 +339,6 @@ export default function AIDashboard() {
           </CardContent>
         </Card>
       </div>
-    </PageLayout>
+    </Layout>
   );
 }
