@@ -20,6 +20,7 @@ export default function Layout({ children, title }: LayoutProps) {
     { path: '/', label: 'Dashboard', icon: '📊' },
     { path: '/contracts', label: 'Contracts', icon: '📄' },
     { path: '/contracts/upload', label: 'Upload Contract', icon: '📤' },
+    { path: '/ai-dashboard', label: 'AI Command Center', icon: '🧠' },
   ];
 
   return (
