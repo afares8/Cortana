@@ -1,35 +1,48 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useEffect } from 'react';
+
+import Dashboard from './pages/Dashboard';
+import ContractList from './pages/ContractList';
+import ContractDetail from './pages/ContractDetail';
+import ContractUpload from './pages/ContractUpload';
+import AIDashboard from './pages/AIDashboard';
+
+const queryClient = new QueryClient();
+
+if (typeof window !== 'undefined') {
+  localStorage.setItem('token', 'dummy-token');
+}
 
 function App() {
-  const [count, setCount] = useState(0)
+  useEffect(() => {
+    localStorage.setItem('token', 'dummy-token');
+  }, []);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <QueryClientProvider client={queryClient}>
+      <Router>
+        <Routes>
+          {/* Direct redirects for login and register */}
+          <Route path="/login" element={<Navigate to="/" replace />} />
+          <Route path="/register" element={<Navigate to="/" replace />} />
+          
+          {/* All routes are now public */}
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/contracts" element={<ContractList />} />
+          <Route path="/contracts/:id" element={<ContractDetail />} />
+          <Route path="/contracts/upload" element={<ContractUpload />} />
+          
+          {/* AI features */}
+          <Route path="/ai-dashboard" element={<AIDashboard />} />
+          <Route path="/contracts/:id/analyze" element={<ContractDetail />} />
+          
+          {/* Catch-all redirect to dashboard */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
+    </QueryClientProvider>
+  );
 }
 
 export default App

@@ -1,0 +1,19 @@
+app = "legal-contract-tracker-api"
+primary_region = "sea"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+[env]
+  PORT = "8000"
+  SECRET_KEY = "supersecretkey123456789"
+  ALGORITHM = "HS256"
+  ACCESS_TOKEN_EXPIRE_MINUTES = "1440"
+  EMAIL_ENABLED = "False"
