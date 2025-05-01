@@ -1,9 +1,21 @@
+[[package]]
 name = "docx2txt"
 version = "0.8"
 description = "A pure python-based utility to extract text and images from .docx files."
 category = "main"
 optional = false
 python-versions = "*"
+
+[[package]]
+name = "pdfplumber"
+version = "0.10.3"
+description = "Extract text, tables, and metadata from PDF files"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+pdfminer.six = ">=20201018"
 
 [metadata]
 lock-version = "2.0"
@@ -13,4 +25,7 @@ content-hash = "e7b1ff30f570d146f5179db1dbbb6edb44281eb223117e1b6eb0a9e89163d1b5
 [metadata.files]
 docx2txt = [
     {file = "docx2txt-0.8.tar.gz", hash = "sha256:9c7dbef028a88889315b8480e51411cd09d991fcb6251f7e19050ed1d39d40e1"},
+]
+pdfplumber = [
+    {file = "pdfplumber-0.10.3.tar.gz", hash = "sha256:bd27ea22fc6fcf3d7ad7e0289e66f0e520ff7d6c43d9f0a3c7b9912724d58b45"},
 ]
