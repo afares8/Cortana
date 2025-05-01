@@ -3,12 +3,16 @@ from typing import Any, Union, Optional
 
 from jose import jwt
 from passlib.context import CryptContext
+from fastapi import Depends
+from fastapi.security import OAuth2PasswordBearer
 
 from app.core.config import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 ALGORITHM = "HS256"
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
 def create_access_token(
@@ -31,3 +35,9 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
+
+
+def get_current_user(token: str = Depends(oauth2_scheme)):
+    # Dummy user returned to satisfy imports until real logic is implemented
+    return {"id": "mock-user", "name": "Test User"}
+
