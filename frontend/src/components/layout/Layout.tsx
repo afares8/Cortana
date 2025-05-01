@@ -18,9 +18,14 @@ export default function Layout({ children, title }: LayoutProps) {
 
   const navItems = [
     { path: '/', label: 'Dashboard', icon: '📊' },
-    { path: '/contracts', label: 'Contracts', icon: '📄' },
-    { path: '/contracts/upload', label: 'Upload Contract', icon: '📤' },
-    { path: '/ai-dashboard', label: 'AI Command Center', icon: '🧠' },
+    { path: 'contracts', label: 'Contracts', icon: '📄' },
+    { path: 'contracts/upload', label: 'Upload Contract', icon: '📤' },
+    { path: 'ai-dashboard', label: 'AI Command Center', icon: '🧠' },
+    { path: 'legal/clients', label: 'Legal Clients', icon: '👥' },
+    { path: 'legal/contracts', label: 'Legal Contracts', icon: '📑' },
+    { path: 'legal/workflows', label: 'Workflows', icon: '🔄' },
+    { path: 'legal/tasks', label: 'Tasks', icon: '✅' },
+    { path: 'legal/audit-logs', label: 'Audit Logs', icon: '📝' },
   ];
 
   return (
@@ -52,7 +57,7 @@ export default function Layout({ children, title }: LayoutProps) {
                 key={item.path}
                 to={item.path}
                 className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
-                  location.pathname === item.path
+                  (location.hash === `#${item.path}` || (item.path === '/' && location.hash === ''))
                     ? 'bg-gray-100 text-gray-900'
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                 }`}
@@ -80,7 +85,7 @@ export default function Layout({ children, title }: LayoutProps) {
                   key={item.path}
                   to={item.path}
                   className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
-                    location.pathname === item.path
+                    (location.hash === `#${item.path}` || (item.path === '/' && location.hash === ''))
                       ? 'bg-gray-100 text-gray-900'
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   }`}

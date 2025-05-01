@@ -34,29 +34,29 @@ function App() {
       <Router>
         <Routes>
           {/* Direct redirects for login and register */}
-          <Route path="/login" element={<Navigate to="/" replace />} />
-          <Route path="/register" element={<Navigate to="/" replace />} />
+          <Route path="login" element={<Navigate to="/" replace />} />
+          <Route path="register" element={<Navigate to="/" replace />} />
           
           {/* All routes are now public */}
           <Route path="/" element={<Dashboard />} />
-          <Route path="/contracts" element={<ContractList />} />
-          <Route path="/contracts/:id" element={<ContractDetail />} />
-          <Route path="/contracts/upload" element={<ContractUpload />} />
+          <Route path="contracts" element={<ContractList />} />
+          <Route path="contracts/:id" element={<ContractDetail />} />
+          <Route path="contracts/upload" element={<ContractUpload />} />
           
           {/* AI features */}
-          <Route path="/ai-dashboard" element={<AIDashboard />} />
-          <Route path="/contracts/:id/analyze" element={<ContractDetail />} />
+          <Route path="ai-dashboard" element={<AIDashboard />} />
+          <Route path="contracts/:id/analyze" element={<ContractDetail />} />
           
           {/* Legal Module Routes */}
-          <Route path="/legal/clients" element={<ClientList />} />
-          <Route path="/legal/clients/:id" element={<ClientDetail />} />
-          <Route path="/legal/contracts" element={<LegalContractList />} />
-          <Route path="/legal/contracts/:id" element={<LegalContractDetail />} />
-          <Route path="/legal/workflows" element={<WorkflowList />} />
-          <Route path="/legal/workflows/:id" element={<WorkflowDetail />} />
-          <Route path="/legal/tasks" element={<TaskList />} />
-          <Route path="/legal/tasks/:id" element={<TaskDetail />} />
-          <Route path="/legal/audit-logs" element={<AuditLogList />} />
+          <Route path="legal/clients" element={<ClientList />} />
+          <Route path="legal/clients/:id" element={<ClientDetail />} />
+          <Route path="legal/contracts" element={<LegalContractList />} />
+          <Route path="legal/contracts/:id" element={<LegalContractDetail />} />
+          <Route path="legal/workflows" element={<WorkflowList />} />
+          <Route path="legal/workflows/:id" element={<WorkflowDetail />} />
+          <Route path="legal/tasks" element={<TaskList />} />
+          <Route path="legal/tasks/:id" element={<TaskDetail />} />
+          <Route path="legal/audit-logs" element={<AuditLogList />} />
           
           {/* Catch-all redirect to dashboard */}
           <Route path="*" element={<Navigate to="/" replace />} />
