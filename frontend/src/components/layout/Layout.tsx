@@ -53,9 +53,9 @@ export default function Layout({ children, title }: LayoutProps) {
           {/* Desktop menu */}
           <nav className="hidden md:flex space-x-4">
             {navItems.map((item) => (
-              <a
+              <button
                 key={item.path}
-                href={item.path === '' ? '#/' : `#/${item.path}`}
+                onClick={() => navigate(item.path === '' ? '/' : `/${item.path}`)}
                 className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
                   (location.hash === `#/${item.path}` || 
                    (item.path === '' && location.hash === '#/') ||
@@ -66,7 +66,7 @@ export default function Layout({ children, title }: LayoutProps) {
               >
                 <span className="mr-2">{item.icon}</span>
                 {item.label}
-              </a>
+              </button>
             ))}
             <button 
               onClick={handleLogout}
@@ -83,23 +83,23 @@ export default function Layout({ children, title }: LayoutProps) {
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
               {navItems.map((item) => (
-                <a
+                <button
                   key={item.path}
-                  href={item.path === '' ? '#/' : `#/${item.path}`}
-                  className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
+                  onClick={() => {
+                    navigate(item.path === '' ? '/' : `/${item.path}`);
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`flex w-full items-center px-3 py-2 text-sm font-medium rounded-md text-left ${
                     (location.hash === `#/${item.path}` || 
                      (item.path === '' && location.hash === '#/') ||
                      (item.path !== '' && location.hash.startsWith(`#/${item.path}`)))
                       ? 'bg-gray-100 text-gray-900'
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   }`}
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                  }}
                 >
                   <span className="mr-2">{item.icon}</span>
                   {item.label}
-                </a>
+                </button>
               ))}
               <button 
                 onClick={() => {
