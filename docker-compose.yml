@@ -9,23 +9,23 @@ services:
       - ./backend:/app
     environment:
       - PYTHONPATH=/app
-      - AI_FALLBACK_MODE=true
+      - AI_FALLBACK_MODE=false
+      - MISTRAL_API_URL=http://ai-service:80
+    depends_on:
+      - ai-service
 
-  # AI service commented out since we're using fallback mode
-  # Uncomment and configure properly when GPU support is available
-  # ai-service:
-  #   image: ghcr.io/huggingface/text-generation-inference:1.1.0
-  #   ports:
-  #     - "8080:80"
-  #   volumes:
-  #     - ai-model-data:/data
-  #   environment:
-  #     - MODEL_ID=teknium/OpenHermes-2.5-Mistral-7B
-  #     - QUANTIZE=bitsandbytes
-  #     - MAX_INPUT_LENGTH=4096
-  #     - MAX_TOTAL_TOKENS=8192
-  #     - USE_CUDA=true
-  #     - CUDA_VISIBLE_DEVICES=0
+  # AI service for Mistral 7B model
+  ai-service:
+    image: ghcr.io/huggingface/text-generation-inference:1.1.0
+    ports:
+      - "8080:80"
+    volumes:
+      - ai-model-data:/data
+    environment:
+      - MODEL_ID=teknium/OpenHermes-2.5-Mistral-7B
+      - QUANTIZE=q4_k_m
+      - MAX_INPUT_LENGTH=4096
+      - MAX_TOTAL_TOKENS=8192
 
 volumes:
   ai-model-data:

@@ -4,6 +4,7 @@ Client for interacting with the LLM model via the Text Generation Inference API.
 import json
 import logging
 import httpx
+import os
 from typing import Dict, List, Optional, Any, Union
 from pydantic import BaseModel
 
@@ -20,10 +21,12 @@ class MistralRequest(BaseModel):
     }
 
 class MistralClient:
-    def __init__(self, base_url: str = "http://ai-service:80"):
-        self.base_url = base_url
+    def __init__(self, base_url: str = None):
+        self.base_url = base_url or os.environ.get("MISTRAL_API_URL", "http://ai-service:80")
+        logger.info(f"Initializing MistralClient with base_url: {self.base_url}")
         self.client = httpx.AsyncClient(timeout=60.0)
-        self.fallback_mode = True
+        self.fallback_mode = os.environ.get("AI_FALLBACK_MODE", "false").lower() == "true"
+        logger.info(f"Fallback mode is {'enabled' if self.fallback_mode else 'disabled'}")
         
     async def generate(self, prompt: str, **kwargs) -> str:
         """
@@ -55,23 +58,41 @@ class MistralClient:
             return self._get_fallback_response(prompt)
         
         try:
+            logger.info(f"Attempting to connect to LLM at {self.base_url}/generate with prompt: {prompt[:50]}...")
+            logger.info(f"Request parameters: {parameters}")
+            
             response = await self.client.post(
                 f"{self.base_url}/generate",
-                json=request.dict(),
+                json=request.model_dump(),  # Use model_dump() instead of dict() for Pydantic v2
                 headers={"Content-Type": "application/json"}
             )
+            
+            logger.info(f"Response status code: {response.status_code}")
             response.raise_for_status()
+            
             result = response.json()
+            logger.info(f"Response received: {str(result)[:200]}...")
             
             if "generated_text" in result:
+                logger.info("Successfully extracted generated_text from response")
                 return result["generated_text"]
             else:
                 logger.error(f"Unexpected response format: {result}")
+                logger.error("Response keys: " + ", ".join(result.keys()))
                 self.fallback_mode = True
                 return self._get_fallback_response(prompt)
                 
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error when connecting to LLM: {e.response.status_code} - {e.response.text}")
+            self.fallback_mode = True
+            return self._get_fallback_response(prompt)
+        except httpx.ConnectError as e:
+            logger.error(f"Connection error when connecting to LLM: {e} - Is the AI service running?")
+            logger.error(f"Attempted to connect to: {self.base_url}")
+            self.fallback_mode = True
+            return self._get_fallback_response(prompt)
         except Exception as e:
-            logger.error(f"Error generating text with LLM: {e}")
+            logger.error(f"Error generating text with LLM: {type(e).__name__} - {e}")
             self.fallback_mode = True
             return self._get_fallback_response(prompt)
             
