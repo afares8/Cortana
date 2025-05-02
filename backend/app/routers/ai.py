@@ -17,6 +17,7 @@ from app.schemas.ai_schemas import (
     ClauseExtractionRequest,
     NaturalLanguageQueryRequest,
 )
+from app.schemas.mistral import GenerateRequest, GenerateResponse
 from app.db.init_db import (
     contracts_db, 
     extracted_clauses_db, 
@@ -376,7 +377,7 @@ async def natural_language_query(request: NaturalLanguageQueryRequest):
     return saved_query
 
 
-@router.post("/mistral/generate", response_model=Dict[str, Any])
+@router.post("/mistral/generate", response_model=GenerateResponse)
 async def generate_text(request: GenerateRequest):
     """
     Forward a text generation request to the Mistral model.
@@ -405,11 +406,11 @@ async def generate_text(request: GenerateRequest):
         
         is_fallback = "fallback response" in response.lower()
         
-        return {
-            "generated_text": response,
-            "is_fallback": is_fallback,
-            "model": "OpenHermes-2.5-Mistral-7B" if not is_fallback else "Fallback Model"
-        }
+        return GenerateResponse(
+            generated_text=response,
+            is_fallback=is_fallback,
+            model="OpenHermes-2.5-Mistral-7B" if not is_fallback else "Fallback Model"
+        )
         
     except Exception as e:
         logger.error(f"Error generating text with Mistral model: {e}")
@@ -419,12 +420,12 @@ async def generate_text(request: GenerateRequest):
             "which may not be available in the current environment. "
             "For production use, consider deploying on GPU-enabled infrastructure."
         )
-        return {
-            "generated_text": fallback_response,
-            "is_fallback": True,
-            "error": str(e),
-            "model": "Error Fallback"
-        }
+        return GenerateResponse(
+            generated_text=fallback_response,
+            is_fallback=True,
+            error=str(e),
+            model="Error Fallback"
+        )
 
 
 @router.get("/dashboard/stats", response_model=Dict[str, Any])
