@@ -24,8 +24,12 @@ services:
       # - AI_FALLBACK_MODE=true  # Force fallback mode (for CPU environments)
       # - AI_FALLBACK_MODE=false # Force real model (for GPU environments)
       - MISTRAL_API_URL=http://ai-service:80
-    depends_on:
-      - ai-service
+    # The backend depends on either ai-service-gpu or ai-service-cpu
+    # depending on which profile is active
+    profiles:
+      - gpu
+      - cpu
+      - default
 
   # Real AI service with GPU support (requires NVIDIA GPU)
   # This service is only started when using the 'gpu' profile
