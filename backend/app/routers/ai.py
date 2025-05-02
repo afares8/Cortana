@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Dict, List, Optional, Any
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, Query, Body, BackgroundTasks
 import logging
+from pydantic import BaseModel
 
 from app.models.contract import Contract
 from app.models.ai_models import ExtractedClause, RiskScore, ComplianceCheck, AIQuery, ContractAnomaly
@@ -36,6 +37,15 @@ from app.services.ai.mistral_client import mistral_client
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+class GenerateRequest(BaseModel):
+    """Request model for the generate endpoint."""
+    inputs: str
+    max_new_tokens: Optional[int] = 512
+    temperature: Optional[float] = 0.7
+    top_p: Optional[float] = 0.95
+    do_sample: Optional[bool] = True
+    repetition_penalty: Optional[float] = 1.1
 
 
 @router.post("/extract-clauses", response_model=List[ExtractedClauseSchema])
@@ -364,6 +374,57 @@ async def natural_language_query(request: NaturalLanguageQueryRequest):
     saved_query = ai_queries_db.create(obj_in=query)
     
     return saved_query
+
+
+@router.post("/mistral/generate", response_model=Dict[str, Any])
+async def generate_text(request: GenerateRequest):
+    """
+    Forward a text generation request to the Mistral model.
+    
+    This endpoint directly forwards the request to the Mistral service
+    and returns the raw response. If the Mistral service is unavailable,
+    it will return a fallback response with a warning.
+    
+    Args:
+        request: The generation request containing the input text and optional parameters
+        
+    Returns:
+        The generated text response from the model or a fallback response
+    """
+    logger.info(f"Received generate request with prompt: {request.inputs[:50]}...")
+    
+    try:
+        response = await mistral_client.generate(
+            prompt=request.inputs,
+            max_new_tokens=request.max_new_tokens,
+            temperature=request.temperature,
+            top_p=request.top_p,
+            do_sample=request.do_sample,
+            repetition_penalty=request.repetition_penalty
+        )
+        
+        is_fallback = "fallback response" in response.lower()
+        
+        return {
+            "generated_text": response,
+            "is_fallback": is_fallback,
+            "model": "OpenHermes-2.5-Mistral-7B" if not is_fallback else "Fallback Model"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error generating text with Mistral model: {e}")
+        fallback_response = (
+            f"Error generating text: {str(e)}. "
+            "The Mistral 7B model requires GPU hardware with Flash Attention v2 support, "
+            "which may not be available in the current environment. "
+            "For production use, consider deploying on GPU-enabled infrastructure."
+        )
+        return {
+            "generated_text": fallback_response,
+            "is_fallback": True,
+            "error": str(e),
+            "model": "Error Fallback"
+        }
 
 
 @router.get("/dashboard/stats", response_model=Dict[str, Any])
