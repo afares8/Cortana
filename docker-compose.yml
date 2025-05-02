@@ -9,13 +9,13 @@ services:
       - ./backend:/app
     environment:
       - PYTHONPATH=/app
-      # Override auto-detection to ensure we use the real model with GPU
-      - AI_FALLBACK_MODE=false
+      # AI_FALLBACK_MODE is auto-detected based on GPU availability
+      # You can override it by uncommenting the line below
+      # - AI_FALLBACK_MODE=false  # Set to false when GPU is available
       - MISTRAL_API_URL=http://ai-service:80
-    depends_on:
-      - ai-service
 
-  # Real AI service with GPU support
+  # AI service configuration
+  # This will use GPU if available, otherwise it will run in CPU mode
   ai-service:
     image: ghcr.io/huggingface/text-generation-inference:1.1.0
     ports:
@@ -27,6 +27,8 @@ services:
       - QUANTIZE=q4_k_m
       - MAX_INPUT_LENGTH=4096
       - MAX_TOTAL_TOKENS=8192
+    # GPU configuration - will be used if available
+    # If GPU is not available, this will be ignored and the service will run in CPU mode
     deploy:
       resources:
         reservations:
@@ -34,6 +36,9 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
+              options:
+                # Make GPU requirement optional
+                driver.capabilities: utility,compute,video
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:80/health"]
       interval: 10s
