@@ -64,7 +64,7 @@ async def extract_contract_clauses(request: ClauseExtractionRequest):
         if existing_clauses:
             saved_clauses.append(existing_clauses[0])
         else:
-            saved_clause = extracted_clauses_db.create(clause)
+            saved_clause = extracted_clauses_db.create(obj_in=clause)
             saved_clauses.append(saved_clause)
     
     return saved_clauses
@@ -102,7 +102,7 @@ async def calculate_contract_risk(contract_id: int):
         text_content = extract_text_from_file(contract.file_path)
         clauses = extract_clauses(contract, text_content)
         for clause in clauses:
-            extracted_clauses_db.create(clause)
+            extracted_clauses_db.create(obj_in=clause)
     
     risk_score = calculate_risk_score(contract, clauses)
     
@@ -111,7 +111,7 @@ async def calculate_contract_risk(contract_id: int):
         updated_score = risk_scores_db.update(existing_scores[0].id, risk_score)
         return updated_score
     else:
-        saved_score = risk_scores_db.create(risk_score)
+        saved_score = risk_scores_db.create(obj_in=risk_score)
         return saved_score
 
 
@@ -146,7 +146,7 @@ async def detect_contract_anomalies(contract_id: int, background_tasks: Backgrou
         text_content = extract_text_from_file(contract.file_path)
         clauses = extract_clauses(contract, text_content)
         for clause in clauses:
-            extracted_clauses_db.create(clause)
+            extracted_clauses_db.create(obj_in=clause)
     
     # Detect anomalies using traditional NLP methods
     anomalies = detect_anomalies(contract, clauses)
@@ -163,7 +163,7 @@ async def detect_contract_anomalies(contract_id: int, background_tasks: Backgrou
         if existing_anomalies:
             saved_anomalies.append(existing_anomalies[0])
         else:
-            saved_anomaly = contract_anomalies_db.create(anomaly)
+            saved_anomaly = contract_anomalies_db.create(obj_in=anomaly)
             saved_anomalies.append(saved_anomaly)
     
     background_tasks.add_task(detect_mistral_anomalies, contract_id)
@@ -211,7 +211,7 @@ async def detect_mistral_anomalies(contract_id: int):
                 )
                 
                 if not existing_anomalies:
-                    contract_anomalies_db.create(anomaly)
+                    contract_anomalies_db.create(obj_in=anomaly)
         
         logger.info(f"Mistral anomaly detection completed for contract {contract_id}")
         
@@ -289,7 +289,7 @@ async def enhance_contract_analysis(contract_id: int):
                     detected_at=datetime.now(),
                     metadata={"source": "mistral", "details": risk}
                 )
-                contract_anomalies_db.create(anomaly)
+                contract_anomalies_db.create(obj_in=anomaly)
         
         logger.info(f"Enhanced analysis completed for contract {contract_id}")
         
@@ -361,7 +361,7 @@ async def natural_language_query(request: NaturalLanguageQueryRequest):
         response_text=response_text,
         related_contract_ids=[c.id for c in related_contracts],
     )
-    saved_query = ai_queries_db.create(query)
+    saved_query = ai_queries_db.create(obj_in=query)
     
     return saved_query
 
