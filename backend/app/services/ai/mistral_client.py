@@ -5,7 +5,9 @@ import json
 import logging
 import httpx
 import os
-from typing import Dict, List, Optional, Any, Union
+import platform
+import subprocess
+from typing import Dict, List, Optional, Any, Union, Tuple
 from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
@@ -25,8 +27,89 @@ class MistralClient:
         self.base_url = base_url or os.environ.get("MISTRAL_API_URL", "http://ai-service:80")
         logger.info(f"Initializing MistralClient with base_url: {self.base_url}")
         self.client = httpx.AsyncClient(timeout=60.0)
-        self.fallback_mode = os.environ.get("AI_FALLBACK_MODE", "false").lower() == "true"
+        
+        env_fallback = os.environ.get("AI_FALLBACK_MODE", "").lower()
+        
+        if env_fallback == "":
+            has_gpu, gpu_info = self._check_gpu_available()
+            self.fallback_mode = not has_gpu
+            logger.info(f"Auto-detected GPU availability: {'Available' if has_gpu else 'Not available'}")
+            if has_gpu:
+                logger.info(f"GPU info: {gpu_info}")
+            else:
+                logger.info("No GPU detected, using fallback mode")
+        else:
+            self.fallback_mode = env_fallback == "true"
+            logger.info(f"Fallback mode explicitly set to: {self.fallback_mode}")
+        
         logger.info(f"Fallback mode is {'enabled' if self.fallback_mode else 'disabled'}")
+    
+    def _check_gpu_available(self) -> Tuple[bool, str]:
+        """
+        Check if GPU is available for running the Mistral model.
+        
+        Returns:
+            Tuple[bool, str]: (has_gpu, gpu_info)
+        """
+        gpu_info = "No GPU information available"
+        
+        try:
+            import torch
+            if torch.cuda.is_available():
+                device_count = torch.cuda.device_count()
+                device_name = torch.cuda.get_device_name(0) if device_count > 0 else "Unknown"
+                gpu_info = f"CUDA available: {device_count} device(s), Device 0: {device_name}"
+                return True, gpu_info
+        except (ImportError, Exception) as e:
+            logger.debug(f"Could not check CUDA via torch: {e}")
+        
+        try:
+            if platform.system() == "Linux":
+                result = subprocess.run(
+                    ["which", "nvidia-smi"], 
+                    stdout=subprocess.PIPE, 
+                    stderr=subprocess.PIPE,
+                    text=True
+                )
+                
+                if result.returncode == 0:
+                    nvidia_smi = subprocess.run(
+                        ["nvidia-smi", "--query-gpu=name,memory.total,driver_version", "--format=csv,noheader"],
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        text=True
+                    )
+                    
+                    if nvidia_smi.returncode == 0 and nvidia_smi.stdout.strip():
+                        gpu_info = f"NVIDIA GPU: {nvidia_smi.stdout.strip()}"
+                        return True, gpu_info
+        except Exception as e:
+            logger.debug(f"Could not check NVIDIA GPU via system commands: {e}")
+        
+        try:
+            if platform.system() == "Linux":
+                result = subprocess.run(
+                    ["which", "rocm-smi"], 
+                    stdout=subprocess.PIPE, 
+                    stderr=subprocess.PIPE,
+                    text=True
+                )
+                
+                if result.returncode == 0:
+                    rocm_smi = subprocess.run(
+                        ["rocm-smi", "--showproductname"],
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        text=True
+                    )
+                    
+                    if rocm_smi.returncode == 0 and "GPU" in rocm_smi.stdout:
+                        gpu_info = f"AMD GPU: {rocm_smi.stdout.strip()}"
+                        return True, gpu_info
+        except Exception as e:
+            logger.debug(f"Could not check AMD GPU via system commands: {e}")
+        
+        return False, gpu_info
         
     async def generate(self, prompt: str, **kwargs) -> str:
         """
