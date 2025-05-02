@@ -1,15 +1,5 @@
 version: '3.8'
 
-# This docker-compose.yml is designed to work in both GPU and non-GPU environments
-# It includes two different service configurations for the AI service:
-# 1. ai-service-gpu: Uses the real Mistral 7B model with GPU acceleration (requires NVIDIA GPU)
-# 2. ai-service-cpu: Uses a mock service that provides fallback responses (works on any environment)
-#
-# The appropriate service is selected based on the COMPOSE_PROFILES environment variable:
-# - For GPU environments: COMPOSE_PROFILES=gpu docker-compose up -d
-# - For CPU environments: COMPOSE_PROFILES=cpu docker-compose up -d
-# - If no profile is specified, it defaults to CPU mode
-
 services:
   backend:
     build: ./backend
@@ -20,19 +10,16 @@ services:
     environment:
       - PYTHONPATH=/app
       # AI_FALLBACK_MODE is auto-detected based on GPU availability
-      # You can override it by uncommenting one of the lines below
-      # - AI_FALLBACK_MODE=true  # Force fallback mode (for CPU environments)
-      # - AI_FALLBACK_MODE=false # Force real model (for GPU environments)
+      # You can override it manually:
+      # - AI_FALLBACK_MODE=true  # Force fallback mode (CPU only)
+      # - AI_FALLBACK_MODE=false # Force real model (GPU only)
       - MISTRAL_API_URL=http://ai-service:80
-    # The backend depends on either ai-service-gpu or ai-service-cpu
-    # depending on which profile is active
     profiles:
       - gpu
       - cpu
       - default
 
-  # Real AI service with GPU support (requires NVIDIA GPU)
-  # This service is only started when using the 'gpu' profile
+  # Real AI service with GPU support
   ai-service-gpu:
     image: ghcr.io/huggingface/text-generation-inference:1.1.0
     profiles: ["gpu"]
@@ -40,11 +27,6 @@ services:
       - "8080:80"
     volumes:
       - ai-model-data:/data
-    environment:
-      - MODEL_ID=teknium/OpenHermes-2.5-Mistral-7B
-      - QUANTIZE=q4_k_m
-      - MAX_INPUT_LENGTH=4096
-      - MAX_TOTAL_TOKENS=8192
     deploy:
       resources:
         reservations:
@@ -52,20 +34,23 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
+    environment:
+      - MODEL_ID=teknium/OpenHermes-2.5-Mistral-7B
+      - QUANTIZE=q4_k_m
+      - MAX_INPUT_LENGTH=4096
+      - MAX_TOTAL_TOKENS=8192
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:80/health"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
-    # This service is aliased as 'ai-service' so the backend can connect to it
     networks:
       default:
         aliases:
           - ai-service
 
-  # Mock AI service for CPU-only environments
-  # This service is only started when using the 'cpu' profile or no profile
+  # Mock AI service for CPU-only fallback
   ai-service-cpu:
     image: nginx:alpine
     profiles: ["cpu", "default"]
@@ -79,7 +64,6 @@ services:
       timeout: 5s
       retries: 5
       start_period: 5s
-    # This service is aliased as 'ai-service' so the backend can connect to it
     networks:
       default:
         aliases:
