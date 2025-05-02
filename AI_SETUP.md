@@ -12,38 +12,58 @@ For optimal performance with the Mistral 7B model:
 - Docker with GPU support enabled
 
 ### CPU-only Environment (Fallback)
-The system will automatically detect if GPU is not available and use fallback mode:
+The system will automatically use fallback mode in CPU-only environments:
 - Provides pre-defined responses for common legal queries
 - Clearly indicates when responses are fallbacks
 - No special hardware requirements
 
-## Configuration Options
+## Using Docker Compose Profiles
 
-The `docker-compose.yml` file is designed to work in both GPU and non-GPU environments:
+The `docker-compose.yml` file now uses Docker Compose profiles to select the appropriate AI service based on your environment:
 
-1. **Auto-detection (Default)**
-   - The system automatically detects if GPU is available
-   - Uses the real model when GPU is present
-   - Falls back to CPU mode when GPU is not available
-
-2. **Manual Override**
-   - You can manually set fallback mode by uncommenting and setting the `AI_FALLBACK_MODE` environment variable in `docker-compose.yml`:
-     ```yaml
-     # Force fallback mode regardless of GPU availability
-     - AI_FALLBACK_MODE=true
-     
-     # Force real model usage (requires GPU)
-     - AI_FALLBACK_MODE=false
-     ```
-
-## Starting the Services
+### For GPU Environments (with NVIDIA GPU)
 
 ```bash
+# Set the COMPOSE_PROFILES environment variable to 'gpu'
+export COMPOSE_PROFILES=gpu
+
 # Stop any running services
 docker compose down
 
-# Start services with the updated configuration
+# Start services with GPU support
 docker compose up --build -d
+```
+
+### For CPU-only Environments (or when GPU is not available)
+
+```bash
+# Set the COMPOSE_PROFILES environment variable to 'cpu'
+export COMPOSE_PROFILES=cpu
+
+# Stop any running services
+docker compose down
+
+# Start services in CPU-only mode
+docker compose up --build -d
+```
+
+If you don't specify a profile, the system will default to CPU mode:
+
+```bash
+# No profile specified, defaults to CPU mode
+docker compose up --build -d
+```
+
+## Additional Configuration Options
+
+You can also manually override the fallback mode by setting the `AI_FALLBACK_MODE` environment variable in `docker-compose.yml`:
+
+```yaml
+# Force fallback mode regardless of GPU availability
+- AI_FALLBACK_MODE=true
+
+# Force real model usage (requires GPU)
+- AI_FALLBACK_MODE=false
 ```
 
 ## Verifying the Setup
@@ -66,9 +86,12 @@ docker compose up --build -d
 
 3. **Check Container Logs**
    ```bash
-   docker compose logs ai-service
+   # For GPU mode
+   docker compose logs ai-service-gpu
+   
+   # For CPU mode
+   docker compose logs ai-service-cpu
    ```
-   Monitor for any errors or warnings in the AI service.
 
 ## Troubleshooting
 
@@ -86,6 +109,8 @@ If the AI service starts but fails to load the model:
 
 ### Connection Issues
 If the backend can't connect to the AI service:
-1. Verify the AI service is running: `docker ps | grep ai-service`
-2. Check the AI service logs: `docker compose logs ai-service`
+1. Verify the correct AI service is running based on your profile:
+   - GPU mode: `docker ps | grep ai-service-gpu`
+   - CPU mode: `docker ps | grep ai-service-cpu`
+2. Check the AI service logs for the appropriate service
 3. Ensure the URL is correct: `MISTRAL_API_URL=http://ai-service:80`
