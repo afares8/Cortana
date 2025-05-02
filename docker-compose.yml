@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   backend:
     build: ./backend
@@ -7,10 +9,20 @@ services:
       - ./backend:/app
     environment:
       - PYTHONPATH=/app
-      - AI_FALLBACK_MODE=false
+      # AI_FALLBACK_MODE is auto-detected based on GPU availability
+      # You can override it manually:
+      # - AI_FALLBACK_MODE=true  # Force fallback mode (CPU only)
+      # - AI_FALLBACK_MODE=false # Force real model (GPU only)
+      - MISTRAL_API_URL=http://ai-service:80
+    profiles:
+      - gpu
+      - cpu
+      - default
 
-  ai-service:
+  # Real AI service with GPU support
+  ai-service-gpu:
     image: ghcr.io/huggingface/text-generation-inference:1.1.0
+    profiles: ["gpu"]
     ports:
       - "8080:80"
     volumes:
@@ -19,14 +31,43 @@ services:
       resources:
         reservations:
           devices:
-            - capabilities: [gpu]
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     environment:
       - MODEL_ID=teknium/OpenHermes-2.5-Mistral-7B
       - QUANTIZE=q4_k_m
       - MAX_INPUT_LENGTH=4096
       - MAX_TOTAL_TOKENS=8192
-      - USE_CUDA=true
-      - CUDA_VISIBLE_DEVICES=0  # usa tu primera GPU
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      default:
+        aliases:
+          - ai-service
+
+  # Mock AI service for CPU-only fallback
+  ai-service-cpu:
+    image: nginx:alpine
+    profiles: ["cpu", "default"]
+    ports:
+      - "8080:80"
+    volumes:
+      - ./backend/app/services/ai/mock_service:/usr/share/nginx/html
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:80/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      default:
+        aliases:
+          - ai-service
 
 volumes:
   ai-model-data:

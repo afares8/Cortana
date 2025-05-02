@@ -6,7 +6,7 @@ import logging
 
 from app.core.config import settings
 from app.db.init_db import init_db
-from app.routers import auth, contracts, ai
+from app.routers import auth, contracts, ai, test_mistral
 from app.services.email import setup_scheduler
 from app.legal.routers import router as legal_router
 from app.legal.services import init_legal_db
@@ -37,6 +37,9 @@ app.include_router(
 )
 app.include_router(
     legal_router, prefix=f"{settings.API_V1_STR}/legal", tags=["legal"]
+)
+app.include_router(
+    test_mistral.router, prefix=f"{settings.API_V1_STR}", tags=["test"]
 )
 
 os.makedirs("uploads", exist_ok=True)

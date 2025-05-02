@@ -9,7 +9,6 @@ from datetime import datetime
 from typing import Dict, List, Optional, Any, Tuple
 
 import nltk
-import spacy
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -26,15 +25,7 @@ try:
 except Exception as e:
     logger.warning(f"Failed to download NLTK resources: {e}")
 
-try:
-    nlp = spacy.load("en_core_web_sm")
-except Exception as e:
-    logger.warning(f"Failed to load spaCy model: {e}")
-    try:
-        nlp = spacy.blank("en")
-    except Exception as e2:
-        logger.error(f"Failed to load fallback spaCy model: {e2}")
-        nlp = None
+nlp = None
 
 CLAUSE_PATTERNS = {
     "confidentiality": [

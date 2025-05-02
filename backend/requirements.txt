@@ -13,6 +13,10 @@ mangum==0.17.0
 nltk==3.8.1
 scikit-learn==1.3.2
 httpx==0.27.0
+psutil==5.9.5
+# GPU detection (will be installed if available, otherwise safely skipped)
+torch>=2.0.0; platform_system != "Windows"
+torchvision>=0.15.0; platform_system != "Windows"
 # Removed problematic dependencies:
 # spacy==3.7.2
 # sentence-transformers==2.2.2

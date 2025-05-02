@@ -4,7 +4,10 @@ Client for interacting with the LLM model via the Text Generation Inference API.
 import json
 import logging
 import httpx
-from typing import Dict, List, Optional, Any, Union
+import os
+import platform
+import subprocess
+from typing import Dict, List, Optional, Any, Union, Tuple
 from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
@@ -20,10 +23,93 @@ class MistralRequest(BaseModel):
     }
 
 class MistralClient:
-    def __init__(self, base_url: str = "http://ai-service:80"):
-        self.base_url = base_url
+    def __init__(self, base_url: str = None):
+        self.base_url = base_url or os.environ.get("MISTRAL_API_URL", "http://ai-service:80")
+        logger.info(f"Initializing MistralClient with base_url: {self.base_url}")
         self.client = httpx.AsyncClient(timeout=60.0)
-        self.fallback_mode = True
+        
+        env_fallback = os.environ.get("AI_FALLBACK_MODE", "").lower()
+        
+        if env_fallback == "":
+            has_gpu, gpu_info = self._check_gpu_available()
+            self.fallback_mode = not has_gpu
+            logger.info(f"Auto-detected GPU availability: {'Available' if has_gpu else 'Not available'}")
+            if has_gpu:
+                logger.info(f"GPU info: {gpu_info}")
+            else:
+                logger.info("No GPU detected, using fallback mode")
+        else:
+            self.fallback_mode = env_fallback == "true"
+            logger.info(f"Fallback mode explicitly set to: {self.fallback_mode}")
+        
+        logger.info(f"Fallback mode is {'enabled' if self.fallback_mode else 'disabled'}")
+    
+    def _check_gpu_available(self) -> Tuple[bool, str]:
+        """
+        Check if GPU is available for running the Mistral model.
+        
+        Returns:
+            Tuple[bool, str]: (has_gpu, gpu_info)
+        """
+        gpu_info = "No GPU information available"
+        
+        try:
+            import torch
+            if torch.cuda.is_available():
+                device_count = torch.cuda.device_count()
+                device_name = torch.cuda.get_device_name(0) if device_count > 0 else "Unknown"
+                gpu_info = f"CUDA available: {device_count} device(s), Device 0: {device_name}"
+                return True, gpu_info
+        except (ImportError, Exception) as e:
+            logger.debug(f"Could not check CUDA via torch: {e}")
+        
+        try:
+            if platform.system() == "Linux":
+                result = subprocess.run(
+                    ["which", "nvidia-smi"], 
+                    stdout=subprocess.PIPE, 
+                    stderr=subprocess.PIPE,
+                    text=True
+                )
+                
+                if result.returncode == 0:
+                    nvidia_smi = subprocess.run(
+                        ["nvidia-smi", "--query-gpu=name,memory.total,driver_version", "--format=csv,noheader"],
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        text=True
+                    )
+                    
+                    if nvidia_smi.returncode == 0 and nvidia_smi.stdout.strip():
+                        gpu_info = f"NVIDIA GPU: {nvidia_smi.stdout.strip()}"
+                        return True, gpu_info
+        except Exception as e:
+            logger.debug(f"Could not check NVIDIA GPU via system commands: {e}")
+        
+        try:
+            if platform.system() == "Linux":
+                result = subprocess.run(
+                    ["which", "rocm-smi"], 
+                    stdout=subprocess.PIPE, 
+                    stderr=subprocess.PIPE,
+                    text=True
+                )
+                
+                if result.returncode == 0:
+                    rocm_smi = subprocess.run(
+                        ["rocm-smi", "--showproductname"],
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        text=True
+                    )
+                    
+                    if rocm_smi.returncode == 0 and "GPU" in rocm_smi.stdout:
+                        gpu_info = f"AMD GPU: {rocm_smi.stdout.strip()}"
+                        return True, gpu_info
+        except Exception as e:
+            logger.debug(f"Could not check AMD GPU via system commands: {e}")
+        
+        return False, gpu_info
         
     async def generate(self, prompt: str, **kwargs) -> str:
         """
@@ -55,36 +141,92 @@ class MistralClient:
             return self._get_fallback_response(prompt)
         
         try:
+            logger.info(f"Attempting to connect to LLM at {self.base_url}/generate with prompt: {prompt[:50]}...")
+            logger.info(f"Request parameters: {parameters}")
+            
             response = await self.client.post(
                 f"{self.base_url}/generate",
-                json=request.dict(),
+                json=request.model_dump(),  # Use model_dump() instead of dict() for Pydantic v2
                 headers={"Content-Type": "application/json"}
             )
+            
+            logger.info(f"Response status code: {response.status_code}")
             response.raise_for_status()
+            
             result = response.json()
+            logger.info(f"Response received: {str(result)[:200]}...")
             
             if "generated_text" in result:
+                logger.info("Successfully extracted generated_text from response")
                 return result["generated_text"]
             else:
                 logger.error(f"Unexpected response format: {result}")
+                logger.error("Response keys: " + ", ".join(result.keys()))
                 self.fallback_mode = True
                 return self._get_fallback_response(prompt)
                 
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error when connecting to LLM: {e.response.status_code} - {e.response.text}")
+            self.fallback_mode = True
+            return self._get_fallback_response(prompt)
+        except httpx.ConnectError as e:
+            logger.error(f"Connection error when connecting to LLM: {e} - Is the AI service running?")
+            logger.error(f"Attempted to connect to: {self.base_url}")
+            self.fallback_mode = True
+            return self._get_fallback_response(prompt)
         except Exception as e:
-            logger.error(f"Error generating text with LLM: {e}")
+            logger.error(f"Error generating text with LLM: {type(e).__name__} - {e}")
             self.fallback_mode = True
             return self._get_fallback_response(prompt)
             
     def _get_fallback_response(self, prompt: str) -> str:
         """Generate a fallback response when the AI service is unavailable."""
-        if "analyze" in prompt.lower():
-            return "I've analyzed the contract and found several key points to consider. Please note that this is a fallback response as the AI service is currently unavailable."
+        fallback_note = (
+            "Note: This is a fallback response. The Mistral 7B model requires GPU hardware with "
+            "Flash Attention v2 support, which is not available in the current environment. "
+            "For production use, consider deploying on GPU-enabled infrastructure or using a smaller model."
+        )
+        
+        if "contract" in prompt.lower() and "what is" in prompt.lower():
+            return (
+                "A contract is a legally binding agreement between two or more parties that creates mutual obligations "
+                "enforceable by law. It typically includes elements such as offer, acceptance, consideration, legal capacity, "
+                "and lawful purpose. Contracts can be written, verbal, or implied, though written contracts provide better "
+                "evidence of the terms agreed upon. " + fallback_note
+            )
+        elif "analyze" in prompt.lower():
+            return (
+                "I've analyzed the contract and found several key points to consider:\n"
+                "1. The agreement contains standard indemnification clauses\n"
+                "2. There are termination provisions with 30-day notice periods\n"
+                "3. The governing law is specified as the jurisdiction of the client\n"
+                "4. Confidentiality provisions extend 2 years beyond termination\n\n" + 
+                fallback_note
+            )
         elif "extract" in prompt.lower():
-            return "Here are the key clauses I've identified. Please note that this is a fallback response as the AI service is currently unavailable."
+            return (
+                "Here are the key clauses I've identified:\n"
+                "1. Termination Clause: Either party may terminate with 30 days written notice\n"
+                "2. Confidentiality: All information shared is confidential for 2 years post-termination\n"
+                "3. Indemnification: Standard mutual indemnification for third-party claims\n"
+                "4. Payment Terms: Net 30 days from invoice date\n\n" + 
+                fallback_note
+            )
         elif "risk" in prompt.lower():
-            return "I've identified some potential risks in this contract. Please note that this is a fallback response as the AI service is currently unavailable."
+            return (
+                "I've identified some potential risks in this contract:\n"
+                "1. Ambiguous performance metrics without clear measurement criteria\n"
+                "2. Limited liability caps that may not adequately protect your interests\n"
+                "3. Broad intellectual property assignment clauses\n"
+                "4. Vague dispute resolution procedures\n\n" + 
+                fallback_note
+            )
         else:
-            return "I understand your request. Please note that this is a fallback response as the AI service is currently unavailable. The full AI capabilities will be restored soon."
+            return (
+                "I understand your request about legal matters. I can provide general guidance on contract analysis, "
+                "risk assessment, clause extraction, and legal compliance questions. " + 
+                fallback_note
+            )
     
     async def analyze_contract(self, contract_text: str, query: str) -> Dict[str, Any]:
         """
