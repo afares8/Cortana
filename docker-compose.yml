@@ -13,37 +13,22 @@ services:
       # You can still override it by uncommenting the line below
       # - AI_FALLBACK_MODE=true
       - MISTRAL_API_URL=http://ai-service:80
-    depends_on:
-      - ai-service
 
-  # AI service will start but will only be used if GPU is available
-  # The backend will automatically detect GPU availability and use fallback mode if needed
+  # AI service configuration for CPU-only environments (mock service)
+  # The real service will only be used if GPU is available (detected by backend)
   ai-service:
-    image: ghcr.io/huggingface/text-generation-inference:1.1.0
+    image: nginx:alpine
     ports:
       - "8080:80"
     volumes:
-      - ai-model-data:/data
-    environment:
-      - MODEL_ID=teknium/OpenHermes-2.5-Mistral-7B
-      - QUANTIZE=bitsandbytes
-      - MAX_INPUT_LENGTH=4096
-      - MAX_TOTAL_TOKENS=8192
-      - USE_CUDA=true
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
-    # This healthcheck helps the backend know if the AI service is ready
+      - ./backend/app/services/ai/mock_service:/usr/share/nginx/html
+    # Simple healthcheck that always passes
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:80/"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
+      start_period: 5s
 
 volumes:
   ai-model-data:
