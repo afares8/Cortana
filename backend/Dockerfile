@@ -1,25 +1,28 @@
-FROM python:3.12 as builder
-
-WORKDIR /app
-
-RUN pip install poetry
-RUN poetry config virtualenvs.in-project true
-
-COPY pyproject.toml poetry.lock* ./
-RUN poetry install --no-root
-
 FROM python:3.12-slim
 
 WORKDIR /app
 
-COPY --from=builder /app/.venv .venv/
+# Install system dependencies
+RUN apt-get update -y && \
+    apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq5 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy application code
 COPY . .
 
-RUN apt-get update -y && apt-get install libpq5 -y && apt-get clean
+# Install Python dependencies directly
+RUN pip install --no-cache-dir -r requirements.txt
 
-ENV PATH="/app/.venv/bin:$PATH"
+# Make sure uvicorn is installed
+RUN pip install --no-cache-dir uvicorn fastapi
+
+# Set Python path
 ENV PYTHONPATH="/app:$PYTHONPATH"
 
 EXPOSE 8000
 
+# Use simple command that doesn't rely on module resolution
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
