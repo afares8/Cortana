@@ -343,6 +343,7 @@ async def natural_language_query(request: NaturalLanguageQueryRequest):
                 context_text += f"- {clause.clause_type.capitalize()}: {clause.clause_text[:200]}...\n"
         context_text += "\n"
     
+    is_fallback = False
     try:
         if context_text:
             response_text = await mistral_client.query_legal_assistant(query_text, context_text)
@@ -351,8 +352,10 @@ async def natural_language_query(request: NaturalLanguageQueryRequest):
                 query_text, 
                 "No specific contracts found matching this query."
             )
+        is_fallback = "fallback response" in response_text.lower() or "fallback note" in response_text.lower()
     except Exception as e:
         logger.error(f"Error querying Mistral model: {e}")
+        is_fallback = True
         if not related_contracts:
             response_text = f"I couldn't find any contracts matching your query: '{query_text}'"
         else:
@@ -371,6 +374,7 @@ async def natural_language_query(request: NaturalLanguageQueryRequest):
         query_text=query_text,
         response_text=response_text,
         related_contract_ids=[c.id for c in related_contracts],
+        is_fallback=is_fallback,
     )
     saved_query = ai_queries_db.create(obj_in=query)
     
