@@ -14,7 +14,7 @@ services:
       # - AI_FALLBACK_MODE=true  # Force fallback mode (CPU only)
       # - AI_FALLBACK_MODE=false # Force real model (GPU only)
       - MISTRAL_API_URL=http://ai-service:80
-      - AI_FALLBACK_MODE=false
+      # AI_FALLBACK_MODE=false
     profiles:
       - gpu
       - cpu
@@ -39,7 +39,7 @@ services:
               capabilities: [gpu]
     environment:
       - MODEL_ID=teknium/OpenHermes-2.5-Mistral-7B
-      - QUANTIZE=q4_k_m
+      - QUANTIZE=bitsandbytes-nf4
       - MAX_INPUT_LENGTH=4096
       - MAX_TOTAL_TOKENS=8192
     healthcheck:
