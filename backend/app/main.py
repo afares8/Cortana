@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import os
 import logging
+import os
+from logging.handlers import RotatingFileHandler
 
 from app.core.config import settings
 from app.db.init_db import init_db
@@ -11,9 +13,20 @@ from app.services.email import setup_scheduler
 from app.legal.routers import router as legal_router
 from app.legal.services import init_legal_db
 
+os.makedirs("/app/logs", exist_ok=True)
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.StreamHandler(),  # Console handler
+        RotatingFileHandler(
+            "/app/logs/backend.log", 
+            maxBytes=10485760,  # 10MB
+            backupCount=5,
+            encoding="utf-8"
+        )
+    ]
 )
 logger = logging.getLogger(__name__)
 
