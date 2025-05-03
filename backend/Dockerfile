@@ -8,22 +8,22 @@ RUN apt-get update -y && \
     build-essential \
     libpq5 \
     curl \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Copy application code
-COPY . .
+# Copy only requirements first to leverage Docker cache
+COPY requirements.txt .
 
-# Install Python dependencies directly
+# Install Python dependencies (cached unless requirements.txt changes)
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Make sure uvicorn is installed
+# Install essential packages separately
 RUN pip install --no-cache-dir uvicorn fastapi
 
-# Set Python path
+# Now copy the full app source
+COPY . .
+
 ENV PYTHONPATH="/app:$PYTHONPATH"
 
 EXPOSE 8000
 
-# Use simple command that doesn't rely on module resolution
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
