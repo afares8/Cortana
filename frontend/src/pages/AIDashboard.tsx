@@ -115,11 +115,12 @@ export default function AIDashboard() {
     setError(null);
     
     try {
-      const response = await axios.post(`${API_URL}/api/v1/ai/query`, {
-        query: query
+      const response = await axios.post(`${API_URL}/api/v1/ai/mistral/generate`, {
+        inputs: query,
+        max_new_tokens: 100
       });
       
-      setQueryResponse(response.data.response_text);
+      setQueryResponse(response.data.generated_text);
       setIsFallback(response.data.is_fallback || false);
     } catch (err) {
       console.error('Error querying AI:', err);
