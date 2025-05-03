@@ -14,13 +14,17 @@ services:
       # - AI_FALLBACK_MODE=true  # Force fallback mode (CPU only)
       # - AI_FALLBACK_MODE=false # Force real model (GPU only)
       - MISTRAL_API_URL=http://ai-service:80
+      # Explicitly set fallback mode to false when using GPU profile
+      - AI_FALLBACK_MODE=false
     profiles:
       - gpu
       - cpu
       - default
+    depends_on:
+      - ai-service
 
-  # Real AI service with GPU support
-  ai-service-gpu:
+  # Real AI service with GPU support - named ai-service directly
+  ai-service:
     image: ghcr.io/huggingface/text-generation-inference:1.1.0
     profiles: ["gpu"]
     ports:
@@ -45,10 +49,6 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
-    networks:
-      default:
-        aliases:
-          - ai-service
 
   # Mock AI service for CPU-only fallback
   ai-service-cpu:
