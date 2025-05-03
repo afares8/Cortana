@@ -46,70 +46,19 @@ class MistralClient:
     
     def _check_gpu_available(self) -> Tuple[bool, str]:
         """
-        Check if GPU is available for running the Mistral model.
+        Check if AI service is healthy and reachable.
         
         Returns:
-            Tuple[bool, str]: (has_gpu, gpu_info)
+            Tuple[bool, str]: (is_healthy, status_message)
         """
-        gpu_info = "No GPU information available"
-        
         try:
-            import torch
-            if torch.cuda.is_available():
-                device_count = torch.cuda.device_count()
-                device_name = torch.cuda.get_device_name(0) if device_count > 0 else "Unknown"
-                gpu_info = f"CUDA available: {device_count} device(s), Device 0: {device_name}"
-                return True, gpu_info
-        except (ImportError, Exception) as e:
-            logger.debug(f"Could not check CUDA via torch: {e}")
-        
-        try:
-            if platform.system() == "Linux":
-                result = subprocess.run(
-                    ["which", "nvidia-smi"], 
-                    stdout=subprocess.PIPE, 
-                    stderr=subprocess.PIPE,
-                    text=True
-                )
-                
-                if result.returncode == 0:
-                    nvidia_smi = subprocess.run(
-                        ["nvidia-smi", "--query-gpu=name,memory.total,driver_version", "--format=csv,noheader"],
-                        stdout=subprocess.PIPE,
-                        stderr=subprocess.PIPE,
-                        text=True
-                    )
-                    
-                    if nvidia_smi.returncode == 0 and nvidia_smi.stdout.strip():
-                        gpu_info = f"NVIDIA GPU: {nvidia_smi.stdout.strip()}"
-                        return True, gpu_info
+            response = httpx.get(f"{self.base_url}/health", timeout=5.0)
+            if response.status_code == 200:
+                return True, "AI service is healthy and reachable"
+            else:
+                return False, f"Health check failed with status {response.status_code}"
         except Exception as e:
-            logger.debug(f"Could not check NVIDIA GPU via system commands: {e}")
-        
-        try:
-            if platform.system() == "Linux":
-                result = subprocess.run(
-                    ["which", "rocm-smi"], 
-                    stdout=subprocess.PIPE, 
-                    stderr=subprocess.PIPE,
-                    text=True
-                )
-                
-                if result.returncode == 0:
-                    rocm_smi = subprocess.run(
-                        ["rocm-smi", "--showproductname"],
-                        stdout=subprocess.PIPE,
-                        stderr=subprocess.PIPE,
-                        text=True
-                    )
-                    
-                    if rocm_smi.returncode == 0 and "GPU" in rocm_smi.stdout:
-                        gpu_info = f"AMD GPU: {rocm_smi.stdout.strip()}"
-                        return True, gpu_info
-        except Exception as e:
-            logger.debug(f"Could not check AMD GPU via system commands: {e}")
-        
-        return False, gpu_info
+            return False, f"Health check exception: {e}"
         
     async def generate(self, prompt: str, **kwargs) -> str:
         """
