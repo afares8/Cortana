@@ -408,7 +408,7 @@ async def generate_text(request: GenerateRequest):
             repetition_penalty=request.repetition_penalty
         )
         
-        is_fallback = "fallback response" in response.lower()
+        is_fallback = "fallback response" in response.lower() or "fallback note" in response.lower()
         
         return GenerateResponse(
             generated_text=response,
