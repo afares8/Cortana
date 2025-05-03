@@ -48,6 +48,10 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+    networks:
+      default:
+        aliases:
+          - ai-service
 
   # Mock AI service for CPU-only fallback
   ai-service-cpu:
@@ -70,4 +74,3 @@ services:
 
 volumes:
   ai-model-data:
-

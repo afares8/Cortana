@@ -47,18 +47,40 @@ class MistralClient:
     def _check_gpu_available(self) -> Tuple[bool, str]:
         """
         Check if AI service is healthy and reachable.
+        Includes retry logic for more reliable health checks.
         
         Returns:
             Tuple[bool, str]: (is_healthy, status_message)
         """
-        try:
-            response = httpx.get(f"{self.base_url}/health", timeout=5.0)
-            if response.status_code == 200:
-                return True, "AI service is healthy and reachable"
-            else:
-                return False, f"Health check failed with status {response.status_code}"
-        except Exception as e:
-            return False, f"Health check exception: {e}"
+        max_retries = 3
+        retry_delay = 2  # seconds
+        
+        for attempt in range(1, max_retries + 1):
+            try:
+                logger.info(f"Health check attempt {attempt}/{max_retries} to {self.base_url}/health")
+                response = httpx.get(f"{self.base_url}/health", timeout=5.0)
+                
+                if response.status_code == 200:
+                    logger.info(f"AI service is healthy and reachable at {self.base_url}")
+                    return True, "AI service is healthy and reachable"
+                else:
+                    logger.warning(f"Health check failed with status {response.status_code} (attempt {attempt}/{max_retries})")
+                    if attempt < max_retries:
+                        logger.info(f"Retrying in {retry_delay} seconds...")
+                        import time
+                        time.sleep(retry_delay)
+                    else:
+                        return False, f"Health check failed with status {response.status_code} after {max_retries} attempts"
+            except Exception as e:
+                logger.warning(f"Health check exception: {e} (attempt {attempt}/{max_retries})")
+                if attempt < max_retries:
+                    logger.info(f"Retrying in {retry_delay} seconds...")
+                    import time
+                    time.sleep(retry_delay)
+                else:
+                    return False, f"Health check exception after {max_retries} attempts: {e}"
+        
+        return False, f"Health check failed after {max_retries} attempts"
         
     async def generate(self, prompt: str, **kwargs) -> str:
         """

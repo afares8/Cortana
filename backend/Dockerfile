@@ -7,6 +7,7 @@ RUN apt-get update -y && \
     apt-get install -y --no-install-recommends \
     build-essential \
     libpq5 \
+    curl \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
