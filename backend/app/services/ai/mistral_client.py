@@ -127,12 +127,16 @@ class MistralClient:
             result = response.json()
             logger.info(f"Response received: {str(result)[:200]}...")
             
-            if "generated_text" in result:
-                logger.info("Successfully extracted generated_text from response")
+            if isinstance(result, list) and len(result) > 0 and "generated_text" in result[0]:
+                logger.info("Successfully extracted generated_text from response (list format)")
+                return result[0]["generated_text"]
+            elif isinstance(result, dict) and "generated_text" in result:
+                logger.info("Successfully extracted generated_text from response (dict format)")
                 return result["generated_text"]
             else:
                 logger.error(f"Unexpected response format: {result}")
-                logger.error("Response keys: " + ", ".join(result.keys()))
+                if isinstance(result, dict):
+                    logger.error("Response keys: " + ", ".join(result.keys()))
                 self.fallback_mode = True
                 return self._get_fallback_response(prompt)
                 

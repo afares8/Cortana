@@ -35,6 +35,7 @@ export default function AIDashboard() {
   const [isQuerying, setIsQuerying] = useState(false);
   const [queryResponse, setQueryResponse] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isFallback, setIsFallback] = useState(false);
   
   const [stats, setStats] = useState<EnhancedAIDashboardStats>({
     total_contracts: 0,
@@ -119,6 +120,7 @@ export default function AIDashboard() {
       });
       
       setQueryResponse(response.data.response_text);
+      setIsFallback(response.data.is_fallback || false);
     } catch (err) {
       console.error('Error querying AI:', err);
       setError('Failed to process your query. Please try again later.');
@@ -128,6 +130,7 @@ export default function AIDashboard() {
         "Please try again in a few moments.";
       
       setQueryResponse(fallbackResponse);
+      setIsFallback(true);
     } finally {
       setIsQuerying(false);
     }
@@ -178,8 +181,15 @@ export default function AIDashboard() {
               )}
               
               {queryResponse && (
-                <div className="mt-4 p-4 border rounded-md bg-muted/50 whitespace-pre-line">
-                  {queryResponse}
+                <div className="mt-4">
+                  {isFallback && (
+                    <div className="mb-3 p-3 border rounded-md bg-amber-50 text-amber-800">
+                      <strong>Note:</strong> This is a fallback response. The Mistral 7B model requires GPU hardware with Flash Attention v2 support, which is not available in the current environment.
+                    </div>
+                  )}
+                  <div className="p-4 border rounded-md bg-muted/50 whitespace-pre-line">
+                    {queryResponse}
+                  </div>
                 </div>
               )}
             </form>

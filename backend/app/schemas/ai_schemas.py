@@ -139,6 +139,7 @@ class AIQueryBase(BaseModel):
     response_text: str
     related_contract_ids: List[int] = Field(default_factory=list)
     query_vector: Optional[List[float]] = None
+    is_fallback: bool = False
 
 
 class AIQueryCreate(AIQueryBase):
