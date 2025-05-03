@@ -10,7 +10,6 @@ import subprocess
 from typing import Dict, List, Optional, Any, Union, Tuple
 from pydantic import BaseModel
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class MistralRequest(BaseModel):
@@ -44,38 +43,6 @@ class MistralClient:
             logger.info(f"Fallback mode explicitly set to: {self.fallback_mode}")
         
         logger.info(f"Fallback mode is {'enabled' if self.fallback_mode else 'disabled'}")
-        
-        self._verify_ai_service_connectivity()
-    
-    def _verify_ai_service_connectivity(self):
-        """
-        Verify connectivity to the AI service and log the result.
-        This is a non-blocking check that runs in the background.
-        """
-        import threading
-        
-        def check_connectivity():
-            try:
-                result = subprocess.run(
-                    ["curl", "-s", f"{self.base_url}/health"],
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    text=True,
-                    timeout=5
-                )
-                
-                if result.returncode == 0 and "ok" in result.stdout.lower():
-                    logger.info(f"✅ Successfully connected to AI service at {self.base_url}")
-                    if self.fallback_mode:
-                        logger.warning(f"⚠️ AI service is available but fallback mode is enabled. Consider setting AI_FALLBACK_MODE=false")
-                else:
-                    logger.error(f"❌ Failed to connect to AI service at {self.base_url}: {result.stderr}")
-                    if not self.fallback_mode:
-                        logger.warning(f"⚠️ AI service is not available but fallback mode is disabled. Will attempt to connect anyway.")
-            except Exception as e:
-                logger.error(f"❌ Error checking AI service connectivity: {e}")
-        
-        threading.Thread(target=check_connectivity).start()
     
     def _check_gpu_available(self) -> Tuple[bool, str]:
         """
@@ -155,11 +122,6 @@ class MistralClient:
         Returns:
             The generated text response
         """
-        env_fallback = os.environ.get("AI_FALLBACK_MODE", "").lower()
-        if env_fallback == "false":
-            logger.info("Forcing fallback mode to False based on environment variable")
-            self.fallback_mode = False
-        
         parameters = {
             "max_new_tokens": 512,
             "temperature": 0.7,
@@ -176,78 +138,45 @@ class MistralClient:
         )
         
         if self.fallback_mode:
-            logger.warning("Using fallback mode for text generation")
             return self._get_fallback_response(prompt)
         
         try:
-            logger.info(f"Connecting to LLM at {self.base_url}/generate with prompt: {prompt[:50]}...")
-            logger.debug(f"Full request: {request.model_dump()}")
-            
-            request_json = request.model_dump()
-            logger.info(f"Request JSON: {json.dumps(request_json)}")
+            logger.info(f"Attempting to connect to LLM at {self.base_url}/generate with prompt: {prompt[:50]}...")
+            logger.info(f"Request parameters: {parameters}")
             
             response = await self.client.post(
                 f"{self.base_url}/generate",
-                json=request_json,
+                json=request.model_dump(),  # Use model_dump() instead of dict() for Pydantic v2
                 headers={"Content-Type": "application/json"}
             )
             
             logger.info(f"Response status code: {response.status_code}")
-            
-            raw_response = response.text
-            logger.info(f"Raw response text: {raw_response[:500]}...")
-            
             response.raise_for_status()
             
-            try:
-                result = response.json()
-                logger.info(f"Response JSON: {json.dumps(result)[:500]}...")
-                
-                if "generated_text" in result:
-                    logger.info("Found 'generated_text' in response")
-                    return result["generated_text"]
-                elif "outputs" in result and isinstance(result["outputs"], list) and len(result["outputs"]) > 0:
-                    if "text" in result["outputs"][0]:
-                        logger.info("Found 'outputs[0].text' in response")
-                        return result["outputs"][0]["text"]
-                    elif "generated_text" in result["outputs"][0]:
-                        logger.info("Found 'outputs[0].generated_text' in response")
-                        return result["outputs"][0]["generated_text"]
-                
+            result = response.json()
+            logger.info(f"Response received: {str(result)[:200]}...")
+            
+            if "generated_text" in result:
+                logger.info("Successfully extracted generated_text from response")
+                return result["generated_text"]
+            else:
                 logger.error(f"Unexpected response format: {result}")
-                logger.error("Response keys: " + ", ".join(result.keys() if isinstance(result, dict) else ["<not a dict>"]))
-                
-                if isinstance(result, dict):
-                    for key, value in result.items():
-                        if isinstance(value, str) and len(value) > 20:
-                            logger.info(f"Using text from key '{key}' as fallback")
-                            return value
-                
-                if isinstance(raw_response, str) and len(raw_response) > 20 and not raw_response.startswith("{"):
-                    logger.info("Using raw response text as fallback")
-                    return raw_response
-                
-                logger.warning("Could not extract text from response, using fallback")
-                return self._get_fallback_response(prompt)
-                
-            except json.JSONDecodeError:
-                logger.error(f"Response is not valid JSON: {raw_response[:200]}...")
-                
-                if isinstance(raw_response, str) and len(raw_response) > 20 and not raw_response.startswith("{"):
-                    logger.info("Using non-JSON response as text")
-                    return raw_response
-                
+                logger.error("Response keys: " + ", ".join(result.keys()))
+                self.fallback_mode = True
                 return self._get_fallback_response(prompt)
                 
         except httpx.HTTPStatusError as e:
             logger.error(f"HTTP error when connecting to LLM: {e.response.status_code} - {e.response.text}")
+            self.fallback_mode = True
             return self._get_fallback_response(prompt)
         except httpx.ConnectError as e:
             logger.error(f"Connection error when connecting to LLM: {e} - Is the AI service running?")
             logger.error(f"Attempted to connect to: {self.base_url}")
+            self.fallback_mode = True
             return self._get_fallback_response(prompt)
         except Exception as e:
             logger.error(f"Error generating text with LLM: {type(e).__name__} - {e}")
+            self.fallback_mode = True
             return self._get_fallback_response(prompt)
             
     def _get_fallback_response(self, prompt: str) -> str:
