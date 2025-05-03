@@ -20,8 +20,8 @@ services:
       - gpu
       - cpu
       - default
-    depends_on:
-      - ai-service-cpu
+    # No depends_on needed as both ai-service and ai-service-cpu 
+    # use the same network alias and the client will retry connections
 
   # Real AI service with GPU support - named ai-service directly
   ai-service:
