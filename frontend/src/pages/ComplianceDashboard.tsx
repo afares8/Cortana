@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, Typography, Grid, Box, Chip, CircularProgress, Button, Divider, List, ListItem, ListItemText, Alert } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Alert } from "@/components/ui/alert";
+import { AlertCircle, AlertTriangle, Loader2 } from "lucide-react";
 
 interface DashboardData {
   reports: {
@@ -107,265 +113,217 @@ const ComplianceDashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-        <CircularProgress />
-      </Box>
+      <div className="flex justify-center items-center h-[80vh]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Box sx={{ p: 3 }}>
-        <Alert severity="error">{error}</Alert>
-      </Box>
+      <div className="p-3">
+        <Alert>
+          <AlertCircle className="h-4 w-4 mr-2" />
+          {error}
+        </Alert>
+      </div>
     );
   }
 
   if (!dashboardData) {
     return (
-      <Box sx={{ p: 3 }}>
-        <Alert severity="warning">No dashboard data available.</Alert>
-      </Box>
+      <div className="p-3">
+        <Alert>
+          <AlertTriangle className="h-4 w-4 mr-2" />
+          No dashboard data available.
+        </Alert>
+      </div>
     );
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" component="h1">
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">
           Compliance Dashboard
-        </Typography>
-        <Box>
+        </h1>
+        <div className="flex space-x-2">
           <Button 
-            variant="contained" 
-            color="primary" 
+            variant="default"
             onClick={handleGenerateUAFReport}
-            sx={{ mr: 1 }}
           >
             Generate UAF Report
           </Button>
           <Button 
-            variant="outlined" 
-            color="primary" 
+            variant="outline"
             onClick={handleRunPEPScreening}
-            sx={{ mr: 1 }}
           >
             Run PEP Screening
           </Button>
           <Button 
-            variant="outlined" 
-            color="secondary" 
+            variant="outline"
             onClick={handleRunSanctionsScreening}
           >
             Run Sanctions Screening
           </Button>
-        </Box>
-      </Box>
+        </div>
+      </div>
 
-      <Grid container spacing={3}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Reports Summary */}
-        <Grid item xs={12} md={6}>
+        <div>
           <Card>
+            <CardHeader>
+              <CardTitle>Compliance Reports</CardTitle>
+            </CardHeader>
             <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Compliance Reports
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={4}>
-                  <Box sx={{ textAlign: 'center', p: 1 }}>
-                    <Typography variant="h4">{dashboardData.reports.total}</Typography>
-                    <Typography variant="body2" color="textSecondary">Total Reports</Typography>
-                  </Box>
-                </Grid>
-                <Grid item xs={4}>
-                  <Box sx={{ textAlign: 'center', p: 1 }}>
-                    <Typography variant="h4">{dashboardData.reports.pending}</Typography>
-                    <Typography variant="body2" color="textSecondary">Pending</Typography>
-                  </Box>
-                </Grid>
-                <Grid item xs={4}>
-                  <Box sx={{ textAlign: 'center', p: 1 }}>
-                    <Typography variant="h4">{dashboardData.reports.submitted}</Typography>
-                    <Typography variant="body2" color="textSecondary">Submitted</Typography>
-                  </Box>
-                </Grid>
-              </Grid>
-              <Divider sx={{ my: 2 }} />
-              <Typography variant="subtitle2" gutterBottom>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="text-center p-2">
+                  <div className="text-2xl font-bold">{dashboardData.reports.total}</div>
+                  <div className="text-sm text-muted-foreground">Total Reports</div>
+                </div>
+                <div className="text-center p-2">
+                  <div className="text-2xl font-bold">{dashboardData.reports.pending}</div>
+                  <div className="text-sm text-muted-foreground">Pending</div>
+                </div>
+                <div className="text-center p-2">
+                  <div className="text-2xl font-bold">{dashboardData.reports.submitted}</div>
+                  <div className="text-sm text-muted-foreground">Submitted</div>
+                </div>
+              </div>
+              <Separator className="my-4" />
+              <div className="text-sm font-medium mb-2">
                 Reports by Type
-              </Typography>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+              </div>
+              <div className="flex flex-wrap gap-2 mt-2">
                 {Object.entries(dashboardData.reports.by_type).map(([type, count]) => (
-                  <Chip 
+                  <Badge 
                     key={type} 
-                    label={`${type}: ${count}`} 
-                    color="primary" 
-                    variant="outlined" 
-                    size="small" 
-                  />
+                    variant="outline"
+                    className="px-2 py-1"
+                  >
+                    {`${type}: ${count}`}
+                  </Badge>
                 ))}
-              </Box>
+              </div>
             </CardContent>
           </Card>
-        </Grid>
+        </div>
 
         {/* Screenings Summary */}
-        <Grid item xs={12} md={6}>
+        <div>
           <Card>
+            <CardHeader>
+              <CardTitle>Screening Results</CardTitle>
+            </CardHeader>
             <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Screening Results
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <Box sx={{ p: 1 }}>
-                    <Typography variant="subtitle1">PEP Screenings</Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                      <Box sx={{ position: 'relative', display: 'inline-flex', mr: 2 }}>
-                        <CircularProgress 
-                          variant="determinate" 
-                          value={dashboardData.screenings.pep.match_percentage} 
-                          color={dashboardData.screenings.pep.match_percentage > 20 ? "warning" : "success"}
-                        />
-                        <Box
-                          sx={{
-                            top: 0,
-                            left: 0,
-                            bottom: 0,
-                            right: 0,
-                            position: 'absolute',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          <Typography variant="caption" component="div" color="text.secondary">
-                            {`${Math.round(dashboardData.screenings.pep.match_percentage)}%`}
-                          </Typography>
-                        </Box>
-                      </Box>
-                      <Box>
-                        <Typography variant="body2">
-                          {dashboardData.screenings.pep.matches} matches out of {dashboardData.screenings.pep.total} screenings
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Box>
-                </Grid>
-                <Grid item xs={6}>
-                  <Box sx={{ p: 1 }}>
-                    <Typography variant="subtitle1">Sanctions Screenings</Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                      <Box sx={{ position: 'relative', display: 'inline-flex', mr: 2 }}>
-                        <CircularProgress 
-                          variant="determinate" 
-                          value={dashboardData.screenings.sanctions.match_percentage} 
-                          color={dashboardData.screenings.sanctions.match_percentage > 5 ? "error" : "success"}
-                        />
-                        <Box
-                          sx={{
-                            top: 0,
-                            left: 0,
-                            bottom: 0,
-                            right: 0,
-                            position: 'absolute',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          <Typography variant="caption" component="div" color="text.secondary">
-                            {`${Math.round(dashboardData.screenings.sanctions.match_percentage)}%`}
-                          </Typography>
-                        </Box>
-                      </Box>
-                      <Box>
-                        <Typography variant="body2">
-                          {dashboardData.screenings.sanctions.matches} matches out of {dashboardData.screenings.sanctions.total} screenings
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Box>
-                </Grid>
-              </Grid>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-2">
+                  <div className="text-sm font-medium">PEP Screenings</div>
+                  <div className="flex items-center mt-2">
+                    <div className="relative inline-flex mr-2">
+                      <div className="h-12 w-12 rounded-full flex items-center justify-center border-4 border-primary">
+                        <span className="text-sm font-medium">
+                          {`${Math.round(dashboardData.screenings.pep.match_percentage)}%`}
+                        </span>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-sm">
+                        {dashboardData.screenings.pep.matches} matches out of {dashboardData.screenings.pep.total} screenings
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-2">
+                  <div className="text-sm font-medium">Sanctions Screenings</div>
+                  <div className="flex items-center mt-2">
+                    <div className="relative inline-flex mr-2">
+                      <div className="h-12 w-12 rounded-full flex items-center justify-center border-4 border-destructive">
+                        <span className="text-sm font-medium">
+                          {`${Math.round(dashboardData.screenings.sanctions.match_percentage)}%`}
+                        </span>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-sm">
+                        {dashboardData.screenings.sanctions.matches} matches out of {dashboardData.screenings.sanctions.total} screenings
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
-        </Grid>
+        </div>
 
         {/* Recent Activity */}
-        <Grid item xs={12}>
+        <div className="col-span-1 md:col-span-2">
           <Card>
+            <CardHeader>
+              <CardTitle>Recent Activity</CardTitle>
+            </CardHeader>
             <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Recent Activity
-              </Typography>
-              <List>
-                {dashboardData.recent_activity.map((activity, index) => (
-                  <React.Fragment key={`${activity.type}-${activity.id}`}>
-                    {index > 0 && <Divider component="li" />}
-                    <ListItem 
-                      alignItems="flex-start"
-                      button
-                      onClick={() => {
-                        if (activity.type === 'report') {
-                          navigate(`/compliance/reports/${activity.id}`);
-                        } else if (activity.type === 'pep_screening') {
-                          navigate(`/compliance/pep-screenings/${activity.id}`);
-                        } else if (activity.type === 'sanctions_screening') {
-                          navigate(`/compliance/sanctions-screenings/${activity.id}`);
-                        }
-                      }}
-                    >
-                      <ListItemText
-                        primary={
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Typography component="span" sx={{ mr: 1 }}>
-                              {getActivityIcon(activity.type)}
-                            </Typography>
-                            <Typography component="span">
-                              {activity.type === 'report' 
-                                ? `${activity.report_type} Report` 
-                                : activity.type === 'pep_screening'
-                                  ? 'PEP Screening'
-                                  : 'Sanctions Screening'
-                              }
-                            </Typography>
-                            {(activity.status || activity.match_status) && (
-                              <Chip 
-                                size="small" 
-                                label={activity.status || activity.match_status} 
-                                color={getStatusColor(activity.status || activity.match_status) as any}
-                                sx={{ ml: 1 }}
-                              />
-                            )}
-                          </Box>
-                        }
-                        secondary={
-                          <React.Fragment>
-                            <Typography
-                              component="span"
-                              variant="body2"
-                              color="textPrimary"
+              <ScrollArea className="h-[400px]">
+                <div className="space-y-2">
+                  {dashboardData.recent_activity.map((activity, index) => (
+                    <div key={`${activity.type}-${activity.id}`}>
+                      {index > 0 && <Separator className="my-2" />}
+                      <div 
+                        className="p-2 hover:bg-accent rounded-md cursor-pointer"
+                        onClick={() => {
+                          if (activity.type === 'report') {
+                            navigate(`/compliance/reports/${activity.id}`);
+                          } else if (activity.type === 'pep_screening') {
+                            navigate(`/compliance/pep-screenings/${activity.id}`);
+                          } else if (activity.type === 'sanctions_screening') {
+                            navigate(`/compliance/sanctions-screenings/${activity.id}`);
+                          }
+                        }}
+                      >
+                        <div className="flex items-center">
+                          <span className="mr-2">
+                            {getActivityIcon(activity.type)}
+                          </span>
+                          <span className="font-medium">
+                            {activity.type === 'report' 
+                              ? `${activity.report_type} Report` 
+                              : activity.type === 'pep_screening'
+                                ? 'PEP Screening'
+                                : 'Sanctions Screening'
+                            }
+                          </span>
+                          {(activity.status || activity.match_status) && (
+                            <Badge 
+                              variant={getStatusColor(activity.status || activity.match_status) === 'success' ? 'default' : 
+                                     getStatusColor(activity.status || activity.match_status) === 'error' ? 'destructive' : 
+                                     getStatusColor(activity.status || activity.match_status) === 'warning' ? 'secondary' : 'outline'}
+                              className="ml-2"
                             >
-                              {activity.type === 'report' 
-                                ? `Entity: ${activity.entity_type} #${activity.entity_id}` 
-                                : `Client #${activity.client_id}`
-                              }
-                            </Typography>
-                            {" — "}
-                            {formatDate(activity.created_at)}
-                          </React.Fragment>
-                        }
-                      />
-                    </ListItem>
-                  </React.Fragment>
-                ))}
-              </List>
+                              {activity.status || activity.match_status}
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="text-sm text-muted-foreground mt-1">
+                          <span className="font-medium">
+                            {activity.type === 'report' 
+                              ? `Entity: ${activity.entity_type} #${activity.entity_id}` 
+                              : `Client #${activity.client_id}`
+                            }
+                          </span>
+                          {" — "}
+                          {formatDate(activity.created_at)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
-        </Grid>
-      </Grid>
-    </Box>
+        </div>
+      </div>
+    </div>
   );
 };
 
