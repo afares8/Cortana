@@ -20,7 +20,7 @@ aiosmtplib = "^3.0.1"
 pydantic-settings = "^2.9.1"
 mangum = "^0.17.0"
 
-# AI and NLP dependencies
+# AI y NLP
 spacy = "^3.7.2"
 scikit-learn = "^1.3.2"
 sentence-transformers = "^2.2.2"
@@ -31,7 +31,8 @@ nltk = "^3.8.1"
 pdfplumber = "0.10.3"
 langdetect = "^1.0.9"
 psutil = "^7.0.0"
-
+language-tool-python = "^2.7.1"
+symspellpy = "^6.7.7"
 
 [build-system]
 requires = ["poetry-core"]
