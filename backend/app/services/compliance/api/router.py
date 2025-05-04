@@ -11,8 +11,10 @@ from app.services.compliance.schemas.compliance import (
     DocumentRetentionPolicyCreate, DocumentRetentionPolicyUpdate
 )
 from app.services.compliance.services.compliance_service import compliance_service
+from app.services.compliance.api.endpoints import router as endpoints_router
 
 router = APIRouter()
+router.include_router(endpoints_router, tags=["compliance-advanced"])
 
 @router.post("/reports", response_model=ComplianceReport, status_code=201)
 async def create_compliance_report_endpoint(report: ComplianceReportCreate):
