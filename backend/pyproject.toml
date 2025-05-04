@@ -31,12 +31,8 @@ nltk = "^3.8.1"
 pdfplumber = "0.10.3"
 langdetect = "^1.0.9"
 psutil = "^7.0.0"
-
-# ⚙️ Requeridas por tu nuevo pipeline
-langdetect = "^1.0.9"
 language-tool-python = "^2.7.1"
 symspellpy = "^6.7.7"
-psutil = "^5.9.8"
 
 [build-system]
 requires = ["poetry-core"]
