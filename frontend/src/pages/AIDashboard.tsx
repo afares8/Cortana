@@ -197,7 +197,17 @@ export default function AIDashboard() {
             </form>
           </CardContent>
         </Card>
-        
+        <Card className="mb-8">
+         <CardHeader>
+          <CardTitle>Contextual Legal AI Assistant (Beta)</CardTitle>
+           <CardDescription>
+             This assistant uses real-time contract, client, and task data for contextual answers.
+           </CardDescription>
+         </CardHeader>
+        <CardContent>
+        <AIContextualChat />
+        </CardContent>
+        </Card>
         {/* AI Dashboard Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card>
