@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 from app.services.ai.models.ai_model import AIAnalysisResult, ExtractedClause, RiskScore, AIQuery
 from app.services.ai.schemas.ai_schema import GenerateRequest, GenerateResponse
+from app.services.ai.schemas.contextual_schema import ContextualGenerateRequest, ContextualGenerateResponse
 from app.services.ai.services.ai_service import ai_service
 
 router = APIRouter()
@@ -62,6 +63,40 @@ async def generate_endpoint(request: GenerateRequest):
     """Generate text using the Mistral model."""
     response = await ai_service.generate(
         inputs=request.inputs,
+        max_new_tokens=request.max_new_tokens,
+        temperature=request.temperature,
+        top_p=request.top_p,
+        debug=request.debug
+    )
+    return response
+
+@router.post("/contextual-generate", response_model=ContextualGenerateResponse)
+async def contextual_generate_endpoint(request: ContextualGenerateRequest):
+    """
+    Generate text using the Mistral model with context from internal application data.
+    
+    This endpoint:
+    1. Classifies the intent of the query
+    2. Retrieves relevant context data based on the intent
+    3. Builds an enhanced prompt with the context data
+    4. Generates a response using the enhanced prompt
+    5. Returns the response with additional context information
+    
+    Example:
+    ```
+    {
+      "query": "Que es lo que tengo pendiente?",
+      "user_id": 1,
+      "max_new_tokens": 500,
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "debug": false
+    }
+    ```
+    """
+    response = await ai_service.contextual_generate(
+        query=request.query,
+        user_id=request.user_id,
         max_new_tokens=request.max_new_tokens,
         temperature=request.temperature,
         top_p=request.top_p,
