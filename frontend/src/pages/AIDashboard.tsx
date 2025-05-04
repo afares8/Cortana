@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { AIDashboardStats } from '@/types';
 import Layout from '@/components/layout/Layout';
 import axios from 'axios';
+import { AIContextualChat } from '@/components/ai/AIContextualChat';
 
 interface EnhancedAIDashboardStats extends AIDashboardStats {
   ai_activity?: {
