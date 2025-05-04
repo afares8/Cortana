@@ -1,11 +1,18 @@
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Tuple
 from datetime import datetime
 import time
+import logging
 from fastapi import UploadFile
 
 from app.services.ai.models.ai_model import AIAnalysisResult, ExtractedClause, RiskScore, AIQuery
 from app.services.ai.schemas.ai_schema import GenerateResponse
+from app.services.ai.schemas.contextual_schema import ContextualGenerateResponse
 from app.services.ai.utils.mistral_client import MistralClient
+from app.services.ai.utils.intent_classifier import intent_classifier, IntentType
+from app.services.ai.utils.context_retriever import context_retriever
+from app.services.ai.utils.prompt_builder import prompt_builder
+
+logger = logging.getLogger(__name__)
 
 class AIService:
     """
@@ -171,6 +178,71 @@ class AIService:
         if debug:
             response.original_input = inputs
             response.processed_input = inputs  # In a real implementation, this would be the processed input
+        
+        return response
+    
+    async def contextual_generate(
+        self,
+        query: str,
+        user_id: Optional[int] = None,
+        max_new_tokens: Optional[int] = 500,
+        temperature: Optional[float] = 0.7,
+        top_p: Optional[float] = 0.9,
+        debug: Optional[bool] = False
+    ) -> ContextualGenerateResponse:
+        """
+        Generate text using the Mistral model with context from internal application data.
+        
+        This method:
+        1. Classifies the intent of the query
+        2. Retrieves relevant context data based on the intent
+        3. Builds an enhanced prompt with the context data
+        4. Generates a response using the enhanced prompt
+        5. Returns the response with additional context information
+        """
+        start_time = time.time()
+        
+        intent, confidence = intent_classifier.classify_intent(query)
+        logger.info(f"Classified query intent: {intent} (confidence: {confidence:.2f})")
+        
+        params = intent_classifier.extract_parameters(query, intent)
+        logger.info(f"Extracted parameters: {params}")
+        
+        context_data = await context_retriever.retrieve_context(intent, params, user_id)
+        logger.info(f"Retrieved context data for intent {intent}")
+        
+        language = "es"  # Could be enhanced with language detection
+        
+        enhanced_prompt = prompt_builder.build_prompt(query, intent, context_data, language)
+        logger.info(f"Built enhanced prompt with context data")
+        
+        result = await self.mistral_client.generate(
+            enhanced_prompt,
+            max_new_tokens=max_new_tokens,
+            temperature=temperature,
+            top_p=top_p,
+            debug=debug
+        )
+        
+        processing_time = time.time() - start_time
+        
+        response = ContextualGenerateResponse(
+            generated_text=result,
+            is_fallback=self.mistral_client.fallback_mode,
+            model=self.mistral_client.model_name,
+            intent=intent,
+            original_query=query
+        )
+        
+        if debug:
+            response.context_data = context_data
+            response.enhanced_prompt = enhanced_prompt
+            response.debug_info = {
+                "confidence": confidence,
+                "parameters": params,
+                "processing_time": processing_time,
+                "language": language
+            }
         
         return response
 
