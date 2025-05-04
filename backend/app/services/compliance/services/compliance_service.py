@@ -1,7 +1,9 @@
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 from datetime import datetime
 import logging
 import json
+import os
+from enum import Enum
 
 from app.services.compliance.models.compliance import (
     ComplianceReport, PEPScreeningResult, 
@@ -16,6 +18,10 @@ from app.services.compliance.schemas.compliance import (
 from app.services.compliance.utils.db import (
     compliance_reports_db, pep_screenings_db, sanctions_screenings_db, 
     retention_policies_db, search_pep_database, search_sanctions_database
+)
+from app.services.compliance.utils.open_sanctions import open_sanctions_client
+from app.services.compliance.services.manual_integration_service import (
+    compliance_manual_integration, DueDiligenceLevel, RiskLevel, RiskCategory
 )
 
 logger = logging.getLogger(__name__)
@@ -82,21 +88,54 @@ class ComplianceService:
     
     async def create_pep_screening(self, screening_data: PEPScreeningResultCreate) -> PEPScreeningResult:
         """
-        Create a new PEP screening result.
+        Create a new PEP screening result using the Open Sanctions API.
         """
         if not screening_data.match_details:
             client_name = f"Client {screening_data.client_id}"  # Placeholder
+            client_country = screening_data.match_details.get("country") if screening_data.match_details else None
             
-            match_result = search_pep_database(client_name)
-            
-            if match_result["found"]:
-                screening_data.match_status = "potential_match"
-                screening_data.match_details = match_result
-                screening_data.risk_level = match_result.get("highest_risk", "medium")
-            else:
-                screening_data.match_status = "no_match"
-                screening_data.match_details = match_result
-                screening_data.risk_level = "low"
+            try:
+                match_result = await open_sanctions_client.search_pep(
+                    name=client_name,
+                    country=client_country,
+                    limit=10
+                )
+                
+                if match_result.get("error"):
+                    logger.error(f"Error searching PEPs: {match_result.get('error')}")
+                    match_result = search_pep_database(client_name)
+                elif match_result.get("total", 0) > 0:
+                    screening_data.match_status = "potential_match"
+                    screening_data.match_details = {
+                        "found": True,
+                        "matches": match_result.get("results", []),
+                        "total": match_result.get("total", 0),
+                        "highest_risk": "high" if match_result.get("total", 0) > 0 else "low",
+                        "source": "open_sanctions"
+                    }
+                    screening_data.risk_level = "high" if match_result.get("total", 0) > 0 else "low"
+                else:
+                    screening_data.match_status = "no_match"
+                    screening_data.match_details = {
+                        "found": False,
+                        "matches": [],
+                        "total": 0,
+                        "highest_risk": "low",
+                        "source": "open_sanctions"
+                    }
+                    screening_data.risk_level = "low"
+            except Exception as e:
+                logger.error(f"Error using Open Sanctions API: {str(e)}")
+                match_result = search_pep_database(client_name)
+                
+                if match_result["found"]:
+                    screening_data.match_status = "potential_match"
+                    screening_data.match_details = match_result
+                    screening_data.risk_level = match_result.get("highest_risk", "medium")
+                else:
+                    screening_data.match_status = "no_match"
+                    screening_data.match_details = match_result
+                    screening_data.risk_level = "low"
         
         obj_in = PEPScreeningResult(
             id=0,  # Will be set by the database
@@ -141,21 +180,56 @@ class ComplianceService:
     
     async def create_sanctions_screening(self, screening_data: SanctionsScreeningResultCreate) -> SanctionsScreeningResult:
         """
-        Create a new sanctions screening result.
+        Create a new sanctions screening result using the Open Sanctions API.
         """
         if not screening_data.match_details:
             client_name = f"Client {screening_data.client_id}"  # Placeholder
+            client_country = screening_data.match_details.get("country") if screening_data.match_details else None
+            entity_type = screening_data.match_details.get("entity_type", "Person") if screening_data.match_details else "Person"
             
-            match_result = search_sanctions_database(client_name)
-            
-            if match_result["found"]:
-                screening_data.match_status = "potential_match"
-                screening_data.match_details = match_result
-                screening_data.risk_level = "high"
-            else:
-                screening_data.match_status = "no_match"
-                screening_data.match_details = match_result
-                screening_data.risk_level = "low"
+            try:
+                match_result = await open_sanctions_client.search_sanctions(
+                    name=client_name,
+                    entity_type=entity_type,
+                    country=client_country,
+                    datasets=["us_ofac", "eu_fsf", "un_sc", "gb_ofsi", "ca_dfatd_sema"],
+                    limit=10
+                )
+                
+                if match_result.get("error"):
+                    logger.error(f"Error searching sanctions: {match_result.get('error')}")
+                    match_result = search_sanctions_database(client_name)
+                elif match_result.get("total", 0) > 0:
+                    screening_data.match_status = "potential_match"
+                    screening_data.match_details = {
+                        "found": True,
+                        "matches": match_result.get("results", []),
+                        "total": match_result.get("total", 0),
+                        "datasets": [r.get("dataset", "unknown") for r in match_result.get("results", [])],
+                        "source": "open_sanctions"
+                    }
+                    screening_data.risk_level = "high"
+                else:
+                    screening_data.match_status = "no_match"
+                    screening_data.match_details = {
+                        "found": False,
+                        "matches": [],
+                        "total": 0,
+                        "source": "open_sanctions"
+                    }
+                    screening_data.risk_level = "low"
+            except Exception as e:
+                logger.error(f"Error using Open Sanctions API: {str(e)}")
+                match_result = search_sanctions_database(client_name)
+                
+                if match_result["found"]:
+                    screening_data.match_status = "potential_match"
+                    screening_data.match_details = match_result
+                    screening_data.risk_level = "high"
+                else:
+                    screening_data.match_status = "no_match"
+                    screening_data.match_details = match_result
+                    screening_data.risk_level = "low"
         
         obj_in = SanctionsScreeningResult(
             id=0,  # Will be set by the database
@@ -200,8 +274,25 @@ class ComplianceService:
     
     async def create_retention_policy(self, policy_data: DocumentRetentionPolicyCreate) -> DocumentRetentionPolicy:
         """
-        Create a new document retention policy.
+        Create a new document retention policy based on compliance manual requirements.
         """
+        if not policy_data.retention_period_days:
+            try:
+                retention_requirements = await compliance_manual_integration.get_document_retention_requirements(
+                    document_type=policy_data.document_type
+                )
+                
+                if "minimum_retention_period" in retention_requirements:
+                    years = retention_requirements.get("minimum_retention_period", 5)
+                    policy_data.retention_period_days = years * 365
+                
+                if "legal_basis" in retention_requirements and not policy_data.legal_basis:
+                    policy_data.legal_basis = retention_requirements.get("legal_basis", "")
+                
+            except Exception as e:
+                logger.error(f"Error getting retention requirements: {str(e)}")
+                policy_data.retention_period_days = policy_data.retention_period_days or 1825
+        
         obj_in = DocumentRetentionPolicy(
             id=0,  # Will be set by the database
             document_type=policy_data.document_type,
@@ -248,13 +339,276 @@ class ComplianceService:
         obj = retention_policies_db.remove(id=policy_id)
         return obj is not None
     
+    async def get_due_diligence_requirements(
+        self, 
+        client_id: int, 
+        due_diligence_level: Union[str, DueDiligenceLevel] = None,
+        client_type: str = "individual"
+    ) -> Dict[str, Any]:
+        """
+        Get due diligence requirements for a client based on the compliance manual.
+        
+        Args:
+            client_id: ID of the client
+            due_diligence_level: Level of due diligence (basic, enhanced, simplified)
+            client_type: Type of client (individual, company, etc.)
+            
+        Returns:
+            Dictionary with due diligence requirements
+        """
+        if not due_diligence_level:
+            # For now, we'll use a placeholder
+            client_risk = "medium"  # Placeholder
+            
+            if client_risk == "high":
+                due_diligence_level = DueDiligenceLevel.ENHANCED
+            elif client_risk == "low":
+                due_diligence_level = DueDiligenceLevel.SIMPLIFIED
+            else:
+                due_diligence_level = DueDiligenceLevel.BASIC
+        
+        if isinstance(due_diligence_level, str):
+            try:
+                due_diligence_level = DueDiligenceLevel(due_diligence_level.lower())
+            except ValueError:
+                logger.error(f"Invalid due diligence level: {due_diligence_level}")
+                due_diligence_level = DueDiligenceLevel.BASIC
+        
+        try:
+            requirements = await compliance_manual_integration.get_due_diligence_requirements(
+                due_diligence_level=due_diligence_level,
+                client_type=client_type
+            )
+            
+            requirements["client_id"] = client_id
+            requirements["due_diligence_level"] = due_diligence_level.value
+            requirements["client_type"] = client_type
+            
+            return requirements
+        except Exception as e:
+            logger.error(f"Error getting due diligence requirements: {str(e)}")
+            return {
+                "error": str(e),
+                "client_id": client_id,
+                "due_diligence_level": due_diligence_level.value if hasattr(due_diligence_level, "value") else str(due_diligence_level),
+                "client_type": client_type
+            }
+    
+    async def calculate_client_risk(
+        self,
+        client_id: int,
+        client_data: Dict[str, Any] = None
+    ) -> Dict[str, Any]:
+        """
+        Calculate risk score for a client based on the risk matrices in the compliance manual.
+        
+        Args:
+            client_id: ID of the client
+            client_data: Data about the client (optional)
+            
+        Returns:
+            Dictionary with risk assessment results
+        """
+        if not client_data:
+            client_data = {
+                "id": client_id,
+                "name": f"Client {client_id}",
+                "country": "PA",  # Panama
+                "business_type": "retail",
+                "years_as_client": 2,
+                "transaction_volume": 50000,
+                "products": ["perfumes", "cosmetics"]
+            }
+        
+        risk_factors = {
+            RiskCategory.CLIENT: {
+                "business_type": client_data.get("business_type", "unknown"),
+                "years_as_client": client_data.get("years_as_client", 0),
+                "previous_suspicious_activity": client_data.get("previous_suspicious_activity", False)
+            },
+            RiskCategory.GEOGRAPHIC: {
+                "country": client_data.get("country", "unknown"),
+                "region": client_data.get("region", "unknown"),
+                "high_risk_jurisdiction": client_data.get("high_risk_jurisdiction", False)
+            },
+            RiskCategory.PRODUCT: {
+                "products": client_data.get("products", []),
+                "services": client_data.get("services", []),
+                "high_value_products": client_data.get("high_value_products", False)
+            },
+            RiskCategory.CHANNEL: {
+                "online_transactions": client_data.get("online_transactions", False),
+                "in_person_transactions": client_data.get("in_person_transactions", True),
+                "third_party_transactions": client_data.get("third_party_transactions", False)
+            },
+            RiskCategory.TRANSACTIONAL: {
+                "transaction_volume": client_data.get("transaction_volume", 0),
+                "transaction_frequency": client_data.get("transaction_frequency", "low"),
+                "cash_transactions": client_data.get("cash_transactions", False)
+            }
+        }
+        
+        try:
+            risk_assessment = await compliance_manual_integration.calculate_risk_score(
+                client_id=client_id,
+                risk_factors=risk_factors
+            )
+            
+            return risk_assessment
+        except Exception as e:
+            logger.error(f"Error calculating risk score: {str(e)}")
+            return {
+                "error": str(e),
+                "client_id": client_id,
+                "risk_level": "medium",  # Default to medium risk if calculation fails
+                "risk_factors": risk_factors
+            }
+    
+    async def detect_suspicious_activity(
+        self,
+        transaction_id: int,
+        transaction_data: Dict[str, Any] = None,
+        client_id: int = None
+    ) -> Dict[str, Any]:
+        """
+        Detect suspicious activity in a transaction based on the compliance manual.
+        
+        Args:
+            transaction_id: ID of the transaction
+            transaction_data: Data about the transaction (optional)
+            client_id: ID of the client (optional)
+            
+        Returns:
+            Dictionary with suspicious activity detection results
+        """
+        if not transaction_data:
+            transaction_data = {
+                "id": transaction_id,
+                "client_id": client_id or 1,
+                "amount": 15000,
+                "currency": "USD",
+                "date": datetime.utcnow().isoformat(),
+                "type": "purchase",
+                "payment_method": "cash",
+                "products": ["luxury_perfume"]
+            }
+        
+        client_id = client_id or transaction_data.get("client_id", 1)
+        client_profile = {
+            "id": client_id,
+            "name": f"Client {client_id}",
+            "risk_level": "medium",
+            "average_transaction_amount": 5000,
+            "usual_payment_methods": ["credit_card", "bank_transfer"],
+            "usual_products": ["regular_perfume", "cosmetics"]
+        }
+        
+        try:
+            suspicious_activity = await compliance_manual_integration.detect_suspicious_activity(
+                transaction_data=transaction_data,
+                client_profile=client_profile
+            )
+            
+            suspicious_activity["transaction_id"] = transaction_id
+            suspicious_activity["client_id"] = client_id
+            
+            return suspicious_activity
+        except Exception as e:
+            logger.error(f"Error detecting suspicious activity: {str(e)}")
+            return {
+                "error": str(e),
+                "transaction_id": transaction_id,
+                "client_id": client_id,
+                "is_suspicious": False,
+                "risk_level": "low",
+                "recommended_actions": ["review_manually"]
+            }
+    
+    async def generate_ros_report(
+        self,
+        transaction_id: int,
+        client_id: int,
+        suspicious_activity: Dict[str, Any] = None
+    ) -> ComplianceReport:
+        """
+        Generate a Suspicious Activity Report (ROS) for a suspicious transaction.
+        
+        Args:
+            transaction_id: ID of the suspicious transaction
+            client_id: ID of the client
+            suspicious_activity: Results of suspicious activity detection (optional)
+            
+        Returns:
+            ComplianceReport with the ROS report
+        """
+        if not suspicious_activity:
+            suspicious_activity = await self.detect_suspicious_activity(
+                transaction_id=transaction_id,
+                client_id=client_id
+            )
+        
+        transaction_data = {
+            "id": transaction_id,
+            "client_id": client_id,
+            "amount": 15000,
+            "currency": "USD",
+            "date": datetime.utcnow().isoformat(),
+            "type": "purchase",
+            "payment_method": "cash",
+            "products": ["luxury_perfume"]
+        }
+        
+        client_data = {
+            "id": client_id,
+            "name": f"Client {client_id}",
+            "identification": "123456789",
+            "address": "123 Main St, Panama City, Panama",
+            "contact": "client@example.com",
+            "risk_level": "medium"
+        }
+        
+        try:
+            ros_report = await compliance_manual_integration.generate_ros_report(
+                suspicious_activity=suspicious_activity,
+                client_data=client_data,
+                transaction_data=transaction_data
+            )
+            
+            report_create = ComplianceReportCreate(
+                report_type="ros_report",
+                entity_type="transaction",
+                entity_id=transaction_id,
+                report_data=ros_report,
+                status="draft",
+                notes=f"ROS report for suspicious transaction {transaction_id} by client {client_id}"
+            )
+            
+            return await self.create_compliance_report(report_create)
+        except Exception as e:
+            logger.error(f"Error generating ROS report: {str(e)}")
+            
+            report_create = ComplianceReportCreate(
+                report_type="ros_report",
+                entity_type="transaction",
+                entity_id=transaction_id,
+                report_data={
+                    "error": str(e),
+                    "transaction_id": transaction_id,
+                    "client_id": client_id,
+                    "suspicious_activity": suspicious_activity
+                },
+                status="draft",
+                notes=f"Error generating ROS report: {str(e)}"
+            )
+            
+            return await self.create_compliance_report(report_create)
+    
     async def generate_uaf_report(self, client_id: int, start_date: datetime, end_date: datetime) -> ComplianceReport:
         """
         Generate a UAF (Unidad de Análisis Financiero) report for a client.
         This report is required by Panamanian regulations for certain transactions.
         """
         logger.info(f"Generating UAF report for client {client_id} from {start_date} to {end_date}")
-        
         
         report_data = {
             "client_id": client_id,
@@ -281,6 +635,15 @@ class ComplianceService:
             ],
             "compliance_officer_notes": "Report generated automatically based on transaction activity."
         }
+        
+        try:
+            uaf_requirements = await compliance_manual_integration.query_compliance_manual(
+                query="What are the requirements for UAF reporting according to the compliance manual?"
+            )
+            
+            report_data["compliance_manual_guidance"] = uaf_requirements.get("response", "")
+        except Exception as e:
+            logger.error(f"Error querying compliance manual for UAF requirements: {str(e)}")
         
         report_create = ComplianceReportCreate(
             report_type="uaf_report",
