@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Dict, Any
 from pydantic import BaseModel
 
 class GenerateRequest(BaseModel):
@@ -9,6 +9,7 @@ class GenerateRequest(BaseModel):
     top_p: Optional[float] = 0.95
     do_sample: Optional[bool] = True
     repetition_penalty: Optional[float] = 1.1
+    debug: Optional[bool] = False
 
 class GenerateResponse(BaseModel):
     """Response model for the generate endpoint."""
@@ -16,3 +17,4 @@ class GenerateResponse(BaseModel):
     is_fallback: bool
     model: str
     error: Optional[str] = None
+    debug_info: Optional[Dict[str, Any]] = None

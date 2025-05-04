@@ -10,6 +10,8 @@ import subprocess
 from typing import Dict, List, Optional, Any, Union, Tuple
 from pydantic import BaseModel
 
+from app.services.ai.spanish_input_pipeline import process_spanish_input
+
 logger = logging.getLogger(__name__)
 
 class MistralRequest(BaseModel):
@@ -41,6 +43,12 @@ class MistralClient:
         else:
             self.fallback_mode = env_fallback == "true"
             logger.info(f"Fallback mode explicitly set to: {self.fallback_mode}")
+        
+        self.language_mode = os.environ.get("AI_LANGUAGE_MODE", "").lower()
+        if self.language_mode == "es":
+            logger.info("Spanish language mode explicitly enabled")
+        else:
+            logger.info("Using auto-detection for language processing")
         
         logger.info(f"Fallback mode is {'enabled' if self.fallback_mode else 'disabled'}")
     
@@ -82,16 +90,17 @@ class MistralClient:
         
         return False, f"Health check failed after {max_retries} attempts"
         
-    async def generate(self, prompt: str, **kwargs) -> str:
+    async def generate(self, prompt: str, debug: bool = False, **kwargs) -> Union[str, Dict[str, Any]]:
         """
         Generate text using the LLM model.
         
         Args:
             prompt: The input prompt for the model
+            debug: Whether to return debug information about Spanish preprocessing
             **kwargs: Additional parameters to pass to the model
             
         Returns:
-            The generated text response
+            The generated text response, or a dict with response and debug info if debug=True
         """
         parameters = {
             "max_new_tokens": 512,
@@ -103,13 +112,52 @@ class MistralClient:
         
         parameters.update(kwargs)
         
+        original_prompt = prompt
+        debug_info = {}
+        
+        should_process_spanish = (self.language_mode == "es")
+        
+        if not should_process_spanish:
+            try:
+                from app.services.ai.spanish_input_pipeline import spanish_pipeline
+                should_process_spanish = spanish_pipeline.is_spanish(prompt)
+                if should_process_spanish:
+                    logger.info("Auto-detected Spanish text, applying Spanish preprocessing")
+            except Exception as e:
+                logger.warning(f"Error in Spanish language detection: {e}")
+        
+        if should_process_spanish:
+            try:
+                logger.info("Applying Spanish language preprocessing")
+                if debug:
+                    prompt, preprocessing_info = process_spanish_input(prompt, debug=True)
+                    debug_info["spanish_preprocessing"] = preprocessing_info
+                else:
+                    prompt = process_spanish_input(prompt)
+                
+                if prompt != original_prompt:
+                    logger.info("Spanish preprocessing applied successfully")
+                    logger.debug(f"Original: {original_prompt[:100]}...")
+                    logger.debug(f"Processed: {prompt[:100]}...")
+            except Exception as e:
+                logger.error(f"Error in Spanish preprocessing: {e}, using original prompt")
+                prompt = original_prompt
+                debug_info["spanish_preprocessing_error"] = str(e)
+        
         request = MistralRequest(
             inputs=prompt,
             parameters=parameters
         )
         
         if self.fallback_mode:
-            return self._get_fallback_response(prompt)
+            response_text = self._get_fallback_response(prompt)
+            if debug:
+                return {
+                    "generated_text": response_text,
+                    "is_fallback": True,
+                    "debug_info": debug_info
+                }
+            return response_text
         
         try:
             logger.info(f"Attempting to connect to LLM at {self.base_url}/generate with prompt: {prompt[:50]}...")
@@ -129,30 +177,62 @@ class MistralClient:
             
             if isinstance(result, list) and len(result) > 0 and "generated_text" in result[0]:
                 logger.info("Successfully extracted generated_text from response (list format)")
-                return result[0]["generated_text"]
+                response_text = result[0]["generated_text"]
             elif isinstance(result, dict) and "generated_text" in result:
                 logger.info("Successfully extracted generated_text from response (dict format)")
-                return result["generated_text"]
+                response_text = result["generated_text"]
             else:
                 logger.error(f"Unexpected response format: {result}")
                 if isinstance(result, dict):
                     logger.error("Response keys: " + ", ".join(result.keys()))
                 self.fallback_mode = True
-                return self._get_fallback_response(prompt)
+                response_text = self._get_fallback_response(prompt)
+                
+            if debug:
+                return {
+                    "generated_text": response_text,
+                    "is_fallback": False,
+                    "debug_info": debug_info
+                }
+            return response_text
                 
         except httpx.HTTPStatusError as e:
             logger.error(f"HTTP error when connecting to LLM: {e.response.status_code} - {e.response.text}")
             self.fallback_mode = True
-            return self._get_fallback_response(prompt)
+            response_text = self._get_fallback_response(prompt)
+            if debug:
+                return {
+                    "generated_text": response_text,
+                    "is_fallback": True,
+                    "debug_info": debug_info,
+                    "error": str(e)
+                }
+            return response_text
         except httpx.ConnectError as e:
             logger.error(f"Connection error when connecting to LLM: {e} - Is the AI service running?")
             logger.error(f"Attempted to connect to: {self.base_url}")
             self.fallback_mode = True
-            return self._get_fallback_response(prompt)
+            response_text = self._get_fallback_response(prompt)
+            if debug:
+                return {
+                    "generated_text": response_text,
+                    "is_fallback": True,
+                    "debug_info": debug_info,
+                    "error": str(e)
+                }
+            return response_text
         except Exception as e:
             logger.error(f"Error generating text with LLM: {type(e).__name__} - {e}")
             self.fallback_mode = True
-            return self._get_fallback_response(prompt)
+            response_text = self._get_fallback_response(prompt)
+            if debug:
+                return {
+                    "generated_text": response_text,
+                    "is_fallback": True,
+                    "debug_info": debug_info,
+                    "error": str(e)
+                }
+            return response_text
             
     def _get_fallback_response(self, prompt: str) -> str:
         """Generate a fallback response when the AI service is unavailable."""
@@ -203,13 +283,14 @@ class MistralClient:
                 fallback_note
             )
     
-    async def analyze_contract(self, contract_text: str, query: str) -> Dict[str, Any]:
+    async def analyze_contract(self, contract_text: str, query: str, debug: bool = False) -> Dict[str, Any]:
         """
         Analyze a contract using the Mistral 7B model.
         
         Args:
             contract_text: The text of the contract to analyze
             query: The specific analysis query (e.g., "Extract key clauses", "Identify risks")
+            debug: Whether to return debug information about Spanish preprocessing
             
         Returns:
             A dictionary containing the analysis results
@@ -217,6 +298,54 @@ class MistralClient:
         max_contract_length = 3000
         if len(contract_text) > max_contract_length:
             contract_text = contract_text[:max_contract_length] + "..."
+        
+        original_contract_text = contract_text
+        debug_info = {}
+        
+        should_process_spanish = (self.language_mode == "es")
+        
+        if not should_process_spanish:
+            try:
+                from app.services.ai.spanish_input_pipeline import spanish_pipeline
+                should_process_spanish = spanish_pipeline.is_spanish(contract_text)
+                if should_process_spanish:
+                    logger.info("Auto-detected Spanish contract text, applying Spanish preprocessing")
+            except Exception as e:
+                logger.warning(f"Error in Spanish language detection for contract: {e}")
+        
+        if should_process_spanish:
+            try:
+                logger.info("Applying Spanish language preprocessing to contract text")
+                if debug:
+                    contract_text, preprocessing_info = process_spanish_input(contract_text, debug=True)
+                    debug_info["contract_preprocessing"] = preprocessing_info
+                else:
+                    contract_text = process_spanish_input(contract_text)
+                
+                if contract_text != original_contract_text:
+                    logger.info("Spanish preprocessing applied successfully to contract text")
+            except Exception as e:
+                logger.error(f"Error in Spanish preprocessing for contract: {e}, using original text")
+                contract_text = original_contract_text
+                debug_info["contract_preprocessing_error"] = str(e)
+        
+        original_query = query
+        
+        if should_process_spanish or (self.language_mode == "es"):
+            try:
+                logger.info("Applying Spanish language preprocessing to query")
+                if debug:
+                    query, query_preprocessing_info = process_spanish_input(query, debug=True)
+                    debug_info["query_preprocessing"] = query_preprocessing_info
+                else:
+                    query = process_spanish_input(query)
+                
+                if query != original_query:
+                    logger.info("Spanish preprocessing applied successfully to query")
+            except Exception as e:
+                logger.error(f"Error in Spanish preprocessing for query: {e}, using original query")
+                query = original_query
+                debug_info["query_preprocessing_error"] = str(e)
         
         prompt = f"""You are a legal AI assistant specialized in contract analysis.
 
@@ -230,36 +359,101 @@ Provide your analysis in JSON format with appropriate fields based on the task.
 """
         
         try:
-            response_text = await self.generate(prompt, temperature=0.3, max_new_tokens=1024)
+            if debug:
+                response = await self.generate(prompt, debug=True, temperature=0.3, max_new_tokens=1024)
+                response_text = response["generated_text"]
+                debug_info.update(response.get("debug_info", {}))
+            else:
+                response_text = await self.generate(prompt, temperature=0.3, max_new_tokens=1024)
             
             json_start = response_text.find("{")
             json_end = response_text.rfind("}") + 1
             
+            result = {}
+            
             if json_start >= 0 and json_end > json_start:
                 json_str = response_text[json_start:json_end]
                 try:
-                    return json.loads(json_str)
+                    result = json.loads(json_str)
                 except json.JSONDecodeError:
                     logger.error(f"Failed to parse JSON from response: {json_str}")
-                    return {"error": "Failed to parse analysis results", "raw_response": response_text}
+                    result = {"error": "Failed to parse analysis results", "raw_response": response_text}
             else:
-                return {"analysis": response_text}
+                result = {"analysis": response_text}
+            
+            if debug:
+                result["debug_info"] = debug_info
+                
+            return result
                 
         except Exception as e:
             logger.error(f"Error analyzing contract: {e}")
-            return {"error": str(e)}
+            result = {"error": str(e)}
+            if debug:
+                result["debug_info"] = debug_info
+            return result
     
-    async def query_legal_assistant(self, query: str, context: Optional[str] = None) -> str:
+    async def query_legal_assistant(self, query: str, context: Optional[str] = None, debug: bool = False) -> Union[str, Dict[str, Any]]:
         """
         Query the legal assistant with a natural language question.
         
         Args:
             query: The user's question
             context: Optional context information (e.g., relevant contract snippets)
+            debug: Whether to return debug information about Spanish preprocessing
             
         Returns:
-            The assistant's response
+            The assistant's response, or a dict with response and debug info if debug=True
         """
+        original_query = query
+        debug_info = {}
+        
+        should_process_spanish = (self.language_mode == "es")
+        
+        if not should_process_spanish:
+            try:
+                from app.services.ai.spanish_input_pipeline import spanish_pipeline
+                should_process_spanish = spanish_pipeline.is_spanish(query)
+                if should_process_spanish:
+                    logger.info("Auto-detected Spanish query, applying Spanish preprocessing")
+            except Exception as e:
+                logger.warning(f"Error in Spanish language detection for query: {e}")
+        
+        if should_process_spanish:
+            try:
+                logger.info("Applying Spanish language preprocessing to query")
+                if debug:
+                    query, preprocessing_info = process_spanish_input(query, debug=True)
+                    debug_info["query_preprocessing"] = preprocessing_info
+                else:
+                    query = process_spanish_input(query)
+                
+                if query != original_query:
+                    logger.info("Spanish preprocessing applied successfully to query")
+                    logger.debug(f"Original query: {original_query}")
+                    logger.debug(f"Processed query: {query}")
+            except Exception as e:
+                logger.error(f"Error in Spanish preprocessing for query: {e}, using original query")
+                query = original_query
+                debug_info["query_preprocessing_error"] = str(e)
+        
+        if context and should_process_spanish:
+            original_context = context
+            try:
+                logger.info("Applying Spanish language preprocessing to context")
+                if debug:
+                    context, context_preprocessing_info = process_spanish_input(context, debug=True)
+                    debug_info["context_preprocessing"] = context_preprocessing_info
+                else:
+                    context = process_spanish_input(context)
+                
+                if context != original_context:
+                    logger.info("Spanish preprocessing applied successfully to context")
+            except Exception as e:
+                logger.error(f"Error in Spanish preprocessing for context: {e}, using original context")
+                context = original_context
+                debug_info["context_preprocessing_error"] = str(e)
+        
         context_text = f"\nCONTEXT:\n{context}\n\n" if context else "\n"
         
         prompt = f"""You are a legal AI assistant for a contract management system.
@@ -271,10 +465,36 @@ Provide a helpful, accurate, and concise response based on the information avail
 """
         
         try:
-            response = await self.generate(prompt, temperature=0.7, max_new_tokens=512)
-            return response.strip()
+            if debug:
+                response = await self.generate(prompt, debug=True, temperature=0.7, max_new_tokens=512)
+                if isinstance(response, dict):
+                    result = response["generated_text"].strip()
+                    debug_info.update(response.get("debug_info", {}))
+                    return {
+                        "response": result,
+                        "debug_info": debug_info,
+                        "is_fallback": response.get("is_fallback", False)
+                    }
+                else:
+                    result = response.strip()
+                    return {
+                        "response": result,
+                        "debug_info": debug_info,
+                        "is_fallback": False
+                    }
+            else:
+                response = await self.generate(prompt, temperature=0.7, max_new_tokens=512)
+                return response.strip()
         except Exception as e:
             logger.error(f"Error querying legal assistant: {e}")
-            return f"I apologize, but I encountered an error processing your request: {str(e)}"
+            error_msg = f"I apologize, but I encountered an error processing your request: {str(e)}"
+            if debug:
+                return {
+                    "response": error_msg,
+                    "debug_info": debug_info,
+                    "error": str(e),
+                    "is_fallback": True
+                }
+            return error_msg
 
 mistral_client = MistralClient()

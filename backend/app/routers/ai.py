@@ -47,6 +47,7 @@ class GenerateRequest(BaseModel):
     top_p: Optional[float] = 0.95
     do_sample: Optional[bool] = True
     repetition_penalty: Optional[float] = 1.1
+    debug: Optional[bool] = False
 
 
 @router.post("/extract-clauses", response_model=List[ExtractedClauseSchema])
@@ -390,6 +391,9 @@ async def generate_text(request: GenerateRequest):
     and returns the raw response. If the Mistral service is unavailable,
     it will return a fallback response with a warning.
     
+    The endpoint also supports Spanish language preprocessing when the input
+    is detected as Spanish or when AI_LANGUAGE_MODE=es is set.
+    
     Args:
         request: The generation request containing the input text and optional parameters
         
@@ -399,22 +403,53 @@ async def generate_text(request: GenerateRequest):
     logger.info(f"Received generate request with prompt: {request.inputs[:50]}...")
     
     try:
-        response = await mistral_client.generate(
-            prompt=request.inputs,
-            max_new_tokens=request.max_new_tokens,
-            temperature=request.temperature,
-            top_p=request.top_p,
-            do_sample=request.do_sample,
-            repetition_penalty=request.repetition_penalty
-        )
-        
-        is_fallback = "fallback response" in response.lower() or "fallback note" in response.lower()
-        
-        return GenerateResponse(
-            generated_text=response,
-            is_fallback=is_fallback,
-            model="OpenHermes-2.5-Mistral-7B" if not is_fallback else "Fallback Model"
-        )
+        if request.debug:
+            logger.info("Debug mode enabled, will return Spanish preprocessing details")
+            response = await mistral_client.generate(
+                prompt=request.inputs,
+                debug=True,
+                max_new_tokens=request.max_new_tokens,
+                temperature=request.temperature,
+                top_p=request.top_p,
+                do_sample=request.do_sample,
+                repetition_penalty=request.repetition_penalty
+            )
+            
+            if isinstance(response, dict):
+                is_fallback = response.get("is_fallback", False)
+                generated_text = response.get("generated_text", "")
+                debug_info = response.get("debug_info", {})
+                
+                return GenerateResponse(
+                    generated_text=generated_text,
+                    is_fallback=is_fallback,
+                    model="OpenHermes-2.5-Mistral-7B" if not is_fallback else "Fallback Model",
+                    debug_info=debug_info
+                )
+            else:
+                is_fallback = "fallback response" in response.lower() or "fallback note" in response.lower()
+                return GenerateResponse(
+                    generated_text=response,
+                    is_fallback=is_fallback,
+                    model="OpenHermes-2.5-Mistral-7B" if not is_fallback else "Fallback Model"
+                )
+        else:
+            response = await mistral_client.generate(
+                prompt=request.inputs,
+                max_new_tokens=request.max_new_tokens,
+                temperature=request.temperature,
+                top_p=request.top_p,
+                do_sample=request.do_sample,
+                repetition_penalty=request.repetition_penalty
+            )
+            
+            is_fallback = "fallback response" in response.lower() or "fallback note" in response.lower()
+            
+            return GenerateResponse(
+                generated_text=response,
+                is_fallback=is_fallback,
+                model="OpenHermes-2.5-Mistral-7B" if not is_fallback else "Fallback Model"
+            )
         
     except Exception as e:
         logger.error(f"Error generating text with Mistral model: {e}")
