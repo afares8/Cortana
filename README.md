@@ -277,6 +277,15 @@ The application follows a modular architecture designed for future expansion:
 - **Natural Language Interface**: Query contracts using natural language
 - **Task Suggestions**: Generate tasks based on contract content
 
+## Recent Updates
+
+- Enhanced AI integration with Mistral 7B model
+- Added Docker support for both GPU and CPU environments
+- Implemented modular architecture for future department integration
+- Created comprehensive legal department module
+- Fixed fallback detection logic between frontend and backend
+- Updated AIDashboard to use dedicated Mistral endpoint for consistent behavior
+
 ## Future Enhancements
 
 - Digital signatures integration
