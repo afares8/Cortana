@@ -17,6 +17,7 @@ A specialized internal tool for the Legal Department of the Zona Libre de Colón
 - Risk scoring for contract terms and conditions
 - Natural language querying of contract database
 - AI-assisted task generation based on contract content
+- Spanish language preprocessing for legal documents
 
 ### Modular Architecture
 - Legal Department module with client and contract management
@@ -198,7 +199,8 @@ If you don't specify a profile, the system will default to CPU mode with fallbac
     "inputs": "Analyze the following contract clause: ...",
     "max_new_tokens": 500,
     "temperature": 0.7,
-    "top_p": 0.9
+    "top_p": 0.9,
+    "debug": false
   }
   ```
 - `GET /api/v1/test-mistral` - Test Mistral model connection and environment
@@ -241,6 +243,7 @@ The application supports different environments through environment variables:
 - `ACCESS_TOKEN_EXPIRE_MINUTES` - JWT token expiration (default: 30)
 - `MISTRAL_API_URL` - URL for Mistral API service (default: http://ai-service:80)
 - `AI_FALLBACK_MODE` - Force fallback mode for AI features (auto-detected by default)
+- `AI_LANGUAGE_MODE` - Set to "es" to force Spanish language processing for all inputs
 
 ### Frontend Environment Variables
 
@@ -255,6 +258,7 @@ The system integrates with the Mistral 7B language model for contract analysis:
 - **Fallback Mode**: Automatically uses fallback responses in CPU-only environments
 - **Docker Integration**: Uses Docker Compose profiles to select appropriate services
 - **Environment Detection**: Automatically detects GPU availability
+- **Spanish Language Support**: Comprehensive preprocessing pipeline for Spanish legal documents
 
 For detailed AI setup instructions, see [AI_SETUP.md](./AI_SETUP.md).
 
@@ -276,6 +280,63 @@ The application follows a modular architecture designed for future expansion:
 - **Risk Assessment**: Score contracts based on risk factors
 - **Natural Language Interface**: Query contracts using natural language
 - **Task Suggestions**: Generate tasks based on contract content
+- **Spanish Language Support**: Preprocess Spanish legal documents for AI analysis
+
+### Spanish Language Support
+
+The system includes a comprehensive Spanish language preprocessing pipeline for Mistral AI integration:
+
+- **Automatic Language Detection**: Identifies Spanish inputs using langdetect
+- **Accent Normalization**: Restores missing accents in Spanish text (e.g., "clausula" → "cláusula")
+- **Punctuation Balancing**: Adds missing opening punctuation marks (e.g., "Como estas?" → "¿Como estas?")
+- **Legal Terminology Standardization**: Corrects common legal terms (e.g., "rescision" → "rescisión")
+- **Error Handling**: Gracefully falls back to original input if preprocessing fails
+- **Debug Mode**: Provides detailed preprocessing information for troubleshooting
+
+#### Usage
+
+The Spanish language support can be enabled in two ways:
+
+1. **Automatic Detection**: The system automatically detects Spanish language inputs
+2. **Environment Variable**: Set `AI_LANGUAGE_MODE=es` to force Spanish processing for all inputs
+
+#### API Integration
+
+Enable debug mode to get detailed preprocessing information:
+
+```json
+POST /api/v1/ai/mistral/generate
+{
+  "inputs": "La clausula de terminacion requiere notificacion previa.",
+  "debug": true
+}
+```
+
+Response includes preprocessing details:
+
+```json
+{
+  "generated_text": "...",
+  "is_fallback": false,
+  "model": "OpenHermes-2.5-Mistral-7B",
+  "debug_info": {
+    "original_text": "La clausula de terminacion requiere notificacion previa.",
+    "processed_text": "La cláusula de terminación requiere notificación previa.",
+    "is_spanish": true,
+    "language_detected": "es",
+    "changes_made": true
+  }
+}
+
+## Recent Updates
+
+- Enhanced AI integration with Mistral 7B model
+- Added Docker support for both GPU and CPU environments
+- Implemented modular architecture for future department integration
+- Created comprehensive legal department module
+- Added Spanish language support pipeline for legal document preprocessing
+- Fixed fallback detection logic between frontend and backend
+- Updated AIDashboard to use dedicated Mistral endpoint for consistent behavior
 
 ## Future Enhancements
 
