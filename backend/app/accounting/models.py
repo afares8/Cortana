@@ -1,7 +1,8 @@
 from datetime import datetime
 from typing import List, Optional, Dict, Any
 from enum import Enum
-from pydantic import BaseModel, EmailStr
+from uuid import UUID, uuid4
+from pydantic import BaseModel, EmailStr, Field
 
 from app.models.base import TimestampModel
 
@@ -71,3 +72,37 @@ class UserCompanyAccess(TimestampModel):
     user_email: Optional[str] = None
     user_name: Optional[str] = None
     company_name: Optional[str] = None
+
+class Notification(TimestampModel):
+    id: UUID = Field(default_factory=uuid4)
+    user_id: int
+    message: str
+    read: bool = False
+    related_obligation_id: Optional[UUID] = None
+    
+    class Config:
+        schema_extra = {
+            "example": {
+                "id": "123e4567-e89b-12d3-a456-426614174000",
+                "user_id": 1,
+                "message": "ITBMS filing due in 5 days",
+                "read": False,
+                "related_obligation_id": "123e4567-e89b-12d3-a456-426614174001",
+                "created_at": "2023-05-01T12:00:00Z",
+                "updated_at": "2023-05-01T12:00:00Z"
+            }
+        }
+        
+class AuditAction(str, Enum):
+    CREATE = "CREATE"
+    UPDATE = "UPDATE"
+    DELETE = "DELETE"
+
+class AuditLog(TimestampModel):
+    id: UUID = Field(default_factory=uuid4)
+    user_id: int
+    action: AuditAction
+    entity_type: str  # obligation, payment, attachment, company
+    entity_id: UUID
+    timestamp: datetime
+    metadata: Dict[str, Any] = Field(default_factory=dict)
