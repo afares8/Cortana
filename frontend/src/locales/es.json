@@ -37,7 +37,9 @@
       "total": "Total",
       "language": "Idioma",
       "english": "Inglés",
-      "spanish": "Español"
+      "spanish": "Español",
+      "search": "Buscar",
+      "actions": "Acciones"
     },
     "messages": {
       "loading": "Cargando...",
