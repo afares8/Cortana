@@ -21,6 +21,8 @@ from app.services.traffic import traffic_router
 
 from app.legal.routers import router as legal_router
 from app.legal.services import init_legal_db
+from app.accounting.routers import router as accounting_router
+from app.accounting.services import init_accounting_db
 
 logs_dir = "/app/logs" if os.path.exists("/app") else "logs"
 os.makedirs(logs_dir, exist_ok=True)
@@ -63,6 +65,7 @@ app.include_router(tasks_router, prefix=f"{settings.API_V1_STR}/tasks", tags=["t
 app.include_router(audit_router, prefix=f"{settings.API_V1_STR}/audit", tags=["audit"])
 app.include_router(ai_router, prefix=f"{settings.API_V1_STR}/ai", tags=["ai"])
 app.include_router(traffic_router, prefix=f"{settings.API_V1_STR}/traffic", tags=["traffic"])
+app.include_router(accounting_router, prefix=f"{settings.API_V1_STR}/accounting", tags=["accounting"])
 
 os.makedirs("uploads", exist_ok=True)
 
@@ -83,6 +86,7 @@ async def startup_event():
     
     init_db()
     init_legal_db()
+    init_accounting_db()
     
     logger.info("Service modules initialized")
     

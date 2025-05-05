@@ -22,6 +22,8 @@ import TaskList from './modules/legal/pages/TaskList';
 import TaskDetail from './modules/legal/pages/TaskDetail';
 import AuditLogList from './modules/legal/pages/AuditLogList';
 
+import AccountingDashboard from './modules/accounting/pages/AccountingDashboard';
+
 import TrafficDashboard from './modules/traffic/pages/Dashboard';
 import TrafficUpload from './modules/traffic/pages/Upload';
 import TrafficRecords from './modules/traffic/pages/Records';
@@ -77,6 +79,9 @@ function App() {
           <Route path="legal/tasks" element={<TaskList />} />
           <Route path="legal/tasks/:id" element={<TaskDetail />} />
           <Route path="legal/audit-logs" element={<AuditLogList />} />
+          
+          {/* Accounting Module Routes */}
+          <Route path="accounting/dashboard" element={<AccountingDashboard />} />
           
           {/* Traffic Module Routes */}
           <Route path="traffic/dashboard" element={<TrafficDashboard />} />
