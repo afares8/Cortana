@@ -197,11 +197,24 @@
       "company": "Company",
       "period": "Period",
       "format": "Format",
+      "templateFile": "Template File",
+      "acceptedFormats": "Accepted formats: .docx, .pdf, .xlsx, .xls",
+      "upload": "Upload Template",
       "templates": {
         "itbms": "ITBMS Declaration",
         "isr": "ISR Declaration",
         "css": "CSS Planilla",
         "municipal": "Municipal License"
+      },
+      "error": {
+        "selectBoth": "Please select both company and template",
+        "selectFile": "Please select a file to upload",
+        "generation": "Error generating document",
+        "upload": "Error uploading template"
+      },
+      "success": {
+        "generated": "Document generated successfully",
+        "uploaded": "Template uploaded successfully"
       },
       "formats": {
         "pdf": "PDF",

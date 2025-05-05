@@ -197,11 +197,24 @@
       "company": "Empresa",
       "period": "Período",
       "format": "Formato",
+      "templateFile": "Archivo de Plantilla",
+      "acceptedFormats": "Formatos aceptados: .docx, .pdf, .xlsx, .xls",
+      "upload": "Subir Plantilla",
       "templates": {
         "itbms": "Declaración de ITBMS",
         "isr": "Declaración de ISR",
         "css": "Planilla CSS",
         "municipal": "Licencia Municipal"
+      },
+      "error": {
+        "selectBoth": "Por favor seleccione empresa y plantilla",
+        "selectFile": "Por favor seleccione un archivo para subir",
+        "generation": "Error al generar documento",
+        "upload": "Error al subir plantilla"
+      },
+      "success": {
+        "generated": "Documento generado exitosamente",
+        "uploaded": "Plantilla subida exitosamente"
       },
       "formats": {
         "pdf": "PDF",
