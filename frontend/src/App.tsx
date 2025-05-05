@@ -22,6 +22,13 @@ import TaskList from './modules/legal/pages/TaskList';
 import TaskDetail from './modules/legal/pages/TaskDetail';
 import AuditLogList from './modules/legal/pages/AuditLogList';
 
+import TrafficDashboard from './modules/traffic/pages/Dashboard';
+import TrafficUpload from './modules/traffic/pages/Upload';
+import TrafficRecords from './modules/traffic/pages/Records';
+import TrafficRecordDetail from './modules/traffic/pages/RecordDetail';
+import TrafficSubmissionLogs from './modules/traffic/pages/SubmissionLogs';
+import TrafficSubmissionDetail from './modules/traffic/pages/SubmissionDetail';
+
 const queryClient = new QueryClient();
 
 if (typeof window !== 'undefined') {
@@ -70,6 +77,14 @@ function App() {
           <Route path="legal/tasks" element={<TaskList />} />
           <Route path="legal/tasks/:id" element={<TaskDetail />} />
           <Route path="legal/audit-logs" element={<AuditLogList />} />
+          
+          {/* Traffic Module Routes */}
+          <Route path="traffic/dashboard" element={<TrafficDashboard />} />
+          <Route path="traffic/upload" element={<TrafficUpload />} />
+          <Route path="traffic/records" element={<TrafficRecords />} />
+          <Route path="traffic/record/:id" element={<TrafficRecordDetail />} />
+          <Route path="traffic/logs" element={<TrafficSubmissionLogs />} />
+          <Route path="traffic/logs/:id" element={<TrafficSubmissionDetail />} />
           
           {/* Catch-all redirect to dashboard */}
           <Route path="*" element={<Navigate to="/" replace />} />

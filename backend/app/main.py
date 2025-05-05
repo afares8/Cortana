@@ -17,6 +17,7 @@ from app.services.workflows import workflows_router
 from app.services.tasks import tasks_router
 from app.services.audit import audit_router
 from app.services.ai import ai_router
+from app.services.traffic import traffic_router
 
 from app.legal.routers import router as legal_router
 from app.legal.services import init_legal_db
@@ -61,6 +62,7 @@ app.include_router(workflows_router, prefix=f"{settings.API_V1_STR}/workflows", 
 app.include_router(tasks_router, prefix=f"{settings.API_V1_STR}/tasks", tags=["tasks"])
 app.include_router(audit_router, prefix=f"{settings.API_V1_STR}/audit", tags=["audit"])
 app.include_router(ai_router, prefix=f"{settings.API_V1_STR}/ai", tags=["ai"])
+app.include_router(traffic_router, prefix=f"{settings.API_V1_STR}/traffic", tags=["traffic"])
 
 os.makedirs("uploads", exist_ok=True)
 

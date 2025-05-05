@@ -1,6 +1,6 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, X, Menu, LogOut, ChevronRight, ChevronDown, AlertCircle, Bell, Settings, Shield, FileText, Users, Activity, CheckSquare, Database, Brain, BarChart2 } from 'lucide-react';
+import { Search, X, Menu, LogOut, ChevronRight, ChevronDown, AlertCircle, Bell, Settings, Shield, FileText, Users, Activity, CheckSquare, Database, Brain, BarChart2, Truck } from 'lucide-react';
 
 interface LayoutProps {
   children: ReactNode;
@@ -36,6 +36,7 @@ export default function Layout({ children, title }: LayoutProps) {
     contracts: true,
     legal: true,
     compliance: true,
+    traffic: true,
     ai: true
   });
   const [notifications, setNotifications] = useState<{id: string, message: string, type: string}[]>([]);
@@ -95,6 +96,18 @@ export default function Layout({ children, title }: LayoutProps) {
       ]
     },
     { 
+      path: 'traffic', 
+      label: 'Tráfico', 
+      icon: <Truck className="h-5 w-5" />, 
+      section: 'traffic',
+      children: [
+        { path: 'traffic/dashboard', label: 'Panel', icon: <BarChart2 className="h-4 w-4" /> },
+        { path: 'traffic/upload', label: 'Cargar Factura', icon: <FileText className="h-4 w-4" /> },
+        { path: 'traffic/records', label: 'Registros', icon: <Database className="h-4 w-4" /> },
+        { path: 'traffic/logs', label: 'Historial', icon: <Activity className="h-4 w-4" /> }
+      ]
+    },
+    { 
       path: 'ai-dashboard', 
       label: 'AI Center', 
       icon: <Brain className="h-5 w-5" />, 
@@ -107,6 +120,7 @@ export default function Layout({ children, title }: LayoutProps) {
     if (path.startsWith('legal/')) return 'legal';
     if (path.startsWith('compliance/')) return 'compliance';
     if (path.startsWith('contracts/')) return 'contracts';
+    if (path.startsWith('traffic/')) return 'traffic';
     if (path.startsWith('ai-')) return 'ai';
     return 'dashboard';
   };
@@ -349,6 +363,48 @@ export default function Layout({ children, title }: LayoutProps) {
               <div className="p-3 bg-purple-50 rounded-md">
                 <p className="text-sm font-medium text-purple-800">TechStart Inc. NDA</p>
                 <p className="text-xs text-purple-700">Analyzed 1 week ago</p>
+              </div>
+            </div>
+          </div>
+        );
+      
+      case 'traffic':
+        return (
+          <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
+            <h3 className="font-medium text-gray-900 mb-3">Acciones de Tráfico</h3>
+            <div className="space-y-2">
+              <button 
+                onClick={() => navigate('/traffic/dashboard')}
+                className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
+              >
+                <span className="mr-2">📊</span>
+                Panel de Control
+              </button>
+              <button 
+                onClick={() => navigate('/traffic/upload')}
+                className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
+              >
+                <span className="mr-2">📤</span>
+                Cargar Factura
+              </button>
+              <button 
+                onClick={() => navigate('/traffic/records')}
+                className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
+              >
+                <span className="mr-2">📋</span>
+                Ver Registros
+              </button>
+            </div>
+            
+            <h3 className="font-medium text-gray-900 mt-6 mb-3">Actividad Reciente</h3>
+            <div className="space-y-2">
+              <div className="p-3 bg-orange-50 rounded-md">
+                <p className="text-sm font-medium text-orange-800">Declaración DMCE</p>
+                <p className="text-xs text-orange-700">Enviada hace 2 días</p>
+              </div>
+              <div className="p-3 bg-orange-50 rounded-md">
+                <p className="text-sm font-medium text-orange-800">Consolidación de Facturas</p>
+                <p className="text-xs text-orange-700">Completada hace 1 semana</p>
               </div>
             </div>
           </div>
