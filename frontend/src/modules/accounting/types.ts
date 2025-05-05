@@ -146,3 +146,42 @@ export interface AttachmentCreate {
   uploaded_by?: string;
   file_content: string; // Base64 encoded file content
 }
+
+export interface Notification {
+  id: string;
+  user_id: number;
+  message: string;
+  read: boolean;
+  related_obligation_id?: string;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface AuditLog {
+  id: number;
+  user_id?: number;
+  user_email?: string;
+  action: string;
+  entity_type: string;
+  entity_id: string;
+  timestamp: string;
+  details?: Record<string, any>;
+  ip_address?: string;
+}
+
+export interface EmailDraftRequest {
+  company_id: string;
+  recipient: string;
+  context: string;
+  obligation_id?: string;
+  payment_id?: string;
+}
+
+export interface EmailDraftResponse {
+  subject: string;
+  body: string;
+  recipient: string;
+  company_id: string;
+  is_fallback?: boolean;
+  error?: string;
+}

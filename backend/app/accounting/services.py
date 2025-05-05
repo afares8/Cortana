@@ -16,7 +16,8 @@ from app.accounting.models import (
     Payment,
     Attachment,
     UserCompanyAccess,
-    AccessPermission
+    AccessPermission,
+    Notification
 )
 from app.accounting.exports import (
     get_template_file,
@@ -30,6 +31,7 @@ tax_types_db = InMemoryDB[TaxType](TaxType)
 obligations_db = InMemoryDB[Obligation](Obligation)
 payments_db = InMemoryDB[Payment](Payment)
 attachments_db = InMemoryDB[Attachment](Attachment)
+notifications_db = InMemoryDB[Notification](Notification)
 
 ACCOUNTING_UPLOADS_DIR = Path("uploads/accounting")
 ACCOUNTING_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
@@ -164,8 +166,16 @@ def update_obligation(obligation_id: int, obligation_data: Dict[str, Any]) -> Op
         if not tax_type:
             return None
     
+    old_status = obligation.status if hasattr(obligation, "status") else None
+    new_status = obligation_data.get("status")
+    
     updated_obligation = obligations_db.update(id=obligation_id, obj_in=Obligation(**obligation_data))
-    return get_obligation(obligation_id)  # Return with company and tax type names
+    updated_obligation = get_obligation(obligation_id)  # Get updated obligation with company and tax type names
+    
+    if old_status != "overdue" and new_status == "overdue":
+        notify_overdue_obligation(updated_obligation)
+    
+    return updated_obligation
 
 def delete_obligation(obligation_id: int) -> bool:
     """Delete an obligation."""
@@ -192,6 +202,8 @@ def create_payment(payment_data: Dict[str, Any]) -> Payment:
         "last_payment_date": payment.payment_date,
         "status": "completed"
     }))
+    
+    notify_payment_registered(payment)
     
     return payment
 
@@ -808,3 +820,338 @@ def user_can_access_company(
         return access.permissions == AccessPermission.WRITE
     
     return False
+
+
+# Notification services
+def create_notification(notification_data: Dict[str, Any]) -> Notification:
+    """Create a new notification."""
+    if "created_at" not in notification_data:
+        notification_data["created_at"] = datetime.utcnow()
+    
+    notification = notifications_db.create(obj_in=Notification(**notification_data))
+    return notification
+
+def get_notification(notification_id: uuid.UUID) -> Optional[Notification]:
+    """Get a notification by ID."""
+    all_notifications = notifications_db.get_multi()
+    for notification in all_notifications:
+        if str(notification.id) == str(notification_id):
+            return notification
+    return None
+
+def get_notifications(
+    skip: int = 0, 
+    limit: int = 100, 
+    filters: Dict[str, Any] = None
+) -> List[Notification]:
+    """Get notifications with optional filtering."""
+    all_notifications = notifications_db.get_multi(skip=skip, limit=limit)
+    
+    if not filters:
+        return all_notifications
+    
+    filtered_notifications = []
+    for notification in all_notifications:
+        match = True
+        for key, value in filters.items():
+            if hasattr(notification, key) and getattr(notification, key) != value:
+                match = False
+                break
+        if match:
+            filtered_notifications.append(notification)
+    
+    return filtered_notifications
+
+def update_notification(notification_id: uuid.UUID, notification_data: Dict[str, Any]) -> Optional[Notification]:
+    """Update a notification."""
+    notification = get_notification(notification_id)
+    if not notification:
+        return None
+    
+    notification_dict = {
+        "id": notification.id,
+        "user_id": notification.user_id,
+        "message": notification.message,
+        "read": notification.read,
+        "related_obligation_id": notification.related_obligation_id,
+        "created_at": notification.created_at,
+        "updated_at": datetime.utcnow()
+    }
+    notification_dict.update(notification_data)
+    
+    all_notifications = notifications_db.get_multi()
+    for i, notif in enumerate(all_notifications):
+        if str(notif.id) == str(notification_id):
+            updated_notification = notifications_db.update(
+                id=i+1,  # InMemoryDB uses 1-based indexing
+                obj_in=Notification(**notification_dict)
+            )
+            return updated_notification
+    
+    return None
+
+def mark_notification_read(notification_id: uuid.UUID) -> Optional[Notification]:
+    """Mark a notification as read."""
+    return update_notification(notification_id, {"read": True})
+
+def notify_upcoming_obligation(obligation: Obligation, days_before: int) -> List[Notification]:
+    """Create a notification for an upcoming obligation."""
+    company = get_company(obligation.company_id)
+    company_name = company.name if company else "Unknown Company"
+    message = f"{obligation.name} for {company_name} due in {days_before} days"
+    
+    all_accesses = user_company_access_db.get_multi()
+    user_accesses = [
+        access for access in all_accesses 
+        if access.company_id == obligation.company_id
+    ]
+    
+    notifications = []
+    for access in user_accesses:
+        notification_data = {
+            "user_id": access.user_id,
+            "message": message,
+            "related_obligation_id": obligation.id
+        }
+        notifications.append(create_notification(notification_data))
+    
+    return notifications
+
+def notify_overdue_obligation(obligation: Obligation) -> List[Notification]:
+    """Create a notification for an overdue obligation."""
+    company = get_company(obligation.company_id)
+    company_name = company.name if company else "Unknown Company"
+    message = f"{obligation.name} for {company_name} is overdue"
+    
+    all_accesses = user_company_access_db.get_multi()
+    user_accesses = [
+        access for access in all_accesses 
+        if access.company_id == obligation.company_id
+    ]
+    
+    notifications = []
+    for access in user_accesses:
+        notification_data = {
+            "user_id": access.user_id,
+            "message": message,
+            "related_obligation_id": obligation.id
+        }
+        notifications.append(create_notification(notification_data))
+    
+    return notifications
+
+def notify_payment_registered(payment: Payment) -> List[Notification]:
+    """Create a notification for a registered payment."""
+    obligation = get_obligation(payment.obligation_id)
+    if not obligation:
+        return []
+    
+    company = get_company(obligation.company_id)
+    company_name = company.name if company else "Unknown Company"
+    message = f"Payment of ${payment.amount} registered for {obligation.name} ({company_name})"
+    
+    all_accesses = user_company_access_db.get_multi()
+    user_accesses = [
+        access for access in all_accesses 
+        if access.company_id == obligation.company_id
+    ]
+    
+    notifications = []
+    for access in user_accesses:
+        notification_data = {
+            "user_id": access.user_id,
+            "message": message,
+            "related_obligation_id": obligation.id
+        }
+        notifications.append(create_notification(notification_data))
+    
+    return notifications
+
+from app.accounting.audit import create_audit_log
+from app.accounting.models import AuditAction
+
+def create_obligation_with_audit(
+    obligation_data: Dict[str, Any],
+    user_id: int
+) -> Optional[Obligation]:
+    """Create a new obligation with audit logging."""
+    obligation = create_obligation(obligation_data)
+    
+    if obligation:
+        create_audit_log(
+            user_id=user_id,
+            action=AuditAction.CREATE,
+            entity_type="obligation",
+            entity_id=obligation.id,
+            metadata={
+                "name": obligation.name,
+                "company_id": obligation.company_id,
+                "tax_type_id": obligation.tax_type_id
+            }
+        )
+    
+    return obligation
+
+def update_obligation_with_audit(
+    obligation_id: int,
+    obligation_data: Dict[str, Any],
+    user_id: int
+) -> Optional[Obligation]:
+    """Update an obligation with audit logging."""
+    original_obligation = get_obligation(obligation_id)
+    if not original_obligation:
+        return None
+    
+    updated_obligation = update_obligation(obligation_id, obligation_data)
+    
+    if updated_obligation:
+        create_audit_log(
+            user_id=user_id,
+            action=AuditAction.UPDATE,
+            entity_type="obligation",
+            entity_id=updated_obligation.id,
+            metadata={
+                "name": updated_obligation.name,
+                "status": updated_obligation.status,
+                "changes": {k: v for k, v in obligation_data.items() if v is not None}
+            }
+        )
+    
+    return updated_obligation
+
+def delete_obligation_with_audit(
+    obligation_id: int,
+    user_id: int
+) -> bool:
+    """Delete an obligation with audit logging."""
+    obligation = get_obligation(obligation_id)
+    if not obligation:
+        return False
+    
+    result = delete_obligation(obligation_id)
+    
+    if result:
+        create_audit_log(
+            user_id=user_id,
+            action=AuditAction.DELETE,
+            entity_type="obligation",
+            entity_id=obligation_id,
+            metadata={
+                "name": obligation.name,
+                "company_id": obligation.company_id,
+                "tax_type_id": obligation.tax_type_id
+            }
+        )
+    
+    return result
+
+def create_payment_with_audit(
+    payment_data: Dict[str, Any],
+    user_id: int
+) -> Optional[Payment]:
+    """Create a new payment with audit logging."""
+    payment = create_payment(payment_data)
+    
+    if payment:
+        create_audit_log(
+            user_id=user_id,
+            action=AuditAction.CREATE,
+            entity_type="payment",
+            entity_id=payment.id,
+            metadata={
+                "amount": payment.amount,
+                "obligation_id": payment.obligation_id,
+                "payment_date": payment.payment_date.isoformat()
+            }
+        )
+    
+    return payment
+
+def update_payment_with_audit(
+    payment_id: int,
+    payment_data: Dict[str, Any],
+    user_id: int
+) -> Optional[Payment]:
+    """Update a payment with audit logging."""
+    original_payment = get_payment(payment_id)
+    if not original_payment:
+        return None
+    
+    updated_payment = update_payment(payment_id, payment_data)
+    
+    if updated_payment:
+        create_audit_log(
+            user_id=user_id,
+            action=AuditAction.UPDATE,
+            entity_type="payment",
+            entity_id=updated_payment.id,
+            metadata={
+                "amount": updated_payment.amount,
+                "obligation_id": updated_payment.obligation_id,
+                "changes": {k: v for k, v in payment_data.items() if v is not None}
+            }
+        )
+    
+    return updated_payment
+
+def delete_payment_with_audit(
+    payment_id: int,
+    user_id: int
+) -> bool:
+    """Delete a payment with audit logging."""
+    payment = get_payment(payment_id)
+    if not payment:
+        return False
+    
+    result = delete_payment(payment_id)
+    
+    if result:
+        create_audit_log(
+            user_id=user_id,
+            action=AuditAction.DELETE,
+            entity_type="payment",
+            entity_id=payment_id,
+            metadata={
+                "amount": payment.amount,
+                "obligation_id": payment.obligation_id
+            }
+        )
+    
+    return result
+
+def get_company_audit_logs(
+    company_id: int,
+    skip: int = 0,
+    limit: int = 100
+) -> List[Dict[str, Any]]:
+    """Get audit logs for a specific company."""
+    from app.accounting.audit import get_audit_logs, get_entity_audit_logs
+    
+    company_logs = get_entity_audit_logs("company", company_id, skip, limit)
+    
+    company_obligations = get_obligations(filters={"company_id": company_id})
+    obligation_ids = [obligation.id for obligation in company_obligations]
+    
+    # Get logs for these obligations
+    obligation_logs = []
+    for obligation_id in obligation_ids:
+        logs = get_entity_audit_logs("obligation", obligation_id, 0, 100)
+        obligation_logs.extend(logs)
+    
+    # Get payments for these obligations
+    payment_logs = []
+    for obligation_id in obligation_ids:
+        payments = get_payments(filters={"obligation_id": obligation_id})
+        payment_ids = [payment.id for payment in payments]
+        
+        for payment_id in payment_ids:
+            logs = get_entity_audit_logs("payment", payment_id, 0, 100)
+            payment_logs.extend(logs)
+    
+    all_logs = company_logs + obligation_logs + payment_logs
+    
+    sorted_logs = sorted(all_logs, key=lambda x: x.timestamp, reverse=True)
+    
+    paginated_logs = sorted_logs[skip:skip+limit]
+    
+    return [log.dict() for log in paginated_logs]

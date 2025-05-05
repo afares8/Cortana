@@ -1,6 +1,7 @@
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 import os
+import uuid
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Body, Query, Path
 from fastapi.responses import JSONResponse, FileResponse
 from pydantic import EmailStr
@@ -12,7 +13,8 @@ from app.accounting.schemas import (
     TaxType, TaxTypeCreate, TaxTypeUpdate,
     Obligation, ObligationCreate, ObligationUpdate,
     Payment, PaymentCreate, PaymentUpdate,
-    Attachment, AttachmentCreate
+    Attachment, AttachmentCreate,
+    NotificationResponse, NotificationUpdate
 )
 from app.accounting.services import (
     create_company, get_company, get_companies, update_company, delete_company,
@@ -21,7 +23,11 @@ from app.accounting.services import (
     create_payment, get_payment, get_payments, update_payment, delete_payment,
     create_attachment, get_attachment, get_attachments, delete_attachment,
     get_upcoming_obligations, get_overdue_obligations, analyze_obligation_history,
-    get_template_file, export_obligations_to_excel, export_payments_to_excel
+    get_template_file, export_obligations_to_excel, export_payments_to_excel,
+    create_notification, get_notification, get_notifications, update_notification, mark_notification_read,
+    create_obligation_with_audit, update_obligation_with_audit, delete_obligation_with_audit,
+    create_payment_with_audit, update_payment_with_audit, delete_payment_with_audit,
+    get_company_audit_logs
 )
 
 router = APIRouter()
@@ -133,9 +139,15 @@ async def delete_tax_type_endpoint(tax_type_id: int = Path(..., gt=0)):
     return {"success": True}
 
 @router.post("/obligations", response_model=Obligation, status_code=201)
-async def create_obligation_endpoint(obligation: ObligationCreate):
+async def create_obligation_endpoint(
+    obligation: ObligationCreate,
+    current_user = Depends(get_current_user)
+):
     """Create a new obligation."""
-    result = create_obligation(obligation.model_dump())
+    result = create_obligation_with_audit(
+        obligation_data=obligation.model_dump(),
+        user_id=current_user.id
+    )
     if not result:
         raise HTTPException(status_code=404, detail="Company or tax type not found")
     return result
@@ -183,26 +195,43 @@ async def get_obligation_endpoint(obligation_id: int = Path(..., gt=0)):
 @router.put("/obligations/{obligation_id}", response_model=Obligation)
 async def update_obligation_endpoint(
     obligation_id: int = Path(..., gt=0),
-    obligation_update: ObligationUpdate = Body(...)
+    obligation_update: ObligationUpdate = Body(...),
+    current_user = Depends(get_current_user)
 ):
     """Update an obligation."""
-    obligation = update_obligation(obligation_id, obligation_update.model_dump(exclude_unset=True))
+    obligation = update_obligation_with_audit(
+        obligation_id=obligation_id, 
+        obligation_data=obligation_update.model_dump(exclude_unset=True),
+        user_id=current_user.id
+    )
     if not obligation:
         raise HTTPException(status_code=404, detail="Obligation not found")
     return obligation
 
 @router.delete("/obligations/{obligation_id}", response_model=Dict[str, bool])
-async def delete_obligation_endpoint(obligation_id: int = Path(..., gt=0)):
+async def delete_obligation_endpoint(
+    obligation_id: int = Path(..., gt=0),
+    current_user = Depends(get_current_user)
+):
     """Delete an obligation."""
-    result = delete_obligation(obligation_id)
+    result = delete_obligation_with_audit(
+        obligation_id=obligation_id,
+        user_id=current_user.id
+    )
     if not result:
         raise HTTPException(status_code=404, detail="Obligation not found")
     return {"success": True}
 
 @router.post("/payments", response_model=Payment, status_code=201)
-async def create_payment_endpoint(payment: PaymentCreate):
+async def create_payment_endpoint(
+    payment: PaymentCreate,
+    current_user = Depends(get_current_user)
+):
     """Create a new payment."""
-    result = create_payment(payment.model_dump())
+    result = create_payment_with_audit(
+        payment_data=payment.model_dump(),
+        user_id=current_user.id
+    )
     if not result:
         raise HTTPException(status_code=404, detail="Obligation not found")
     return result
@@ -245,18 +274,29 @@ async def get_payment_endpoint(payment_id: int = Path(..., gt=0)):
 @router.put("/payments/{payment_id}", response_model=Payment)
 async def update_payment_endpoint(
     payment_id: int = Path(..., gt=0),
-    payment_update: PaymentUpdate = Body(...)
+    payment_update: PaymentUpdate = Body(...),
+    current_user = Depends(get_current_user)
 ):
     """Update a payment."""
-    payment = update_payment(payment_id, payment_update.model_dump(exclude_unset=True))
+    payment = update_payment_with_audit(
+        payment_id=payment_id, 
+        payment_data=payment_update.model_dump(exclude_unset=True),
+        user_id=current_user.id
+    )
     if not payment:
         raise HTTPException(status_code=404, detail="Payment not found")
     return payment
 
 @router.delete("/payments/{payment_id}", response_model=Dict[str, bool])
-async def delete_payment_endpoint(payment_id: int = Path(..., gt=0)):
+async def delete_payment_endpoint(
+    payment_id: int = Path(..., gt=0),
+    current_user = Depends(get_current_user)
+):
     """Delete a payment."""
-    result = delete_payment(payment_id)
+    result = delete_payment_with_audit(
+        payment_id=payment_id,
+        user_id=current_user.id
+    )
     if not result:
         raise HTTPException(status_code=404, detail="Payment not found")
     return {"success": True}
@@ -332,6 +372,53 @@ async def analyze_company_obligations(
     
     return result
 
+@router.post("/ai/email-draft", response_model=Dict[str, Any])
+async def generate_email_draft_endpoint(
+    request: Dict[str, Any]
+):
+    """
+    Generate an email draft using Mistral AI.
+    
+    Request body:
+    {
+        "company_id": int,
+        "recipient": str,  # "CSS", "DGI", "Municipio", etc.
+        "context": str,    # "Declaración fuera de tiempo de la planilla de abril"
+        "obligation_id": Optional[int],
+        "payment_id": Optional[int],
+        "language": Optional[str]  # defaults to "es"
+    }
+    """
+    from app.accounting.email_drafts import generate_email_draft
+    
+    company_id = request.get("company_id")
+    recipient = request.get("recipient")
+    context = request.get("context")
+    obligation_id = request.get("obligation_id")
+    payment_id = request.get("payment_id")
+    language = request.get("language", "es")
+    
+    if not company_id:
+        raise HTTPException(status_code=400, detail="company_id is required")
+    if not recipient:
+        raise HTTPException(status_code=400, detail="recipient is required")
+    if not context:
+        raise HTTPException(status_code=400, detail="context is required")
+    
+    result = await generate_email_draft(
+        company_id=company_id,
+        recipient=recipient,
+        context=context,
+        obligation_id=obligation_id,
+        payment_id=payment_id,
+        language=language
+    )
+    
+    if "error" in result:
+        return result  # Return error but don't raise exception to allow fallback
+    
+    return result
+
 @router.get("/templates/{template_name}", response_class=FileResponse)
 async def get_template_file_endpoint(template_name: str = Path(...)):
     """
@@ -345,6 +432,41 @@ async def get_template_file_endpoint(template_name: str = Path(...)):
         file_path, 
         filename=f"{template_name}.pdf",
         media_type="application/pdf"
+    )
+
+@router.get("/forms/{template_name}", response_class=FileResponse)
+async def generate_form_endpoint(
+    template_name: str = Path(...),
+    company_id: int = Query(..., description="ID of the company"),
+    period: Optional[str] = Query(None, description="Period in YYYY-MM format")
+):
+    """
+    Generate a form from a template.
+    
+    Args:
+        template_name: Name of the template
+        company_id: ID of the company
+        period: Optional period in YYYY-MM format
+    """
+    from app.accounting.document_generator import document_generator
+    
+    output_path = document_generator.generate_form(template_name, company_id, period)
+    
+    if not output_path:
+        raise HTTPException(status_code=404, detail="Failed to generate form")
+    
+    _, ext = os.path.splitext(output_path)
+    if ext.lower() == '.pdf':
+        media_type = "application/pdf"
+    elif ext.lower() == '.docx':
+        media_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    else:
+        media_type = "application/octet-stream"
+    
+    return FileResponse(
+        output_path,
+        filename=os.path.basename(output_path),
+        media_type=media_type
     )
 
 @router.get("/reports/obligations", response_model=Dict[str, Any])
@@ -568,3 +690,58 @@ async def get_my_companies_endpoint(
             companies.append(company)
     
     return [company.dict() for company in companies]
+@router.get("/notifications", response_model=List[NotificationResponse])
+async def get_notifications_endpoint(
+    skip: int = 0,
+    limit: int = 100,
+    read: Optional[bool] = None,
+    current_user: Any = Depends(get_current_user)
+):
+    """Get notifications for the current user."""
+    filters = {"user_id": current_user.id}
+    if read is not None:
+        filters["read"] = read
+    
+    return get_notifications(skip=skip, limit=limit, filters=filters)
+
+
+@router.post("/notifications/{notification_id}/mark-read", response_model=NotificationResponse)
+async def mark_notification_read_endpoint(
+    notification_id: uuid.UUID,
+    current_user: Any = Depends(get_current_user)
+):
+    """Mark a notification as read."""
+    notification = get_notification(notification_id)
+    if not notification:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    
+    if notification.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this notification")
+    
+    return mark_notification_read(notification_id)
+
+@router.get("/audit", response_model=List[Dict[str, Any]])
+async def get_audit_logs_endpoint(
+    skip: int = 0,
+    limit: int = 100,
+    company_id: Optional[int] = None,
+    entity_type: Optional[str] = None,
+    current_user: Any = Depends(get_current_user)
+):
+    """Get audit logs with optional filtering."""
+    from app.accounting.audit import get_audit_logs, get_company_audit_logs
+    
+    if company_id:
+        company = get_company(company_id)
+        if not company:
+            raise HTTPException(status_code=404, detail="Company not found")
+            
+        audit_logs = get_company_audit_logs(company_id, skip, limit)
+    else:
+        filters = {}
+        if entity_type:
+            filters["entity_type"] = entity_type
+            
+        audit_logs = get_audit_logs(skip, limit, filters)
+    
+    return [log.dict() for log in audit_logs]

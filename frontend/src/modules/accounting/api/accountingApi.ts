@@ -17,7 +17,9 @@ import {
   PaymentCreate,
   PaymentUpdate,
   Attachment,
-  AttachmentCreate
+  AttachmentCreate,
+  EmailDraftRequest,
+  EmailDraftResponse
 } from '../types';
 
 export const getCompanies = async (params?: { 
@@ -243,4 +245,71 @@ export const getPaymentsExportUrl = (params: {
   if (params.format) queryParams.append('format', params.format);
   
   return `${API_BASE}/accounting/reports/payments?${queryParams.toString()}`;
+};
+
+import { Notification, AuditLog } from '../types';
+
+export const getNotifications = async (): Promise<Notification[]> => {
+  const response = await axios.get<Notification[]>(`${API_BASE}/accounting/notifications`);
+  return response.data;
+};
+
+export const markNotificationAsRead = async (notificationId: string): Promise<Notification> => {
+  const response = await axios.post<Notification>(
+    `${API_BASE}/accounting/notifications/${notificationId}/mark-read`
+  );
+  return response.data;
+};
+
+export const getAuditLogs = async (companyId?: string): Promise<AuditLog[]> => {
+  const url = companyId
+    ? `${API_BASE}/accounting/audit?company_id=${companyId}`
+    : `${API_BASE}/accounting/audit`;
+  const response = await axios.get<AuditLog[]>(url);
+  return response.data;
+};
+
+export const getFormTemplates = async (): Promise<string[]> => {
+  const response = await axios.get<string[]>(`${API_BASE}/accounting/forms/templates`);
+  return response.data;
+};
+
+export const generateForm = async (
+  templateName: string,
+  companyId: string,
+  period?: string
+): Promise<Blob> => {
+  const url = period
+    ? `${API_BASE}/accounting/forms/${templateName}?company_id=${companyId}&period=${period}`
+    : `${API_BASE}/accounting/forms/${templateName}?company_id=${companyId}`;
+  
+  const response = await axios.get(url, { responseType: 'blob' });
+  return response.data;
+};
+
+export const uploadFormTemplate = async (file: File): Promise<{ message: string }> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  
+  const response = await axios.post<{ message: string }>(
+    `${API_BASE}/accounting/forms/upload-template`,
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
+  
+  return response.data;
+};
+
+export const createEmailDraft = async (
+  request: EmailDraftRequest
+): Promise<EmailDraftResponse> => {
+  const response = await axios.post<EmailDraftResponse>(
+    `${API_BASE}/accounting/ai/email-draft`,
+    request
+  );
+  return response.data;
 };

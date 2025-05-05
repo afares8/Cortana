@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import List, Optional, Dict, Any
+from uuid import UUID
 from pydantic import BaseModel, EmailStr, Field
 
 class CompanyBase(BaseModel):
@@ -148,4 +149,27 @@ class AttachmentInDB(AttachmentBase):
         from_attributes = True
 
 class Attachment(AttachmentInDB):
+    pass
+
+class NotificationBase(BaseModel):
+    user_id: int
+    message: str
+    related_obligation_id: Optional[UUID] = None
+
+class NotificationCreate(NotificationBase):
+    pass
+
+class NotificationUpdate(BaseModel):
+    read: bool = True
+
+class NotificationInDB(NotificationBase):
+    id: UUID
+    read: bool = False
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+class NotificationResponse(NotificationInDB):
     pass
