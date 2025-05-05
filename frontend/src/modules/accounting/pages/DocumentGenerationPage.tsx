@@ -173,9 +173,13 @@ const DocumentGenerationPage: React.FC = () => {
                 <option value="">{t('common.messages.noData')}</option>
                 {templates.map((template) => (
                   <option key={template} value={template}>
-                    {template in t('accounting.documents.templates', { returnObjects: true }) 
-                      ? t(`accounting.documents.templates.${template}`)
-                      : template}
+                    {(() => {
+                      try {
+                        return t(`accounting.documents.templates.${template}`);
+                      } catch (e) {
+                        return template;
+                      }
+                    })()}
                   </option>
                 ))}
               </select>
