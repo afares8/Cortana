@@ -1,6 +1,7 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, X, Menu, LogOut, ChevronRight, ChevronDown, AlertCircle, Bell, Settings, Shield, FileText, Users, Activity, CheckSquare, Database, Brain, BarChart2, Truck } from 'lucide-react';
+import NotificationBadge from '../../modules/accounting/components/NotificationBadge';
 
 interface LayoutProps {
   children: ReactNode;
@@ -37,9 +38,9 @@ export default function Layout({ children, title }: LayoutProps) {
     legal: true,
     compliance: true,
     traffic: true,
-    ai: true
+    ai: true,
+    accounting: true
   });
-  const [notifications, setNotifications] = useState<{id: string, message: string, type: string}[]>([]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -112,6 +113,12 @@ export default function Layout({ children, title }: LayoutProps) {
       label: 'AI Center', 
       icon: <Brain className="h-5 w-5" />, 
       section: 'ai'
+    },
+    { 
+      path: 'accounting/notifications', 
+      label: 'Notifications', 
+      icon: <Bell className="h-5 w-5" />, 
+      section: 'accounting'
     }
   ];
 
@@ -197,13 +204,6 @@ export default function Layout({ children, title }: LayoutProps) {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  useEffect(() => {
-    setNotifications([
-      { id: '1', message: 'Contract with Global Fragrances Ltd. expires in 15 days', type: 'warning' },
-      { id: '2', message: 'New UAF report generated', type: 'info' },
-      { id: '3', message: 'PEP screening completed for TechStart Inc.', type: 'success' }
-    ]);
-  }, []);
 
   const renderContextualPanel = () => {
     switch (currentSection) {
@@ -534,14 +534,7 @@ export default function Layout({ children, title }: LayoutProps) {
           
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
-            <button className="text-gray-500 hover:text-gray-700 relative">
-              <Bell className="h-5 w-5" />
-              {notifications.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                  {notifications.length}
-                </span>
-              )}
-            </button>
+            <NotificationBadge />
             <button className="text-gray-500 hover:text-gray-700">
               <Settings className="h-5 w-5" />
             </button>
@@ -556,14 +549,7 @@ export default function Layout({ children, title }: LayoutProps) {
           
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center">
-            <button className="text-gray-500 hover:text-gray-700 mr-4 relative">
-              <Bell className="h-5 w-5" />
-              {notifications.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                  {notifications.length}
-                </span>
-              )}
-            </button>
+            <NotificationBadge />
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none"

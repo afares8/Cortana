@@ -146,3 +146,13 @@ export interface AttachmentCreate {
   uploaded_by?: string;
   file_content: string; // Base64 encoded file content
 }
+
+export interface Notification {
+  id: string;
+  user_id: number;
+  message: string;
+  read: boolean;
+  related_obligation_id?: string;
+  created_at: string;
+  updated_at?: string;
+}

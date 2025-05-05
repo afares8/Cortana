@@ -244,3 +244,17 @@ export const getPaymentsExportUrl = (params: {
   
   return `${API_BASE}/accounting/reports/payments?${queryParams.toString()}`;
 };
+
+import { Notification } from '../types';
+
+export const getNotifications = async (): Promise<Notification[]> => {
+  const response = await axios.get<Notification[]>(`${API_BASE}/accounting/notifications`);
+  return response.data;
+};
+
+export const markNotificationAsRead = async (notificationId: string): Promise<Notification> => {
+  const response = await axios.post<Notification>(
+    `${API_BASE}/accounting/notifications/${notificationId}/mark-read`
+  );
+  return response.data;
+};
