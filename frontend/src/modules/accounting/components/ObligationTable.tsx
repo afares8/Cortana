@@ -27,6 +27,7 @@ import {
   Payment as PaymentIcon,
   Refresh as RefreshIcon
 } from '@mui/icons-material';
+import { SelectChangeEvent } from '@mui/material/Select';
 import { format } from 'date-fns';
 import { Obligation } from '../types';
 
@@ -118,10 +119,10 @@ const ObligationTable: React.FC<ObligationTableProps> = ({
         
         <FormControl size="small" sx={{ minWidth: 120 }}>
           <InputLabel>{t('accounting.obligations.status')}</InputLabel>
-          <Select
+          <Select<string>
             value={statusFilter}
             label={t('accounting.obligations.status')}
-            onChange={(e: React.ChangeEvent<{ value: unknown }>) => setStatusFilter(e.target.value as string)}
+            onChange={(e: SelectChangeEvent<string>) => setStatusFilter(e.target.value)}
           >
             <MenuItem value="all">{t('common.filters.all')}</MenuItem>
             <MenuItem value="pending">{t('accounting.obligations.statuses.pending')}</MenuItem>
@@ -132,10 +133,10 @@ const ObligationTable: React.FC<ObligationTableProps> = ({
         
         <FormControl size="small" sx={{ minWidth: 120 }}>
           <InputLabel>{t('accounting.obligations.frequency')}</InputLabel>
-          <Select
+          <Select<string>
             value={frequencyFilter}
             label={t('accounting.obligations.frequency')}
-            onChange={(e: React.ChangeEvent<{ value: unknown }>) => setFrequencyFilter(e.target.value as string)}
+            onChange={(e: SelectChangeEvent<string>) => setFrequencyFilter(e.target.value)}
           >
             <MenuItem value="all">{t('common.filters.all')}</MenuItem>
             <MenuItem value="monthly">{t('accounting.obligations.frequencies.monthly')}</MenuItem>
@@ -178,7 +179,7 @@ const ObligationTable: React.FC<ObligationTableProps> = ({
                   <TableCell>{obligation.tax_type_name}</TableCell>
                   <TableCell>
                     <Chip 
-                      label={obligation.frequency.charAt(0).toUpperCase() + obligation.frequency.slice(1)} 
+                      label={t(`accounting.obligations.frequencies.${obligation.frequency}`)} 
                       size="small" 
                       variant="outlined"
                     />
@@ -188,7 +189,7 @@ const ObligationTable: React.FC<ObligationTableProps> = ({
                   </TableCell>
                   <TableCell>
                     <Chip 
-                      label={obligation.status.charAt(0).toUpperCase() + obligation.status.slice(1)} 
+                      label={t(`accounting.obligations.statuses.${obligation.status}`)} 
                       color={getStatusColor(obligation.status)}
                       size="small"
                     />

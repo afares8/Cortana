@@ -17,7 +17,11 @@
       "confirm": "Confirmar",
       "download": "Descargar",
       "upload": "Subir",
-      "generate": "Generar"
+      "generate": "Generar",
+      "refresh": "Actualizar"
+    },
+    "filters": {
+      "all": "Todos"
     },
     "labels": {
       "name": "Nombre",
@@ -41,7 +45,11 @@
       "success": "Operación exitosa",
       "noData": "No hay datos disponibles",
       "confirmDelete": "¿Está seguro de que desea eliminar este elemento?",
-      "required": "Este campo es obligatorio"
+      "required": "Este campo es obligatorio",
+      "notAvailable": "N/D"
+    },
+    "actions": {
+      "viewDetails": "Ver Detalles"
     },
     "navigation": {
       "dashboard": "Panel",
@@ -78,12 +86,31 @@
       "recurring": "Recurrente",
       "frequency": "Frecuencia",
       "attachments": "Adjuntos",
+      "noObligationsFound": "No se encontraron obligaciones",
+      "actions": {
+        "makePayment": "Realizar Pago"
+      },
+      "fields": {
+        "name": "Nombre",
+        "company": "Empresa",
+        "taxType": "Tipo de Impuesto",
+        "frequency": "Frecuencia",
+        "nextDueDate": "Próxima Fecha de Vencimiento",
+        "status": "Estado",
+        "amount": "Monto"
+      },
+      "frequencies": {
+        "monthly": "Mensual",
+        "quarterly": "Trimestral",
+        "annual": "Anual"
+      },
       "statuses": {
         "pending": "Pendiente",
         "paid": "Pagado",
         "overdue": "Vencido",
         "upcoming": "Próximo",
-        "cancelled": "Cancelado"
+        "cancelled": "Cancelado",
+        "completed": "Completado"
       },
       "types": {
         "itbms": "ITBMS",
