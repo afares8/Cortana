@@ -8,12 +8,20 @@ from pathlib import Path
 
 from app.db.init_db import users_db
 from app.core.config import settings
+from app.models.user import UserRole
 from app.accounting.models import (
     Company,
     TaxType,
     Obligation,
     Payment,
-    Attachment
+    Attachment,
+    UserCompanyAccess,
+    AccessPermission
+)
+from app.accounting.exports import (
+    get_template_file,
+    export_obligations_to_excel,
+    export_payments_to_excel
 )
 from app.db.base import InMemoryDB
 
@@ -45,7 +53,7 @@ def update_company(company_id: int, company_data: Dict[str, Any]) -> Optional[Co
     if not company:
         return None
     
-    updated_company = companies_db.update(company_id, company_data)
+    updated_company = companies_db.update(id=company_id, obj_in=Company(**company_data))
     return updated_company
 
 def delete_company(company_id: int) -> bool:
@@ -80,7 +88,7 @@ def update_tax_type(tax_type_id: int, tax_type_data: Dict[str, Any]) -> Optional
     if not tax_type:
         return None
     
-    updated_tax_type = tax_types_db.update(tax_type_id, tax_type_data)
+    updated_tax_type = tax_types_db.update(id=tax_type_id, obj_in=TaxType(**tax_type_data))
     return updated_tax_type
 
 def delete_tax_type(tax_type_id: int) -> bool:
@@ -156,7 +164,7 @@ def update_obligation(obligation_id: int, obligation_data: Dict[str, Any]) -> Op
         if not tax_type:
             return None
     
-    updated_obligation = obligations_db.update(obligation_id, obligation_data)
+    updated_obligation = obligations_db.update(id=obligation_id, obj_in=Obligation(**obligation_data))
     return get_obligation(obligation_id)  # Return with company and tax type names
 
 def delete_obligation(obligation_id: int) -> bool:
@@ -180,10 +188,10 @@ def create_payment(payment_data: Dict[str, Any]) -> Payment:
     
     payment = payments_db.create(obj_in=Payment(**payment_data))
     
-    obligations_db.update(obligation.id, {
+    obligations_db.update(id=obligation.id, obj_in=Obligation(**{
         "last_payment_date": payment.payment_date,
         "status": "completed"
-    })
+    }))
     
     return payment
 
@@ -201,12 +209,12 @@ def update_payment(payment_id: int, payment_data: Dict[str, Any]) -> Optional[Pa
     if not payment:
         return None
     
-    updated_payment = payments_db.update(payment_id, payment_data)
+    updated_payment = payments_db.update(id=payment_id, obj_in=Payment(**payment_data))
     
     if "payment_date" in payment_data:
-        obligations_db.update(payment.obligation_id, {
+        obligations_db.update(id=payment.obligation_id, obj_in=Obligation(**{
             "last_payment_date": payment_data["payment_date"]
-        })
+        }))
     
     return updated_payment
 
@@ -222,15 +230,15 @@ def delete_payment(payment_id: int) -> bool:
     if obligation:
         other_payments = payments_db.get_multi(filters={"obligation_id": payment.obligation_id})
         if not other_payments:
-            obligations_db.update(obligation.id, {
+            obligations_db.update(id=obligation.id, obj_in=Obligation(**{
                 "last_payment_date": None,
                 "status": "pending"
-            })
+            }))
         else:
             latest_payment = max(other_payments, key=lambda p: p.payment_date)
-            obligations_db.update(obligation.id, {
+            obligations_db.update(id=obligation.id, obj_in=Obligation(**{
                 "last_payment_date": latest_payment.payment_date
-            })
+            }))
     
     return result
 
@@ -647,3 +655,156 @@ async def analyze_obligation_history(company_id: int, months: int = 6, language:
             "error": str(e),
             "language": language
         }
+
+
+user_company_access_db = InMemoryDB[UserCompanyAccess](UserCompanyAccess)
+
+
+def create_user_company_access(data: Dict[str, Any]) -> UserCompanyAccess:
+    """Create a new user company access record."""
+    try:
+        print(f"DEBUG: Creating user company access - user_id={data.get('user_id')}, company_id={data.get('company_id')}, permissions={data.get('permissions')}")
+        
+        users = users_db.get_multi(filters={"id": data["user_id"]})
+        if not users:
+            return None
+            
+        company = get_company(data["company_id"])
+        if not company:
+            return None
+            
+        # Get all accesses for this user
+        all_accesses = user_company_access_db.get_multi()
+        
+        # Manually filter by user_id and company_id
+        existing_accesses = [
+            access for access in all_accesses 
+            if access.user_id == data["user_id"] and access.company_id == data["company_id"]
+        ]
+        
+        if existing_accesses:
+            existing_access = existing_accesses[0]
+            print(f"DEBUG: Found existing access - id={existing_access.id}, permissions={existing_access.permissions}")
+            return update_user_company_access(existing_access.id, {"permissions": data["permissions"]})
+        
+        if "created_at" not in data:
+            data["created_at"] = datetime.utcnow()
+        
+        access = user_company_access_db.create(obj_in=UserCompanyAccess(**data))
+        print(f"DEBUG: Created new access - id={access.id}, permissions={access.permissions}")
+        return access
+    except Exception as e:
+        print(f"Error creating user company access: {e}")
+        return None
+
+
+def get_user_company_access(access_id: int) -> Optional[UserCompanyAccess]:
+    """Get a user company access by ID."""
+    return user_company_access_db.get(access_id)
+
+
+def get_user_company_accesses(
+    skip: int = 0,
+    limit: int = 100,
+    filters: Optional[Dict[str, Any]] = None
+) -> List[UserCompanyAccess]:
+    """Get user company accesses with optional filtering."""
+    all_accesses = user_company_access_db.get_multi(skip=skip, limit=limit)
+    
+    if filters:
+        filtered_accesses = []
+        for access in all_accesses:
+            match = True
+            for key, value in filters.items():
+                if hasattr(access, key) and getattr(access, key) != value:
+                    match = False
+                    break
+            if match:
+                filtered_accesses.append(access)
+        accesses = filtered_accesses
+    else:
+        accesses = all_accesses
+    
+    for access in accesses:
+        users = users_db.get_multi(filters={"id": access.user_id})
+        if users:
+            user = users[0]
+            access.user_email = user.email
+            access.user_name = user.full_name
+        
+        company = get_company(access.company_id)
+        if company:
+            access.company_name = company.name
+    
+    return accesses
+
+
+def update_user_company_access(
+    access_id: int, 
+    data: Dict[str, Any]
+) -> Optional[UserCompanyAccess]:
+    """Update a user company access."""
+    access = user_company_access_db.get(access_id)
+    if not access:
+        return None
+    
+    existing_data = {
+        "user_id": access.user_id,
+        "company_id": access.company_id,
+        "permissions": access.permissions,
+        "created_at": access.created_at
+    }
+    existing_data.update(data)
+    
+    updated_access = user_company_access_db.update(id=access_id, obj_in=UserCompanyAccess(**existing_data))
+    return updated_access
+
+
+def delete_user_company_access(access_id: int) -> bool:
+    """Delete a user company access."""
+    access = user_company_access_db.get(access_id)
+    if not access:
+        return False
+    
+    result = user_company_access_db.remove(access_id)
+    return result
+
+
+def user_can_access_company(
+    user_id: int,
+    company_id: int,
+    required_permission: str = "read"
+) -> bool:
+    """Check if a user has access to a company with the required permission level."""
+    users = users_db.get_multi(filters={"id": user_id})
+    if not users:
+        return False
+    
+    user = users[0]
+    
+    if user.is_superuser or getattr(user, "role", None) == UserRole.ADMIN:
+        return True
+    
+    print(f"DEBUG: Filtering accesses for user_id={user_id}, company_id={company_id}")
+    accesses = get_user_company_accesses(filters={
+        "user_id": user_id,
+        "company_id": company_id
+    })
+    print(f"DEBUG: Found {len(accesses)} accesses")
+    
+    if not accesses:
+        return False
+    
+    access = accesses[0]
+    print(f"DEBUG: Access found - user_id={user_id}, company_id={company_id}, access.permissions={access.permissions}")
+    
+    if required_permission == "read":
+        return access.permissions in [AccessPermission.READ, AccessPermission.WRITE]
+    
+    if required_permission == "write":
+        if getattr(user, "role", None) == UserRole.VIEWER:
+            return False
+            
+        return access.permissions == AccessPermission.WRITE
+    
+    return False

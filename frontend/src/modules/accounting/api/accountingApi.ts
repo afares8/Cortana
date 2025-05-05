@@ -208,3 +208,39 @@ export const analyzeObligations = async (request: AIAnalysisRequest): Promise<AI
     throw error;
   }
 };
+
+export const getTemplateUrl = (templateName: string): string => {
+  return `${API_BASE}/accounting/templates/${templateName}`;
+};
+
+export const getObligationsExportUrl = (params: {
+  company_id?: number;
+  month?: string;
+  status?: string;
+  format: 'excel';
+}): string => {
+  const queryParams = new URLSearchParams();
+  
+  if (params.company_id) queryParams.append('company_id', params.company_id.toString());
+  if (params.month) queryParams.append('month', params.month);
+  if (params.status) queryParams.append('status', params.status);
+  if (params.format) queryParams.append('format', params.format);
+  
+  return `${API_BASE}/accounting/reports/obligations?${queryParams.toString()}`;
+};
+
+export const getPaymentsExportUrl = (params: {
+  company_id?: number;
+  from_date?: string;
+  to_date?: string;
+  format: 'excel';
+}): string => {
+  const queryParams = new URLSearchParams();
+  
+  if (params.company_id) queryParams.append('company_id', params.company_id.toString());
+  if (params.from_date) queryParams.append('from_date', params.from_date);
+  if (params.to_date) queryParams.append('to_date', params.to_date);
+  if (params.format) queryParams.append('format', params.format);
+  
+  return `${API_BASE}/accounting/reports/payments?${queryParams.toString()}`;
+};

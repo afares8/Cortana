@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import List, Optional, Dict, Any
+from enum import Enum
 from pydantic import BaseModel, EmailStr
 
 from app.models.base import TimestampModel
@@ -53,3 +54,20 @@ class Attachment(TimestampModel):
     file_type: str
     uploaded_by: Optional[str] = None
     upload_date: datetime
+
+
+class AccessPermission(str, Enum):
+    READ = "read"
+    WRITE = "write"
+
+
+class UserCompanyAccess(TimestampModel):
+    id: Optional[int] = None
+    user_id: int
+    company_id: int
+    permissions: AccessPermission = AccessPermission.READ
+    
+    # These fields are added for frontend display
+    user_email: Optional[str] = None
+    user_name: Optional[str] = None
+    company_name: Optional[str] = None

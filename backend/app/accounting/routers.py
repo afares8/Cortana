@@ -1,10 +1,12 @@
 from typing import List, Optional, Dict, Any
-from datetime import datetime
+from datetime import datetime, timedelta
+import os
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Body, Query, Path
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from pydantic import EmailStr
 
 from app.core.config import settings
+from app.accounting.dependencies import get_current_user, company_read_permission, company_write_permission, admin_only
 from app.accounting.schemas import (
     Company, CompanyCreate, CompanyUpdate,
     TaxType, TaxTypeCreate, TaxTypeUpdate,
@@ -18,7 +20,8 @@ from app.accounting.services import (
     create_obligation, get_obligation, get_obligations, update_obligation, delete_obligation,
     create_payment, get_payment, get_payments, update_payment, delete_payment,
     create_attachment, get_attachment, get_attachments, delete_attachment,
-    get_upcoming_obligations, get_overdue_obligations, analyze_obligation_history
+    get_upcoming_obligations, get_overdue_obligations, analyze_obligation_history,
+    get_template_file, export_obligations_to_excel, export_payments_to_excel
 )
 
 router = APIRouter()
@@ -48,7 +51,10 @@ async def get_companies_endpoint(
     return get_companies(skip=skip, limit=limit, filters=filters)
 
 @router.get("/companies/{company_id}", response_model=Company)
-async def get_company_endpoint(company_id: int = Path(..., gt=0)):
+async def get_company_endpoint(
+    company_id: int = Path(..., gt=0),
+    current_user = Depends(company_read_permission(company_id))
+):
     """Get a company by ID."""
     company = get_company(company_id)
     if not company:
@@ -58,7 +64,8 @@ async def get_company_endpoint(company_id: int = Path(..., gt=0)):
 @router.put("/companies/{company_id}", response_model=Company)
 async def update_company_endpoint(
     company_id: int = Path(..., gt=0),
-    company_update: CompanyUpdate = Body(...)
+    company_update: CompanyUpdate = Body(...),
+    current_user = Depends(company_write_permission(company_id))
 ):
     """Update a company."""
     company = update_company(company_id, company_update.model_dump(exclude_unset=True))
@@ -67,7 +74,10 @@ async def update_company_endpoint(
     return company
 
 @router.delete("/companies/{company_id}", response_model=Dict[str, bool])
-async def delete_company_endpoint(company_id: int = Path(..., gt=0)):
+async def delete_company_endpoint(
+    company_id: int = Path(..., gt=0),
+    current_user = Depends(company_write_permission(company_id))
+):
     """Delete a company."""
     result = delete_company(company_id)
     if not result:
@@ -321,3 +331,240 @@ async def analyze_company_obligations(
         raise HTTPException(status_code=400, detail=result["error"])
     
     return result
+
+@router.get("/templates/{template_name}", response_class=FileResponse)
+async def get_template_file_endpoint(template_name: str = Path(...)):
+    """
+    Get a template file by name.
+    """
+    file_path = get_template_file(template_name)
+    if not file_path:
+        raise HTTPException(status_code=404, detail="Template not found")
+    
+    return FileResponse(
+        file_path, 
+        filename=f"{template_name}.pdf",
+        media_type="application/pdf"
+    )
+
+@router.get("/reports/obligations", response_model=Dict[str, Any])
+async def export_obligations_endpoint(
+    company_id: Optional[int] = None,
+    month: Optional[str] = None,
+    status: Optional[str] = None,
+    format: Optional[str] = None
+):
+    """
+    Export obligations data.
+    
+    Args:
+        company_id: Optional filter by company
+        month: Optional filter by month (YYYY-MM format)
+        status: Optional filter by status
+        format: Export format ('excel' or default JSON)
+    """
+    if format == "excel":
+        file_path = await export_obligations_to_excel(company_id, month, status)
+        if not file_path:
+            raise HTTPException(status_code=404, detail="No data found for export")
+        
+        return FileResponse(
+            file_path,
+            filename=os.path.basename(file_path),
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+    
+    filters = {}
+    if company_id:
+        filters["company_id"] = company_id
+    if status:
+        filters["status"] = status
+    
+    obligations = get_obligations(filters=filters)
+    
+    if month:
+        try:
+            month_date = datetime.strptime(month, "%Y-%m")
+            month_start = month_date.replace(day=1)
+            if month_date.month == 12:
+                month_end = datetime(month_date.year + 1, 1, 1) - timedelta(days=1)
+            else:
+                month_end = datetime(month_date.year, month_date.month + 1, 1) - timedelta(days=1)
+                
+            filtered_obligations = []
+            for obligation in obligations:
+                if isinstance(obligation.next_due_date, str):
+                    due_date = datetime.fromisoformat(obligation.next_due_date.replace("Z", "+00:00"))
+                else:
+                    due_date = obligation.next_due_date
+                    
+                if month_start <= due_date <= month_end:
+                    filtered_obligations.append(obligation)
+            
+            obligations = filtered_obligations
+        except ValueError:
+            pass
+    
+    return {"obligations": obligations}
+
+@router.get("/reports/payments", response_model=Dict[str, Any])
+async def export_payments_endpoint(
+    company_id: Optional[int] = None,
+    from_date: Optional[str] = None,
+    to_date: Optional[str] = None,
+    format: Optional[str] = None
+):
+    """
+    Export payments data.
+    
+    Args:
+        company_id: Optional filter by company
+        from_date: Optional filter by start date (YYYY-MM-DD format)
+        to_date: Optional filter by end date (YYYY-MM-DD format)
+        format: Export format ('excel' or default JSON)
+    """
+    if format == "excel":
+        file_path = await export_payments_to_excel(company_id, from_date, to_date)
+        if not file_path:
+            raise HTTPException(status_code=404, detail="No data found for export")
+        
+        return FileResponse(
+            file_path,
+            filename=os.path.basename(file_path),
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+    
+    all_payments = get_payments()
+    filtered_payments = []
+    
+    for payment in all_payments: 
+        obligation = get_obligation(payment.obligation_id)
+        if not obligation:
+            continue
+            
+        if company_id and obligation.company_id != company_id:
+            continue
+        
+        payment_date = payment.payment_date
+        if isinstance(payment_date, str):
+            payment_date = datetime.fromisoformat(payment_date.replace("Z", "+00:00"))
+            
+        if from_date:
+            try:
+                from_datetime = datetime.strptime(from_date, "%Y-%m-%d")
+                if payment_date < from_datetime:
+                    continue
+            except ValueError:
+                pass
+                
+        if to_date:
+            try:
+                to_datetime = datetime.strptime(to_date, "%Y-%m-%d")
+                if payment_date > to_datetime:
+                    continue
+            except ValueError:
+                pass
+                
+        filtered_payments.append(payment)
+    
+    return {"payments": filtered_payments}
+
+
+@router.post("/user-company-access", response_model=Dict[str, Any], status_code=201)
+async def create_user_company_access_endpoint(
+    data: Dict[str, Any] = Body(...),
+    current_user = Depends(admin_only())
+):
+    """
+    Create a new user company access record.
+    Admin only.
+    """
+    from app.accounting.services import create_user_company_access
+    
+    result = create_user_company_access(data)
+    if not result:
+        raise HTTPException(status_code=400, detail="Invalid user or company")
+    
+    return result.dict()
+
+@router.get("/user-company-access", response_model=List[Dict[str, Any]])
+async def get_user_company_accesses_endpoint(
+    skip: int = 0,
+    limit: int = 100,
+    user_id: Optional[int] = None,
+    company_id: Optional[int] = None,
+    current_user = Depends(admin_only())
+):
+    """
+    Get user company accesses with optional filtering.
+    Admin only.
+    """
+    from app.accounting.services import get_user_company_accesses
+    
+    filters = {}
+    if user_id:
+        filters["user_id"] = user_id
+    if company_id:
+        filters["company_id"] = company_id
+    
+    accesses = get_user_company_accesses(skip=skip, limit=limit, filters=filters)
+    return [access.dict() for access in accesses]
+
+@router.put("/user-company-access/{access_id}", response_model=Dict[str, Any])
+async def update_user_company_access_endpoint(
+    access_id: int = Path(..., gt=0),
+    data: Dict[str, Any] = Body(...),
+    current_user = Depends(admin_only())
+):
+    """
+    Update a user company access.
+    Admin only.
+    """
+    from app.accounting.services import update_user_company_access
+    
+    result = update_user_company_access(access_id, data)
+    if not result:
+        raise HTTPException(status_code=404, detail="User company access not found")
+    
+    return result.dict()
+
+@router.delete("/user-company-access/{access_id}", response_model=Dict[str, bool])
+async def delete_user_company_access_endpoint(
+    access_id: int = Path(..., gt=0),
+    current_user = Depends(admin_only())
+):
+    """
+    Delete a user company access.
+    Admin only.
+    """
+    from app.accounting.services import delete_user_company_access
+    
+    result = delete_user_company_access(access_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="User company access not found")
+    
+    return {"success": True}
+
+@router.get("/users/me/companies", response_model=List[Dict[str, Any]])
+async def get_my_companies_endpoint(
+    current_user = Depends(get_current_user)
+):
+    """
+    Get companies accessible to the current user.
+    """
+    from app.accounting.services import get_user_company_accesses, get_companies, get_company
+    
+    if current_user.is_superuser or getattr(current_user, "role", None) == "admin":
+        companies = get_companies()
+        return [company.dict() for company in companies]
+    
+    accesses = get_user_company_accesses(filters={"user_id": current_user.id})
+    company_ids = [access.company_id for access in accesses]
+    
+    companies = []
+    for company_id in company_ids:
+        company = get_company(company_id)
+        if company:
+            companies.append(company)
+    
+    return [company.dict() for company in companies]
