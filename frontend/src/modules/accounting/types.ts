@@ -156,3 +156,15 @@ export interface Notification {
   created_at: string;
   updated_at?: string;
 }
+
+export interface AuditLog {
+  id: number;
+  user_id?: number;
+  user_email?: string;
+  action: string;
+  entity_type: string;
+  entity_id: string;
+  timestamp: string;
+  details?: Record<string, any>;
+  ip_address?: string;
+}

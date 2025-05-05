@@ -25,6 +25,7 @@ import AuditLogList from './modules/legal/pages/AuditLogList';
 import AccountingDashboard from './modules/accounting/pages/AccountingDashboard';
 import UserAccessManagement from './modules/accounting/pages/UserAccessManagement';
 import NotificationsPage from './modules/accounting/pages/NotificationsPage';
+import AuditLogPage from './modules/accounting/pages/AuditLogPage';
 
 import TrafficDashboard from './modules/traffic/pages/Dashboard';
 import TrafficUpload from './modules/traffic/pages/Upload';
@@ -86,6 +87,7 @@ function App() {
           <Route path="accounting/dashboard" element={<AccountingDashboard />} />
           <Route path="accounting/admin/users" element={<UserAccessManagement />} />
           <Route path="accounting/notifications" element={<NotificationsPage />} />
+          <Route path="accounting/audit" element={<AuditLogPage />} />
           
           {/* Traffic Module Routes */}
           <Route path="traffic/dashboard" element={<TrafficDashboard />} />

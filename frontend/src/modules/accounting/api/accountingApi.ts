@@ -245,7 +245,7 @@ export const getPaymentsExportUrl = (params: {
   return `${API_BASE}/accounting/reports/payments?${queryParams.toString()}`;
 };
 
-import { Notification } from '../types';
+import { Notification, AuditLog } from '../types';
 
 export const getNotifications = async (): Promise<Notification[]> => {
   const response = await axios.get<Notification[]>(`${API_BASE}/accounting/notifications`);
@@ -256,5 +256,13 @@ export const markNotificationAsRead = async (notificationId: string): Promise<No
   const response = await axios.post<Notification>(
     `${API_BASE}/accounting/notifications/${notificationId}/mark-read`
   );
+  return response.data;
+};
+
+export const getAuditLogs = async (companyId?: string): Promise<AuditLog[]> => {
+  const url = companyId
+    ? `${API_BASE}/accounting/audit?company_id=${companyId}`
+    : `${API_BASE}/accounting/audit`;
+  const response = await axios.get<AuditLog[]>(url);
   return response.data;
 };
