@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getObligations, getCompanies, getTaxTypes } from '../api/accountingApi';
+import { getObligations, getCompanies, getTaxTypes, getAlerts } from '../api/accountingApi';
 import ObligationTable from '../components/ObligationTable';
+import AIAnalysisPanel from '../components/AIAnalysisPanel';
+import AlertBanner from '../components/AlertBanner';
 import { PlusCircle, BarChart3, Calendar, DollarSign } from 'lucide-react';
 
 const AccountingDashboard: React.FC = () => {
@@ -30,6 +32,15 @@ const AccountingDashboard: React.FC = () => {
     queryKey: ['taxTypes'],
     queryFn: () => getTaxTypes()
   });
+  
+  const {
+    data: alerts = { upcoming: [], overdue: [] },
+    isLoading: isLoadingAlerts,
+    refetch: refetchAlerts
+  } = useQuery({
+    queryKey: ['alerts'],
+    queryFn: () => getAlerts()
+  });
 
   const pendingObligations = obligations.filter(o => o.status === 'pending').length;
   const overdueObligations = obligations.filter(o => o.status === 'overdue').length;
@@ -42,8 +53,9 @@ const AccountingDashboard: React.FC = () => {
   useEffect(() => {
     if (companies.length > 0 && taxTypes.length > 0) {
       console.log(`Loaded ${companies.length} companies and ${taxTypes.length} tax types`);
+      refetchAlerts();
     }
-  }, [companies, taxTypes]);
+  }, [companies, taxTypes, refetchAlerts]);
   
   const upcomingObligations = obligations.filter(o => {
     const dueDate = new Date(o.next_due_date);
@@ -118,6 +130,9 @@ const AccountingDashboard: React.FC = () => {
         </div>
       </div>
 
+      {/* Alert Banner */}
+      {!isLoadingAlerts && <AlertBanner upcoming={alerts.upcoming} overdue={alerts.overdue} />}
+
       {/* Obligations Table */}
       <ObligationTable
         obligations={obligations}
@@ -125,6 +140,9 @@ const AccountingDashboard: React.FC = () => {
         onRefresh={refetchObligations}
         onMakePayment={handleMakePayment}
       />
+
+      {/* AI Analysis Panel */}
+      <AIAnalysisPanel companies={companies} />
 
       {/* Add Obligation Modal */}
       {showAddModal && (

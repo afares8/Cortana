@@ -169,3 +169,42 @@ export const deleteAttachment = async (id: number): Promise<{ success: boolean }
   const response = await axios.delete(`${API_BASE}/accounting/attachments/${id}`);
   return response.data;
 };
+
+export interface AlertsResponse {
+  upcoming: Obligation[];
+  overdue: Obligation[];
+}
+
+export interface AIAnalysisRequest {
+  company_id: number;
+  months?: number;
+  language?: string;
+}
+
+export interface AIAnalysisResponse {
+  company_id: number;
+  analysis: string;
+  language: string;
+  prompt?: string;
+  error?: string;
+}
+
+export const getAlerts = async (): Promise<AlertsResponse> => {
+  try {
+    const response = await axios.get<AlertsResponse>(`${API_BASE}/accounting/alerts`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching alerts:", error);
+    throw error;
+  }
+};
+
+export const analyzeObligations = async (request: AIAnalysisRequest): Promise<AIAnalysisResponse> => {
+  try {
+    const response = await axios.post<AIAnalysisResponse>(`${API_BASE}/accounting/ai/analyze`, request);
+    return response.data;
+  } catch (error) {
+    console.error("Error analyzing obligations:", error);
+    throw error;
+  }
+};
