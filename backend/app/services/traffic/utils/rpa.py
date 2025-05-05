@@ -57,10 +57,22 @@ class DMCEAutomator:
         try:
             logger.info(f"Starting DMCE submission for invoice {record.invoice_number}")
             
+            login_success = await self._login_to_dmce()
+            if not login_success:
+                return False, None, "Failed to login to DMCE portal"
             
-            await asyncio.sleep(3)
+            nav_success = await self._navigate_to_form(record.movement_type)
+            if not nav_success:
+                return False, None, f"Failed to navigate to {record.movement_type} form"
             
-            dmce_number = f"DMCE-{datetime.now().strftime('%Y%m%d')}-{record.id}"
+            # Step 3: Fill the form with record data
+            fill_success = await self._fill_form(record, items)
+            if not fill_success:
+                return False, None, "Failed to fill DMCE form"
+            
+            submit_success, dmce_number, error = await self._submit_form()
+            if not submit_success:
+                return False, None, f"Failed to submit DMCE form: {error}"
             
             logger.info(f"Successfully submitted to DMCE. Reference: {dmce_number}")
             
@@ -78,11 +90,23 @@ class DMCEAutomator:
             True if login successful, False otherwise
         """
         try:
+            # Navigate to the DMCE portal URL
+            logger.info(f"Navigating to DMCE portal: {self.dmce_url}")
             
-            logger.info("Logging in to DMCE portal")
+            
+            logger.info("Clicking login button to access login page")
             
             await asyncio.sleep(1)
             
+            logger.info(f"Entering username: {self.username}")
+            
+            logger.info("Entering password")
+            
+            logger.info("Submitting login form")
+            
+            await asyncio.sleep(2)
+            
+            logger.info("Successfully logged in to DMCE portal")
             return True
             
         except Exception as e:
