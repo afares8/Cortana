@@ -6,6 +6,21 @@ from langdetect import detect, LangDetectException
 
 logger = logging.getLogger(__name__)
 
+def process_spanish_input(text: str) -> str:
+    """
+    Process Spanish text input before sending to AI models.
+    
+    Args:
+        text: Input text to process
+        
+    Returns:
+        Processed text with standardized terminology and formatting
+    """
+    pipeline = SpanishInputPipeline()
+    if pipeline.is_spanish(text):
+        return pipeline.preprocess(text)
+    return text
+
 class SpanishInputPipeline:
     """
     Pipeline for preprocessing Spanish text input before sending to AI models.

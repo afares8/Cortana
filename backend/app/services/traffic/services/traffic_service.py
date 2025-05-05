@@ -3,9 +3,9 @@ from datetime import datetime
 import json
 import logging
 
-from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 
+from app.services.traffic.db import traffic_submissions_db, invoice_records_db, invoice_items_db
 from app.services.traffic.models.traffic import TrafficSubmission, InvoiceRecord, InvoiceItem
 from app.services.traffic.schemas.traffic import (
     InvoiceRecordCreate, 
@@ -25,8 +25,7 @@ logger = logging.getLogger(__name__)
 class TrafficService:
     """Service for Traffic module operations."""
     
-    def __init__(self, db: Session, user_id: int):
-        self.db = db
+    def __init__(self, user_id: int):
         self.user_id = user_id
         self.rpa = DMCEAutomator()
         self.ai_analyzer = TrafficAIAnalyzer()
@@ -45,27 +44,31 @@ class TrafficService:
             invoice_records = []
             validation_errors = {}
             
-            for invoice_data in data.get("invoices", []):
+            if "invoices" in data:
+                invoice_data_list = data.get("invoices", [])
+            else:
+                invoice_data_list = [data]
+            
+            for invoice_data in invoice_data_list:
                 record = self._process_invoice(invoice_data)
-                invoice_records.append(record)
-            
-            self.db.add_all(invoice_records)
-            self.db.commit()
-            
-            for record in invoice_records:
-                self.db.refresh(record)
+                saved_record = invoice_records_db.create(obj_in=record)
+                
+                for item in record.items:
+                    item.invoice_id = saved_record.id
+                    invoice_items_db.create(obj_in=item)
+                
+                invoice_records.append(saved_record)
             
             await self._get_ai_suggestions(invoice_records)
             
             response_records = [
-                InvoiceRecordResponse.from_orm(record) 
+                InvoiceRecordResponse.model_validate(record.model_dump()) 
                 for record in invoice_records
             ]
             
             return response_records
             
         except Exception as e:
-            self.db.rollback()
             logger.error(f"Error processing invoice data: {str(e)}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -78,35 +81,21 @@ class TrafficService:
         if not invoice_number:
             raise ValueError("Invoice number is required")
         
-        record = InvoiceRecord(
-            user_id=self.user_id,
-            invoice_number=invoice_number,
-            invoice_date=datetime.fromisoformat(invoice_data.get("invoice_date")),
-            client_name=invoice_data.get("client_name"),
-            client_id=invoice_data.get("client_id"),
-            movement_type=invoice_data.get("movement_type"),
-            total_value=float(invoice_data.get("total_value", 0)),
-            total_weight=float(invoice_data.get("total_weight", 0)),
-            status="Validated",
-            validation_errors=[],
-            ai_suggestions=[]
-        )
-        
         validation_errors = []
-        if not record.client_name:
+        if not invoice_data.get("client_name"):
             validation_errors.append("Client name is required")
-        if not record.client_id:
+        if not invoice_data.get("client_id"):
             validation_errors.append("Client ID is required")
         
-        if validation_errors:
-            record.status = "Error"
-            record.validation_errors = validation_errors
+        status = "Error" if validation_errors else "Validated"
         
         items = []
         for item_data in invoice_data.get("items", []):
             item = InvoiceItem(
-                tariff_code=item_data.get("tariff_code"),
-                description=item_data.get("description"),
+                id=0,  # Will be set by InMemoryDB
+                invoice_id=0,  # Will be set later
+                tariff_code=item_data.get("tariff_code", ""),
+                description=item_data.get("description", ""),
                 quantity=float(item_data.get("quantity", 0)),
                 unit=item_data.get("unit", ""),
                 weight=float(item_data.get("weight", 0)),
@@ -117,10 +106,23 @@ class TrafficService:
         
         if not items:
             validation_errors.append("Invoice must have at least one item")
-            record.status = "Error"
-            record.validation_errors = validation_errors
+            status = "Error"
         
-        record.items = items
+        record = InvoiceRecord(
+            id=0,  # Will be set by InMemoryDB
+            user_id=self.user_id,
+            invoice_number=invoice_number,
+            invoice_date=datetime.fromisoformat(invoice_data.get("invoice_date")),
+            client_name=invoice_data.get("client_name", ""),
+            client_id=invoice_data.get("client_id", ""),
+            movement_type=invoice_data.get("movement_type", ""),
+            total_value=float(invoice_data.get("total_value", 0)),
+            total_weight=float(invoice_data.get("total_weight", 0)),
+            status=status,
+            validation_errors=validation_errors if validation_errors else None,
+            ai_suggestions=None,
+            items=items
+        )
         
         return record
     
@@ -144,6 +146,11 @@ class TrafficService:
                 record = valid_records[0]
                 suggestions = await self.ai_analyzer.analyze_invoice(record)
                 record.ai_suggestions = suggestions
+                
+                invoice_records_db.update(
+                    id=record.id, 
+                    obj_in=record
+                )
             else:
                 suggestions_by_id = await self.ai_analyzer.analyze_invoices_batch(valid_records)
                 
@@ -151,8 +158,11 @@ class TrafficService:
                 for record in valid_records:
                     if record.id in suggestions_by_id:
                         record.ai_suggestions = suggestions_by_id[record.id]
-            
-            self.db.commit()
+                        
+                        invoice_records_db.update(
+                            id=record.id, 
+                            obj_in=record
+                        )
                 
         except Exception as e:
             logger.error(f"Error getting AI suggestions: {str(e)}")
@@ -178,12 +188,9 @@ class TrafficService:
             
             invoice_records = []
             for invoice_id in invoice_ids:
-                record = self.db.query(InvoiceRecord).filter(
-                    InvoiceRecord.id == invoice_id,
-                    InvoiceRecord.user_id == self.user_id
-                ).first()
+                record = invoice_records_db.get(invoice_id)
                 
-                if not record:
+                if not record or record.user_id != self.user_id:
                     raise HTTPException(
                         status_code=status.HTTP_404_NOT_FOUND,
                         detail=f"Invoice record with ID {invoice_id} not found"
@@ -215,6 +222,7 @@ class TrafficService:
                     )
             
             consolidated_record = InvoiceRecord(
+                id=0,  # Will be set by InMemoryDB
                 user_id=self.user_id,
                 invoice_number=f"CONS-{datetime.now().strftime('%Y%m%d%H%M%S')}",
                 invoice_date=max([record.invoice_date for record in invoice_records]),
@@ -225,14 +233,23 @@ class TrafficService:
                 total_weight=sum([record.total_weight for record in invoice_records]),
                 status="Validated",
                 is_consolidated=True,
-                validation_errors=[],
-                ai_suggestions=[]
+                validation_errors=None,
+                ai_suggestions=None,
+                items=[]
             )
+            
+            saved_record = invoice_records_db.create(obj_in=consolidated_record)
             
             all_items = []
             for record in invoice_records:
-                for item in record.items:
+                record_items = []
+                for item_filter in invoice_items_db.get_multi(filters={"invoice_id": record.id}):
+                    record_items.append(item_filter)
+                
+                for item in record_items:
                     new_item = InvoiceItem(
+                        id=0,  # Will be set by InMemoryDB
+                        invoice_id=saved_record.id,
                         tariff_code=item.tariff_code,
                         description=item.description,
                         quantity=item.quantity,
@@ -241,37 +258,35 @@ class TrafficService:
                         value=item.value,
                         volume=item.volume
                     )
-                    all_items.append(new_item)
-            
-            consolidated_record.items = all_items
+                    saved_item = invoice_items_db.create(obj_in=new_item)
+                    all_items.append(saved_item)
             
             for record in invoice_records:
                 record.status = "Consolidated"
-                record.consolidated_into_id = consolidated_record.id
+                record.consolidated_into_id = saved_record.id
+                invoice_records_db.update(id=record.id, obj_in=record)
             
-            self.db.add(consolidated_record)
-            self.db.commit()
-            self.db.refresh(consolidated_record)
+            # Get AI suggestions for the consolidated record
+            await self._get_ai_suggestions([saved_record])
             
-            await self._get_ai_suggestions([consolidated_record])
+            # Get the updated record with AI suggestions
+            updated_record = invoice_records_db.get(saved_record.id)
             
             return ConsolidationResponse(
-                consolidated_record=InvoiceRecordResponse.from_orm(consolidated_record),
+                consolidated_record=InvoiceRecordResponse.model_validate(updated_record.model_dump()),
                 message=f"Successfully consolidated {len(invoice_records)} invoices"
             )
             
         except HTTPException:
-            self.db.rollback()
             raise
         except Exception as e:
-            self.db.rollback()
             logger.error(f"Error consolidating invoices: {str(e)}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Error consolidating invoices: {str(e)}"
             )
     
-    def get_records(self) -> List[InvoiceRecordResponse]:
+    async def get_records(self) -> List[InvoiceRecordResponse]:
         """
         Get all pending invoice records for the current user.
         
@@ -279,12 +294,14 @@ class TrafficService:
             List of invoice records
         """
         try:
-            records = self.db.query(InvoiceRecord).filter(
-                InvoiceRecord.user_id == self.user_id,
-                InvoiceRecord.status.in_(["Validated", "Error"])
-            ).all()
+            all_records = invoice_records_db.get_multi()
             
-            return [InvoiceRecordResponse.from_orm(record) for record in records]
+            records = [
+                record for record in all_records 
+                if record.user_id == self.user_id and record.status in ["Validated", "Error"]
+            ]
+            
+            return [InvoiceRecordResponse.model_validate(record.model_dump()) for record in records]
             
         except Exception as e:
             logger.error(f"Error getting invoice records: {str(e)}")
@@ -293,7 +310,7 @@ class TrafficService:
                 detail=f"Error getting invoice records: {str(e)}"
             )
     
-    def get_record(self, record_id: int) -> InvoiceRecordResponse:
+    async def get_record(self, record_id: int) -> InvoiceRecordResponse:
         """
         Get a specific invoice record by ID.
         
@@ -304,18 +321,34 @@ class TrafficService:
             Invoice record details
         """
         try:
-            record = self.db.query(InvoiceRecord).filter(
-                InvoiceRecord.id == record_id,
-                InvoiceRecord.user_id == self.user_id
-            ).first()
+            record_id = int(record_id)
+            logger.info(f"Retrieving record with ID {record_id}")
+            
+            record = invoice_records_db.get(record_id)
             
             if not record:
+                logger.error(f"No record found with ID {record_id}")
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"Invoice record with ID {record_id} not found"
                 )
             
-            return InvoiceRecordResponse.from_orm(record)
+            logger.info(f"Found record: {record.invoice_number}")
+            
+            if record.user_id != self.user_id:
+                logger.error(f"Record {record_id} belongs to user {record.user_id}, not current user {self.user_id}")
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Invoice record with ID {record_id} not found"
+                )
+            
+            items = invoice_items_db.get_multi(filters={"invoice_id": record_id})
+            logger.info(f"Found {len(items)} items for record {record_id}")
+            
+            # Attach items to record
+            record.items = items
+            
+            return InvoiceRecordResponse.model_validate(record.model_dump())
             
         except HTTPException:
             raise
@@ -338,12 +371,20 @@ class TrafficService:
         """
         try:
             record_id = request.record_id
-            record = self.db.query(InvoiceRecord).filter(
-                InvoiceRecord.id == record_id,
-                InvoiceRecord.user_id == self.user_id
-            ).first()
             
-            if not record:
+            all_records = invoice_records_db.get_multi()
+            
+            matching_records = [r for r in all_records if r.id == record_id]
+            
+            if not matching_records:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Invoice record with ID {record_id} not found"
+                )
+            
+            record = matching_records[0]
+            
+            if record.user_id != self.user_id:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"Invoice record with ID {record_id} not found"
@@ -361,56 +402,59 @@ class TrafficService:
                     detail="Movement type is required for DMCE submission"
                 )
             
+            items = []
+            for item in invoice_items_db.get_multi(filters={"invoice_id": record_id}):
+                items.append(item)
+            
             submission = TrafficSubmission(
+                id=0,  # Will be set by InMemoryDB
                 user_id=self.user_id,
                 movement_type=record.movement_type,
                 client_name=record.client_name,
                 client_id=record.client_id,
                 total_value=record.total_value,
                 total_weight=record.total_weight,
-                total_items=len(record.items),
+                total_items=len(items),
                 status="Pending",
                 is_consolidated=record.is_consolidated,
-                original_invoice_ids=request.invoice_record_ids if record.is_consolidated else None
+                original_invoice_ids=[record_id],
+                invoice_records=[]
             )
             
-            self.db.add(submission)
-            self.db.commit()
-            self.db.refresh(submission)
+            # Save submission
+            saved_submission = traffic_submissions_db.create(obj_in=submission)
             
-            record.submission_id = submission.id
+            record.submission_id = saved_submission.id
             record.status = "Submitted"
-            self.db.commit()
+            invoice_records_db.update(id=record.id, obj_in=record)
             
             success, dmce_number, error_message = await self.rpa.submit_to_dmce(
                 record=record,
-                items=record.items
+                items=items
             )
             
-            submission.status = "Submitted" if success else "Failed"
-            submission.dmce_number = dmce_number
-            submission.error_message = error_message
-            self.db.commit()
+            saved_submission.status = "Submitted" if success else "Failed"
+            saved_submission.dmce_number = dmce_number
+            saved_submission.error_message = error_message
+            traffic_submissions_db.update(id=saved_submission.id, obj_in=saved_submission)
             
             return SubmissionResponse(
                 success=success,
                 dmce_number=dmce_number,
                 error_message=error_message,
-                submission_id=submission.id
+                submission_id=saved_submission.id
             )
             
         except HTTPException:
-            self.db.rollback()
             raise
         except Exception as e:
-            self.db.rollback()
             logger.error(f"Error submitting to DMCE: {str(e)}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Error submitting to DMCE: {str(e)}"
             )
     
-    def get_submission_logs(self) -> List[TrafficSubmissionResponse]:
+    async def get_submission_logs(self) -> List[TrafficSubmissionResponse]:
         """
         Get submission logs/history for the current user.
         
@@ -418,11 +462,16 @@ class TrafficService:
             List of submission logs
         """
         try:
-            submissions = self.db.query(TrafficSubmission).filter(
-                TrafficSubmission.user_id == self.user_id
-            ).order_by(TrafficSubmission.submission_date.desc()).all()
+            all_submissions = traffic_submissions_db.get_multi()
             
-            return [TrafficSubmissionResponse.from_orm(submission) for submission in submissions]
+            submissions = [
+                submission for submission in all_submissions 
+                if submission.user_id == self.user_id
+            ]
+            
+            submissions.sort(key=lambda x: x.submission_date, reverse=True)
+            
+            return [TrafficSubmissionResponse.model_validate(submission.model_dump()) for submission in submissions]
             
         except Exception as e:
             logger.error(f"Error getting submission logs: {str(e)}")
@@ -431,7 +480,7 @@ class TrafficService:
                 detail=f"Error getting submission logs: {str(e)}"
             )
     
-    def get_submission_log(self, submission_id: int) -> TrafficSubmissionResponse:
+    async def get_submission_log(self, submission_id: int) -> TrafficSubmissionResponse:
         """
         Get detailed log for a specific submission.
         
@@ -442,18 +491,33 @@ class TrafficService:
             Detailed submission log
         """
         try:
-            submission = self.db.query(TrafficSubmission).filter(
-                TrafficSubmission.id == submission_id,
-                TrafficSubmission.user_id == self.user_id
-            ).first()
+            all_submissions = traffic_submissions_db.get_multi()
             
-            if not submission:
+            matching_submissions = [s for s in all_submissions if s.id == submission_id]
+            
+            if not matching_submissions:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"Submission with ID {submission_id} not found"
                 )
             
-            return TrafficSubmissionResponse.from_orm(submission)
+            submission = matching_submissions[0]
+            
+            if submission.user_id != self.user_id:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Submission with ID {submission_id} not found"
+                )
+            
+            # Get related invoice records
+            invoice_records = []
+            for record in invoice_records_db.get_multi(filters={"submission_id": submission_id}):
+                invoice_records.append(record)
+            
+            # Attach invoice records to submission
+            submission.invoice_records = invoice_records
+            
+            return TrafficSubmissionResponse.model_validate(submission.model_dump())
             
         except HTTPException:
             raise

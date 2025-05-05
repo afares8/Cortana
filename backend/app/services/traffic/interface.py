@@ -1,9 +1,8 @@
 from typing import List, Optional, Dict, Any
 
 from fastapi import Depends, HTTPException, status
-from sqlalchemy.orm import Session
 
-from app.db.base import get_db
+from app.db.base import InMemoryDB
 from app.services.traffic.models.traffic import TrafficSubmission, InvoiceRecord, InvoiceItem
 from app.services.traffic.schemas.traffic import (
     TrafficSubmissionCreate, 
@@ -15,37 +14,40 @@ from app.services.traffic.schemas.traffic import (
     SubmissionRequest,
     SubmissionResponse
 )
+from app.services.traffic.services.traffic_service import TrafficService
+from app.auth.token import get_current_user
+from app.models.user import User
 
 class TrafficInterface:
     """Interface for Traffic module operations."""
     
-    def __init__(self, db: Session = Depends(get_db)):
-        self.db = db
+    def __init__(self, current_user: User = Depends(get_current_user)):
+        self.service = TrafficService(user_id=current_user.id)
     
     async def upload_invoice_data(self, data: Dict[str, Any]) -> List[InvoiceRecordResponse]:
         """Upload and validate invoice data."""
-        pass
+        return await self.service.upload_invoice_data(data)
     
     async def consolidate_invoices(self, request: ConsolidationRequest) -> ConsolidationResponse:
         """Consolidate multiple invoices into one."""
-        pass
+        return await self.service.consolidate_invoices(request)
     
     async def get_records(self) -> List[InvoiceRecordResponse]:
         """Get all pending invoice records."""
-        pass
+        return await self.service.get_records()
     
     async def get_record(self, record_id: int) -> InvoiceRecordResponse:
         """Get a specific invoice record by ID."""
-        pass
+        return await self.service.get_record(record_id)
     
     async def submit_to_dmce(self, request: SubmissionRequest) -> SubmissionResponse:
         """Submit a record to the DMCE portal."""
-        pass
+        return await self.service.submit_to_dmce(request)
     
     async def get_submission_logs(self) -> List[TrafficSubmissionResponse]:
         """Get submission logs/history."""
-        pass
+        return await self.service.get_submission_logs()
     
     async def get_submission_log(self, submission_id: int) -> TrafficSubmissionResponse:
         """Get detailed log for a specific submission."""
-        pass
+        return await self.service.get_submission_log(submission_id)

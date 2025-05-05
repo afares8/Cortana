@@ -15,16 +15,29 @@ class DMCEAutomator:
     """
     
     def __init__(self):
-        self.dmce_url = settings.DMCE_PORTAL_URL
-        self.username = settings.DMCE_USERNAME
-        self.password = settings.DMCE_PASSWORD
+        self.dmce_url = ""
+        self.username = ""
+        self.password = ""
         
-        if not hasattr(settings, 'DMCE_PORTAL_URL'):
-            self.dmce_url = "https://dmce.zolicol.gob.pa"
-        if not hasattr(settings, 'DMCE_USERNAME'):
-            self.username = "demo_user"
-        if not hasattr(settings, 'DMCE_PASSWORD'):
-            self.password = "demo_password"
+        try:
+            self.dmce_url = settings.DMCE_PORTAL_URL
+            logger.info(f"Loaded DMCE portal URL from settings")
+        except Exception as e:
+            logger.warning(f"Could not load DMCE_PORTAL_URL from settings: {str(e)}")
+            
+        try:
+            self.username = settings.DMCE_USERNAME
+            logger.info(f"Loaded DMCE username from settings")
+        except Exception as e:
+            logger.warning(f"Could not load DMCE_USERNAME from settings: {str(e)}")
+            
+        try:
+            self.password = settings.DMCE_PASSWORD
+            logger.info(f"Loaded DMCE password from settings")
+        except Exception as e:
+            logger.warning(f"Could not load DMCE_PASSWORD from settings: {str(e)}")
+            
+        logger.info(f"Initialized DMCEAutomator with URL: {self.dmce_url}")
     
     async def submit_to_dmce(
         self, 

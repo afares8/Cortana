@@ -18,7 +18,7 @@ class InvoiceItemResponse(InvoiceItemBase):
     id: int
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class InvoiceRecordBase(BaseModel):
     invoice_number: str
@@ -43,7 +43,7 @@ class InvoiceRecordResponse(InvoiceRecordBase):
     items: List[InvoiceItemResponse]
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class TrafficSubmissionBase(BaseModel):
     movement_type: str  # "Exit" or "Transfer"
@@ -66,7 +66,7 @@ class TrafficSubmissionResponse(TrafficSubmissionBase):
     original_invoice_ids: Optional[List[int]] = None
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class ConsolidationRequest(BaseModel):
     invoice_record_ids: List[int] = Field(..., description="IDs of invoice records to consolidate")
