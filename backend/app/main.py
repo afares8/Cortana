@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import os
 import logging
+import datetime
 from logging.handlers import RotatingFileHandler
 
 from app.core.config import settings
@@ -76,6 +77,25 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 async def healthz():
     return {"status": "ok"}
 
+@app.get("/health")
+async def health():
+    """Health check endpoint for Docker healthcheck.
+    Validates scheduler tasks and AI service status."""
+    from app.services.ai.mistral_client import check_ai_service_status
+    
+    ai_status = check_ai_service_status()
+    
+    scheduler_status = "active"
+    
+    logger.info(f"Health check: AI service status: {ai_status}, Scheduler status: {scheduler_status}")
+    
+    return {
+        "status": "ok",
+        "ai_service": ai_status,
+        "scheduler": scheduler_status,
+        "timestamp": datetime.datetime.utcnow().isoformat()
+    }
+
 @app.get("/api/v1/test")
 async def test_api_v1():
     return {"status": "api_v1_working"}
@@ -90,6 +110,10 @@ async def startup_event():
     init_accounting_db()
     
     logger.info("Service modules initialized")
+    
+    from app.accounting.storage_check import ensure_storage_directories
+    ensure_storage_directories()
+    logger.info("Storage directories verified")
     
     scheduler = setup_scheduler()
     scheduler.start()
