@@ -1,0 +1,221 @@
+{
+  "common": {
+    "buttons": {
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "delete": "Eliminar",
+      "edit": "Editar",
+      "view": "Ver",
+      "add": "Añadir",
+      "submit": "Enviar",
+      "back": "Atrás",
+      "next": "Siguiente",
+      "search": "Buscar",
+      "filter": "Filtrar",
+      "clear": "Limpiar",
+      "close": "Cerrar",
+      "confirm": "Confirmar",
+      "download": "Descargar",
+      "upload": "Subir",
+      "generate": "Generar"
+    },
+    "labels": {
+      "name": "Nombre",
+      "email": "Correo electrónico",
+      "phone": "Teléfono",
+      "address": "Dirección",
+      "date": "Fecha",
+      "status": "Estado",
+      "type": "Tipo",
+      "description": "Descripción",
+      "notes": "Notas",
+      "amount": "Monto",
+      "total": "Total",
+      "language": "Idioma",
+      "english": "Inglés",
+      "spanish": "Español"
+    },
+    "messages": {
+      "loading": "Cargando...",
+      "error": "Ha ocurrido un error",
+      "success": "Operación exitosa",
+      "noData": "No hay datos disponibles",
+      "confirmDelete": "¿Está seguro de que desea eliminar este elemento?",
+      "required": "Este campo es obligatorio"
+    },
+    "navigation": {
+      "dashboard": "Panel",
+      "accounting": "Contabilidad",
+      "legal": "Legal",
+      "settings": "Configuración",
+      "profile": "Perfil",
+      "logout": "Cerrar sesión",
+      "notifications": "Notificaciones"
+    }
+  },
+  "accounting": {
+    "dashboard": {
+      "title": "Panel de Contabilidad",
+      "summary": "Resumen Financiero",
+      "upcomingObligations": "Obligaciones Próximas",
+      "recentPayments": "Pagos Recientes",
+      "alerts": "Alertas",
+      "statistics": "Estadísticas"
+    },
+    "obligations": {
+      "title": "Obligaciones",
+      "add": "Añadir Obligación",
+      "edit": "Editar Obligación",
+      "view": "Ver Obligación",
+      "delete": "Eliminar Obligación",
+      "name": "Nombre de la Obligación",
+      "type": "Tipo de Obligación",
+      "amount": "Monto",
+      "dueDate": "Fecha de Vencimiento",
+      "status": "Estado",
+      "company": "Empresa",
+      "description": "Descripción",
+      "recurring": "Recurrente",
+      "frequency": "Frecuencia",
+      "attachments": "Adjuntos",
+      "statuses": {
+        "pending": "Pendiente",
+        "paid": "Pagado",
+        "overdue": "Vencido",
+        "upcoming": "Próximo",
+        "cancelled": "Cancelado"
+      },
+      "types": {
+        "itbms": "ITBMS",
+        "isr": "ISR",
+        "css": "CSS",
+        "municipal": "Municipal",
+        "other": "Otro"
+      }
+    },
+    "payments": {
+      "title": "Pagos",
+      "add": "Añadir Pago",
+      "edit": "Editar Pago",
+      "view": "Ver Pago",
+      "delete": "Eliminar Pago",
+      "amount": "Monto",
+      "date": "Fecha de Pago",
+      "method": "Método de Pago",
+      "reference": "Número de Referencia",
+      "obligation": "Obligación Relacionada",
+      "status": "Estado",
+      "notes": "Notas",
+      "receipt": "Recibo",
+      "methods": {
+        "cash": "Efectivo",
+        "check": "Cheque",
+        "transfer": "Transferencia Bancaria",
+        "card": "Tarjeta de Crédito/Débito",
+        "other": "Otro"
+      }
+    },
+    "companies": {
+      "title": "Empresas",
+      "add": "Añadir Empresa",
+      "edit": "Editar Empresa",
+      "view": "Ver Empresa",
+      "delete": "Eliminar Empresa",
+      "name": "Nombre de la Empresa",
+      "ruc": "RUC",
+      "dv": "DV",
+      "address": "Dirección",
+      "phone": "Teléfono",
+      "email": "Correo Electrónico",
+      "taxRegime": "Régimen Fiscal",
+      "location": "Ubicación",
+      "zonaLibre": "Zona Libre",
+      "regimes": {
+        "general": "General",
+        "simplified": "Simplificado",
+        "special": "Especial"
+      }
+    },
+    "notifications": {
+      "title": "Notificaciones",
+      "markRead": "Marcar como Leído",
+      "markAllRead": "Marcar Todo como Leído",
+      "noNotifications": "No hay notificaciones",
+      "obligationDueSoon": "Obligación próxima a vencer",
+      "obligationOverdue": "Obligación vencida",
+      "paymentRegistered": "Pago registrado",
+      "paymentUpdated": "Pago actualizado"
+    },
+    "auditLogs": {
+      "title": "Registros de Auditoría",
+      "user": "Usuario",
+      "action": "Acción",
+      "entityType": "Tipo de Entidad",
+      "entityId": "ID de Entidad",
+      "timestamp": "Marca de Tiempo",
+      "metadata": "Metadatos",
+      "actions": {
+        "create": "Crear",
+        "update": "Actualizar",
+        "delete": "Eliminar"
+      }
+    },
+    "documents": {
+      "title": "Generación de Documentos",
+      "generate": "Generar Documento",
+      "download": "Descargar Documento",
+      "template": "Plantilla",
+      "company": "Empresa",
+      "period": "Período",
+      "format": "Formato",
+      "templates": {
+        "itbms": "Declaración de ITBMS",
+        "isr": "Declaración de ISR",
+        "css": "Planilla CSS",
+        "municipal": "Licencia Municipal"
+      },
+      "formats": {
+        "pdf": "PDF",
+        "docx": "DOCX"
+      }
+    },
+    "emailDrafts": {
+      "title": "Borradores de Correo",
+      "generate": "Generar Borrador",
+      "company": "Empresa",
+      "recipient": "Destinatario",
+      "context": "Contexto",
+      "result": "Borrador Generado",
+      "copy": "Copiar al Portapapeles",
+      "recipients": {
+        "dgi": "DGI",
+        "css": "CSS",
+        "municipal": "Municipio"
+      }
+    },
+    "access": {
+      "title": "Gestión de Acceso de Usuarios",
+      "addAccess": "Añadir Acceso a Empresa",
+      "user": "Usuario",
+      "company": "Empresa",
+      "permission": "Permiso",
+      "permissions": {
+        "read": "Solo Lectura",
+        "write": "Lectura y Escritura"
+      },
+      "actions": {
+        "delete": "Eliminar Acceso"
+      }
+    },
+    "ai": {
+      "title": "Análisis de IA",
+      "analyze": "Ejecutar Análisis",
+      "company": "Empresa",
+      "months": "Meses a analizar",
+      "language": "Idioma",
+      "analyzing": "Analizando...",
+      "results": "Resultados del Análisis",
+      "error": "Error al analizar obligaciones"
+    }
+  }
+}

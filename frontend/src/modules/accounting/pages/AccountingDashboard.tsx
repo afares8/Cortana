@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { 
   getObligations, 
   getCompanies, 
@@ -14,6 +15,7 @@ import AlertBanner from '../components/AlertBanner';
 import { PlusCircle, BarChart3, Calendar, DollarSign, Download } from 'lucide-react';
 
 const AccountingDashboard: React.FC = () => {
+  const { t } = useTranslation();
   // Will be used in future phases for adding new obligations
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
 
@@ -76,13 +78,13 @@ const AccountingDashboard: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Accounting Dashboard</h1>
+        <h1 className="text-2xl font-bold">{t('accounting.dashboard.title')}</h1>
         <button
           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2"
           onClick={() => setShowAddModal(true)}
         >
           <PlusCircle className="h-5 w-5" />
-          <span>Add Obligation</span>
+          <span>{t('accounting.obligations.add')}</span>
         </button>
       </div>
 
@@ -94,7 +96,7 @@ const AccountingDashboard: React.FC = () => {
               <Calendar className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Pending</p>
+              <p className="text-sm text-gray-500">{t('accounting.obligations.statuses.pending')}</p>
               <p className="text-xl font-semibold">{pendingObligations}</p>
             </div>
           </div>
@@ -106,7 +108,7 @@ const AccountingDashboard: React.FC = () => {
               <Calendar className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Overdue</p>
+              <p className="text-sm text-gray-500">{t('accounting.obligations.statuses.overdue')}</p>
               <p className="text-xl font-semibold">{overdueObligations}</p>
             </div>
           </div>
@@ -118,7 +120,7 @@ const AccountingDashboard: React.FC = () => {
               <DollarSign className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Completed</p>
+              <p className="text-sm text-gray-500">{t('accounting.obligations.statuses.paid')}</p>
               <p className="text-xl font-semibold">{completedObligations}</p>
             </div>
           </div>
@@ -130,7 +132,7 @@ const AccountingDashboard: React.FC = () => {
               <BarChart3 className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Upcoming (30 days)</p>
+              <p className="text-sm text-gray-500">{t('accounting.dashboard.upcomingObligations')} (30 days)</p>
               <p className="text-xl font-semibold">{upcomingObligations.length}</p>
             </div>
           </div>
@@ -150,11 +152,11 @@ const AccountingDashboard: React.FC = () => {
 
       {/* Export Tool */}
       <div className="mt-8 mb-4">
-        <h2 className="text-xl font-bold mb-4">Export & Reports</h2>
+        <h2 className="text-xl font-bold mb-4">{t('accounting.documents.title')}</h2>
         
         <div className="flex flex-wrap gap-4">
           <div>
-            <h3 className="text-md font-semibold mb-2">Export Current View</h3>
+            <h3 className="text-md font-semibold mb-2">{t('accounting.documents.download')}</h3>
             <a
               href={getObligationsExportUrl({
                 company_id: undefined,
@@ -164,12 +166,12 @@ const AccountingDashboard: React.FC = () => {
               download
             >
               <Download className="h-5 w-5" />
-              <span>Download Excel</span>
+              <span>{t('accounting.documents.download')}</span>
             </a>
           </div>
           
           <div>
-            <h3 className="text-md font-semibold mb-2">Download Templates</h3>
+            <h3 className="text-md font-semibold mb-2">{t('accounting.documents.templates')}</h3>
             <div className="flex flex-col gap-2">
               <select
                 className="px-3 py-2 border rounded-md"
@@ -180,11 +182,11 @@ const AccountingDashboard: React.FC = () => {
                 }}
                 defaultValue=""
               >
-                <option value="" disabled>Select a template...</option>
-                <option value="itbms_report">ITBMS Report</option>
-                <option value="css_planilla">CSS Planilla</option>
-                <option value="municipal_declaration">Municipal Declaration</option>
-                <option value="dgi_income_tax">DGI Income Tax</option>
+                <option value="" disabled>{t('common.messages.noData')}</option>
+                <option value="itbms_report">{t('accounting.documents.templates.itbms')}</option>
+                <option value="css_planilla">{t('accounting.documents.templates.css')}</option>
+                <option value="municipal_declaration">{t('accounting.documents.templates.municipal')}</option>
+                <option value="dgi_income_tax">{t('accounting.documents.templates.isr')}</option>
               </select>
             </div>
           </div>
@@ -192,7 +194,7 @@ const AccountingDashboard: React.FC = () => {
       </div>
 
       {/* AI Analysis Panel */}
-      <AIAnalysisPanel companies={companies} />
+      <AIAnalysisPanel companies={companies} title={t('accounting.ai.title')} />
 
       {/* Add Obligation Modal */}
       {showAddModal && (

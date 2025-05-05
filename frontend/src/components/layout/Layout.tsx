@@ -1,7 +1,8 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, X, Menu, LogOut, ChevronRight, ChevronDown, AlertCircle, Bell, Settings, Shield, FileText, Users, Activity, CheckSquare, Database, Brain, BarChart2, Truck } from 'lucide-react';
+import { Search, X, Menu, LogOut, ChevronRight, ChevronDown, AlertCircle, Bell, Settings, Shield, FileText, Users, Activity, CheckSquare, Database, Brain, BarChart2, Truck, Globe } from 'lucide-react';
 import NotificationBadge from '../../modules/accounting/components/NotificationBadge';
+import LanguageToggle from '../LanguageToggle';
 
 interface LayoutProps {
   children: ReactNode;
@@ -535,6 +536,7 @@ export default function Layout({ children, title }: LayoutProps) {
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
             <NotificationBadge />
+            <LanguageToggle />
             <button className="text-gray-500 hover:text-gray-700">
               <Settings className="h-5 w-5" />
             </button>
@@ -627,6 +629,9 @@ export default function Layout({ children, title }: LayoutProps) {
                 <LogOut className="h-5 w-5" />
                 <span className="ml-2">Logout</span>
               </button>
+              <div className="px-3 py-2">
+                <LanguageToggle />
+              </div>
             </div>
           </div>
         )}
