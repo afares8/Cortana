@@ -171,7 +171,7 @@ const AccountingDashboard: React.FC = () => {
           </div>
           
           <div>
-            <h3 className="text-md font-semibold mb-2">{t('accounting.documents.templates')}</h3>
+            <h3 className="text-md font-semibold mb-2">{t('accounting.documents.template')}</h3>
             <div className="flex flex-col gap-2">
               <select
                 className="px-3 py-2 border rounded-md"

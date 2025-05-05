@@ -48,13 +48,14 @@
       "noData": "No hay datos disponibles",
       "confirmDelete": "¿Está seguro de que desea eliminar este elemento?",
       "required": "Este campo es obligatorio",
-      "notAvailable": "N/D"
+      "notAvailable": "N/D",
+      "formatDate": "Formato AAAA-MM"
     },
     "actions": {
-      "viewDetails": "Ver Detalles"
+      "viewDetails": "Ver detalles"
     },
     "navigation": {
-      "dashboard": "Panel",
+      "dashboard": "Panel de control",
       "accounting": "Contabilidad",
       "legal": "Legal",
       "settings": "Configuración",
@@ -72,13 +73,45 @@
       "alerts": "Alertas",
       "statistics": "Estadísticas"
     },
+    "documents": {
+      "title": "Generación de Documentos",
+      "generate": "Generar Documento",
+      "download": "Descargar Documento",
+      "template": "Plantilla",
+      "company": "Empresa",
+      "period": "Período",
+      "format": "Formato",
+      "templateFile": "Archivo de Plantilla",
+      "acceptedFormats": "Formatos aceptados: .docx, .pdf, .xlsx, .xls",
+      "upload": "Subir Plantilla",
+      "templates": {
+        "itbms": "Declaración ITBMS",
+        "css": "Planilla CSS",
+        "municipal": "Licencia Municipal",
+        "isr": "Declaración ISR"
+      },
+      "error": {
+        "selectBoth": "Por favor seleccione empresa y plantilla",
+        "selectFile": "Por favor seleccione un archivo para subir",
+        "generation": "Error generando documento",
+        "upload": "Error subiendo plantilla"
+      },
+      "success": {
+        "generated": "Documento generado exitosamente",
+        "uploaded": "Plantilla subida exitosamente"
+      },
+      "formats": {
+        "pdf": "PDF",
+        "docx": "DOCX"
+      }
+    },
     "obligations": {
       "title": "Obligaciones",
       "add": "Añadir Obligación",
       "edit": "Editar Obligación",
       "view": "Ver Obligación",
       "delete": "Eliminar Obligación",
-      "name": "Nombre de la Obligación",
+      "name": "Nombre de Obligación",
       "type": "Tipo de Obligación",
       "amount": "Monto",
       "dueDate": "Fecha de Vencimiento",
@@ -150,7 +183,7 @@
       "edit": "Editar Empresa",
       "view": "Ver Empresa",
       "delete": "Eliminar Empresa",
-      "name": "Nombre de la Empresa",
+      "name": "Nombre de Empresa",
       "ruc": "RUC",
       "dv": "DV",
       "address": "Dirección",
@@ -189,38 +222,6 @@
         "delete": "Eliminar"
       }
     },
-    "documents": {
-      "title": "Generación de Documentos",
-      "generate": "Generar Documento",
-      "download": "Descargar Documento",
-      "template": "Plantilla",
-      "company": "Empresa",
-      "period": "Período",
-      "format": "Formato",
-      "templateFile": "Archivo de Plantilla",
-      "acceptedFormats": "Formatos aceptados: .docx, .pdf, .xlsx, .xls",
-      "upload": "Subir Plantilla",
-      "templates": {
-        "itbms": "Declaración de ITBMS",
-        "isr": "Declaración de ISR",
-        "css": "Planilla CSS",
-        "municipal": "Licencia Municipal"
-      },
-      "error": {
-        "selectBoth": "Por favor seleccione empresa y plantilla",
-        "selectFile": "Por favor seleccione un archivo para subir",
-        "generation": "Error al generar documento",
-        "upload": "Error al subir plantilla"
-      },
-      "success": {
-        "generated": "Documento generado exitosamente",
-        "uploaded": "Plantilla subida exitosamente"
-      },
-      "formats": {
-        "pdf": "PDF",
-        "docx": "DOCX"
-      }
-    },
     "emailDrafts": {
       "title": "Borradores de Correo",
       "generate": "Generar Borrador",
@@ -232,7 +233,7 @@
       "recipients": {
         "dgi": "DGI",
         "css": "CSS",
-        "municipal": "Municipio"
+        "municipal": "Municipalidad"
       }
     },
     "access": {
@@ -257,7 +258,7 @@
       "language": "Idioma",
       "analyzing": "Analizando...",
       "results": "Resultados del Análisis",
-      "error": "Error al analizar obligaciones"
+      "error": "Error analizando obligaciones"
     }
   }
 }

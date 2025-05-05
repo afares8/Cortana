@@ -5,7 +5,7 @@ import { Company } from '../types';
 import { Loader2, FileText, Download, Upload, Calendar } from 'lucide-react';
 
 const DocumentGenerationPage: React.FC = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [templates, setTemplates] = useState<string[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<string>('');
@@ -17,16 +17,21 @@ const DocumentGenerationPage: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadLoading, setUploadLoading] = useState<boolean>(false);
+  const [documentTitle, setDocumentTitle] = useState<string>("Document Generation");
   
   const getTemplateLabel = (template: string): string => {
-    const templateMap: Record<string, string> = {
-      'itbms_report': i18n.language === 'es' ? 'Declaración de ITBMS' : 'ITBMS Declaration',
-      'css_planilla': i18n.language === 'es' ? 'Planilla CSS' : 'CSS Planilla',
-      'municipal_declaration': i18n.language === 'es' ? 'Licencia Municipal' : 'Municipal License',
-      'dgi_income_tax': i18n.language === 'es' ? 'Declaración de ISR' : 'ISR Declaration',
-    };
-    
-    return templateMap[template] || template;
+    switch (template) {
+      case 'itbms_report':
+        return t('accounting.documents.templates.itbms');
+      case 'css_planilla':
+        return t('accounting.documents.templates.css');
+      case 'municipal_declaration':
+        return t('accounting.documents.templates.municipal');
+      case 'dgi_income_tax':
+        return t('accounting.documents.templates.isr');
+      default:
+        return template;
+    }
   };
 
   useEffect(() => {
@@ -130,6 +135,10 @@ const DocumentGenerationPage: React.FC = () => {
     );
   }
 
+  useEffect(() => {
+    document.title = t('accounting.documents.title');
+  }, [t]);
+
   return (
     <div className="container mx-auto py-8 px-4">
       <h1 className="text-3xl font-bold mb-6">{t('accounting.documents.title')}</h1>
@@ -145,9 +154,7 @@ const DocumentGenerationPage: React.FC = () => {
           {success}
         </div>
       )}
-      
-      {/* Remove error message about templates */}
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold mb-4 flex items-center">
