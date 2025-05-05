@@ -7,6 +7,9 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/app
+      - forms-data:/app/storage/forms
+      - templates-data:/app/static/templates
+      - attachments-data:/app/storage/attachments
     environment:
       - PYTHONPATH=/app
       # AI_FALLBACK_MODE is auto-detected based on GPU availability
@@ -15,6 +18,12 @@ services:
       # - AI_FALLBACK_MODE=false # Force real model (GPU only)
       - MISTRAL_API_URL=http://ai-service:80
       # AI_FALLBACK_MODE=false
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 86400s  # Daily check
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     profiles:
       - gpu
       - cpu
@@ -74,3 +83,9 @@ services:
 
 volumes:
   ai-model-data:
+  forms-data:
+    driver: local
+  templates-data:
+    driver: local
+  attachments-data:
+    driver: local

@@ -1,6 +1,8 @@
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect } from 'react';
+import { I18nextProvider } from 'react-i18next';
+import i18n from './i18n';
 
 import Dashboard from './pages/Dashboard';
 import ContractList from './pages/ContractList';
@@ -49,11 +51,12 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>
-        <Routes>
-          {/* Direct redirects for login and register */}
-          <Route path="login" element={<Navigate to="/" replace />} />
-          <Route path="register" element={<Navigate to="/" replace />} />
+      <I18nextProvider i18n={i18n}>
+        <Router>
+          <Routes>
+            {/* Direct redirects for login and register */}
+            <Route path="login" element={<Navigate to="/" replace />} />
+            <Route path="register" element={<Navigate to="/" replace />} />
           
           {/* All routes are now public */}
           <Route path="/" element={<Dashboard />} />
@@ -105,6 +108,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
+      </I18nextProvider>
     </QueryClientProvider>
   );
 }

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Table,
   TableBody,
@@ -26,6 +27,7 @@ import {
   Payment as PaymentIcon,
   Refresh as RefreshIcon
 } from '@mui/icons-material';
+import { SelectChangeEvent } from '@mui/material/Select';
 import { format } from 'date-fns';
 import { Obligation } from '../types';
 
@@ -43,6 +45,7 @@ const ObligationTable: React.FC<ObligationTableProps> = ({
   onMakePayment
 }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [frequencyFilter, setFrequencyFilter] = useState('all');
@@ -88,7 +91,7 @@ const ObligationTable: React.FC<ObligationTableProps> = ({
     <Paper sx={{ p: 2, width: '100%' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h6" component="div">
-          Tax Obligations
+          {t('accounting.obligations.title')}
         </Typography>
         <Button 
           variant="contained" 
@@ -97,13 +100,13 @@ const ObligationTable: React.FC<ObligationTableProps> = ({
           startIcon={<RefreshIcon />}
           disabled={isLoading}
         >
-          Refresh
+          {t('common.buttons.refresh')}
         </Button>
       </Box>
       
       <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
         <TextField
-          label="Search"
+          label={t('common.labels.search')}
           variant="outlined"
           size="small"
           value={searchTerm}
@@ -115,30 +118,30 @@ const ObligationTable: React.FC<ObligationTableProps> = ({
         />
         
         <FormControl size="small" sx={{ minWidth: 120 }}>
-          <InputLabel>Status</InputLabel>
-          <Select
+          <InputLabel>{t('accounting.obligations.status')}</InputLabel>
+          <Select<string>
             value={statusFilter}
-            label="Status"
-            onChange={(e: React.ChangeEvent<{ value: unknown }>) => setStatusFilter(e.target.value as string)}
+            label={t('accounting.obligations.status')}
+            onChange={(e: SelectChangeEvent<string>) => setStatusFilter(e.target.value)}
           >
-            <MenuItem value="all">All</MenuItem>
-            <MenuItem value="pending">Pending</MenuItem>
-            <MenuItem value="completed">Completed</MenuItem>
-            <MenuItem value="overdue">Overdue</MenuItem>
+            <MenuItem value="all">{t('common.filters.all')}</MenuItem>
+            <MenuItem value="pending">{t('accounting.obligations.statuses.pending')}</MenuItem>
+            <MenuItem value="completed">{t('accounting.obligations.statuses.completed')}</MenuItem>
+            <MenuItem value="overdue">{t('accounting.obligations.statuses.overdue')}</MenuItem>
           </Select>
         </FormControl>
         
         <FormControl size="small" sx={{ minWidth: 120 }}>
-          <InputLabel>Frequency</InputLabel>
-          <Select
+          <InputLabel>{t('accounting.obligations.frequency')}</InputLabel>
+          <Select<string>
             value={frequencyFilter}
-            label="Frequency"
-            onChange={(e: React.ChangeEvent<{ value: unknown }>) => setFrequencyFilter(e.target.value as string)}
+            label={t('accounting.obligations.frequency')}
+            onChange={(e: SelectChangeEvent<string>) => setFrequencyFilter(e.target.value)}
           >
-            <MenuItem value="all">All</MenuItem>
-            <MenuItem value="monthly">Monthly</MenuItem>
-            <MenuItem value="quarterly">Quarterly</MenuItem>
-            <MenuItem value="annual">Annual</MenuItem>
+            <MenuItem value="all">{t('common.filters.all')}</MenuItem>
+            <MenuItem value="monthly">{t('accounting.obligations.frequencies.monthly')}</MenuItem>
+            <MenuItem value="quarterly">{t('accounting.obligations.frequencies.quarterly')}</MenuItem>
+            <MenuItem value="annual">{t('accounting.obligations.frequencies.annual')}</MenuItem>
           </Select>
         </FormControl>
       </Box>
@@ -147,25 +150,25 @@ const ObligationTable: React.FC<ObligationTableProps> = ({
         <Table sx={{ minWidth: 650 }} aria-label="obligations table">
           <TableHead>
             <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell>Company</TableCell>
-              <TableCell>Tax Type</TableCell>
-              <TableCell>Frequency</TableCell>
-              <TableCell>Next Due Date</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Amount</TableCell>
-              <TableCell align="right">Actions</TableCell>
+              <TableCell>{t('accounting.obligations.fields.name')}</TableCell>
+              <TableCell>{t('accounting.obligations.fields.company')}</TableCell>
+              <TableCell>{t('accounting.obligations.fields.taxType')}</TableCell>
+              <TableCell>{t('accounting.obligations.fields.frequency')}</TableCell>
+              <TableCell>{t('accounting.obligations.fields.nextDueDate')}</TableCell>
+              <TableCell>{t('accounting.obligations.fields.status')}</TableCell>
+              <TableCell>{t('accounting.obligations.fields.amount')}</TableCell>
+              <TableCell align="right">{t('common.labels.actions')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={8} align="center">Loading...</TableCell>
+                <TableCell colSpan={8} align="center">{t('common.messages.loading')}</TableCell>
               </TableRow>
             ) : filteredObligations.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={8} align="center">
-                  No obligations found. Try adjusting your filters or add a new obligation.
+                  {t('accounting.obligations.noObligationsFound')}
                 </TableCell>
               </TableRow>
             ) : (
@@ -176,7 +179,7 @@ const ObligationTable: React.FC<ObligationTableProps> = ({
                   <TableCell>{obligation.tax_type_name}</TableCell>
                   <TableCell>
                     <Chip 
-                      label={obligation.frequency.charAt(0).toUpperCase() + obligation.frequency.slice(1)} 
+                      label={t(`accounting.obligations.frequencies.${obligation.frequency}`)} 
                       size="small" 
                       variant="outlined"
                     />
@@ -186,17 +189,17 @@ const ObligationTable: React.FC<ObligationTableProps> = ({
                   </TableCell>
                   <TableCell>
                     <Chip 
-                      label={obligation.status.charAt(0).toUpperCase() + obligation.status.slice(1)} 
+                      label={t(`accounting.obligations.statuses.${obligation.status}`)} 
                       color={getStatusColor(obligation.status)}
                       size="small"
                     />
                   </TableCell>
                   <TableCell>
-                    {obligation.amount ? `$${obligation.amount.toFixed(2)}` : 'N/A'}
+                    {obligation.amount ? `$${obligation.amount.toFixed(2)}` : t('common.messages.notAvailable')}
                   </TableCell>
                   <TableCell align="right">
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                      <Tooltip title="View Details">
+                      <Tooltip title={t('common.actions.viewDetails')}>
                         <IconButton 
                           size="small" 
                           onClick={() => handleViewDetails(obligation.id)}
@@ -206,7 +209,7 @@ const ObligationTable: React.FC<ObligationTableProps> = ({
                       </Tooltip>
                       
                       {obligation.status !== 'completed' && (
-                        <Tooltip title="Make Payment">
+                        <Tooltip title={t('accounting.obligations.actions.makePayment')}>
                           <IconButton 
                             size="small" 
                             onClick={() => handleMakePayment(obligation.id)}
