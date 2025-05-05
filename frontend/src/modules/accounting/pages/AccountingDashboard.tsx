@@ -1,10 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getObligations, getCompanies, getTaxTypes, getAlerts } from '../api/accountingApi';
+import { 
+  getObligations, 
+  getCompanies, 
+  getTaxTypes, 
+  getAlerts,
+  getObligationsExportUrl,
+  getTemplateUrl
+} from '../api/accountingApi';
 import ObligationTable from '../components/ObligationTable';
 import AIAnalysisPanel from '../components/AIAnalysisPanel';
 import AlertBanner from '../components/AlertBanner';
-import { PlusCircle, BarChart3, Calendar, DollarSign } from 'lucide-react';
+import { PlusCircle, BarChart3, Calendar, DollarSign, Download, FileText } from 'lucide-react';
 
 const AccountingDashboard: React.FC = () => {
   // Will be used in future phases for adding new obligations
@@ -140,6 +147,49 @@ const AccountingDashboard: React.FC = () => {
         onRefresh={refetchObligations}
         onMakePayment={handleMakePayment}
       />
+
+      {/* Export Tool */}
+      <div className="mt-8 mb-4">
+        <h2 className="text-xl font-bold mb-4">Export & Reports</h2>
+        
+        <div className="flex flex-wrap gap-4">
+          <div>
+            <h3 className="text-md font-semibold mb-2">Export Current View</h3>
+            <a
+              href={getObligationsExportUrl({
+                company_id: undefined,
+                format: 'excel'
+              })}
+              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center gap-2"
+              download
+            >
+              <Download className="h-5 w-5" />
+              <span>Download Excel</span>
+            </a>
+          </div>
+          
+          <div>
+            <h3 className="text-md font-semibold mb-2">Download Templates</h3>
+            <div className="flex flex-col gap-2">
+              <select
+                className="px-3 py-2 border rounded-md"
+                onChange={(e) => {
+                  if (e.target.value) {
+                    window.open(getTemplateUrl(e.target.value), '_blank');
+                  }
+                }}
+                defaultValue=""
+              >
+                <option value="" disabled>Select a template...</option>
+                <option value="itbms_report">ITBMS Report</option>
+                <option value="css_planilla">CSS Planilla</option>
+                <option value="municipal_declaration">Municipal Declaration</option>
+                <option value="dgi_income_tax">DGI Income Tax</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* AI Analysis Panel */}
       <AIAnalysisPanel companies={companies} />
