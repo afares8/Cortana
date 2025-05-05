@@ -168,3 +168,20 @@ export interface AuditLog {
   details?: Record<string, any>;
   ip_address?: string;
 }
+
+export interface EmailDraftRequest {
+  company_id: string;
+  recipient: string;
+  context: string;
+  obligation_id?: string;
+  payment_id?: string;
+}
+
+export interface EmailDraftResponse {
+  subject: string;
+  body: string;
+  recipient: string;
+  company_id: string;
+  is_fallback?: boolean;
+  error?: string;
+}

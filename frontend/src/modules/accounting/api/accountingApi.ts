@@ -17,7 +17,9 @@ import {
   PaymentCreate,
   PaymentUpdate,
   Attachment,
-  AttachmentCreate
+  AttachmentCreate,
+  EmailDraftRequest,
+  EmailDraftResponse
 } from '../types';
 
 export const getCompanies = async (params?: { 
@@ -299,5 +301,15 @@ export const uploadFormTemplate = async (file: File): Promise<{ message: string 
     }
   );
   
+  return response.data;
+};
+
+export const createEmailDraft = async (
+  request: EmailDraftRequest
+): Promise<EmailDraftResponse> => {
+  const response = await axios.post<EmailDraftResponse>(
+    `${API_BASE}/accounting/ai/email-draft`,
+    request
+  );
   return response.data;
 };
