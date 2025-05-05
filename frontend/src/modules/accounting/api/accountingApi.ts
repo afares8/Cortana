@@ -266,3 +266,38 @@ export const getAuditLogs = async (companyId?: string): Promise<AuditLog[]> => {
   const response = await axios.get<AuditLog[]>(url);
   return response.data;
 };
+
+export const getFormTemplates = async (): Promise<string[]> => {
+  const response = await axios.get<string[]>(`${API_BASE}/accounting/forms/templates`);
+  return response.data;
+};
+
+export const generateForm = async (
+  templateName: string,
+  companyId: string,
+  period?: string
+): Promise<Blob> => {
+  const url = period
+    ? `${API_BASE}/accounting/forms/${templateName}?company_id=${companyId}&period=${period}`
+    : `${API_BASE}/accounting/forms/${templateName}?company_id=${companyId}`;
+  
+  const response = await axios.get(url, { responseType: 'blob' });
+  return response.data;
+};
+
+export const uploadFormTemplate = async (file: File): Promise<{ message: string }> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  
+  const response = await axios.post<{ message: string }>(
+    `${API_BASE}/accounting/forms/upload-template`,
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
+  
+  return response.data;
+};
