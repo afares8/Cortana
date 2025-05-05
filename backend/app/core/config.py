@@ -48,6 +48,10 @@ class Settings(BaseSettings):
         return bool(v)
 
     USE_IN_MEMORY_DB: bool = True
+    
+    DMCE_PORTAL_URL: str = os.getenv("DMCE_PORTAL_URL", "")
+    DMCE_USERNAME: str = os.getenv("DMCE_USERNAME", "")
+    DMCE_PASSWORD: str = os.getenv("DMCE_PASSWORD", "")
 
     model_config = {
         "case_sensitive": True,

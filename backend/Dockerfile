@@ -1,29 +1,40 @@
 FROM python:3.12-slim
 
+ENV PYTHONUNBUFFERED=1 \
+    POETRY_VERSION=1.8.2 \
+    POETRY_HOME="/opt/poetry" \
+    PATH="/opt/poetry/bin:$PATH"
+
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update -y && \
+# Instala dependencias del sistema
+RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     build-essential \
-    libpq5 \
     curl \
+    git \
+    default-jre \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Copy only requirements first to leverage Docker cache
-COPY requirements.txt .
+# Instala Poetry
+RUN curl -sSL https://install.python-poetry.org | python3 - && \
+    ln -s /opt/poetry/bin/poetry /usr/local/bin/poetry
 
-# Install Python dependencies (cached unless requirements.txt changes)
-RUN pip install --no-cache-dir -r requirements.txt
+# Copia los archivos de dependencias primero
+COPY pyproject.toml poetry.lock ./
 
-# Install essential packages separately
-RUN pip install --no-cache-dir uvicorn fastapi
+# Instala dependencias del proyecto (sin crear venv adicional)
+RUN poetry config virtualenvs.create false && \
+    poetry install --no-interaction --no-ansi
 
-# Now copy the full app source
+# Copia el resto del código fuente
 COPY . .
 
-ENV PYTHONPATH="/app:$PYTHONPATH"
+# Descarga el modelo de spaCy para español
+RUN python3 -m spacy download es_core_news_md
 
+# Expone el puerto
 EXPOSE 8000
 
+# Comando de ejecución
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

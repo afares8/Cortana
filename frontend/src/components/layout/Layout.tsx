@@ -1,81 +1,577 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Search, X, Menu, LogOut, ChevronRight, ChevronDown, AlertCircle, Bell, Settings, Shield, FileText, Users, Activity, CheckSquare, Database, Brain, BarChart2, Truck } from 'lucide-react';
 
 interface LayoutProps {
   children: ReactNode;
   title: string;
 }
 
+interface NavItem {
+  path: string;
+  label: string;
+  icon: ReactNode;
+  section?: string;
+  children?: NavItem[];
+}
+
+interface SearchResult {
+  id: string;
+  title: string;
+  type: string;
+  path: string;
+  excerpt: string;
+}
+
 export default function Layout({ children, title }: LayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    dashboard: true,
+    contracts: true,
+    legal: true,
+    compliance: true,
+    traffic: true,
+    ai: true
+  });
+  const [notifications, setNotifications] = useState<{id: string, message: string, type: string}[]>([]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     navigate('/login');
   };
 
-  const navItems = [
-    { path: '', label: 'Dashboard', icon: '📊' },
-    { path: 'contracts', label: 'Contracts', icon: '📄' },
-    { path: 'contracts/upload', label: 'Upload Contract', icon: '📤' },
-    { path: 'ai-dashboard', label: 'AI Command Center', icon: '🧠' },
-    { path: 'legal/clients', label: 'Legal Clients', icon: '👥' },
-    { path: 'legal/contracts', label: 'Legal Contracts', icon: '📑' },
-    { path: 'legal/workflows', label: 'Workflows', icon: '🔄' },
-    { path: 'legal/tasks', label: 'Tasks', icon: '✅' },
-    { path: 'legal/audit-logs', label: 'Audit Logs', icon: '📝' },
+  const toggleSection = (section: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  const navItems: NavItem[] = [
+    { 
+      path: '', 
+      label: 'Dashboard', 
+      icon: <BarChart2 className="h-5 w-5" />, 
+      section: 'dashboard'
+    },
+    { 
+      path: 'contracts', 
+      label: 'Contracts', 
+      icon: <FileText className="h-5 w-5" />, 
+      section: 'contracts',
+      children: [
+        { path: 'contracts', label: 'All Contracts', icon: <FileText className="h-4 w-4" /> },
+        { path: 'contracts/upload', label: 'Upload Contract', icon: <FileText className="h-4 w-4" /> }
+      ]
+    },
+    { 
+      path: 'legal', 
+      label: 'Legal', 
+      icon: <Shield className="h-5 w-5" />, 
+      section: 'legal',
+      children: [
+        { path: 'legal/clients', label: 'Clients', icon: <Users className="h-4 w-4" /> },
+        { path: 'legal/contracts', label: 'Contracts', icon: <FileText className="h-4 w-4" /> },
+        { path: 'legal/workflows', label: 'Workflows', icon: <Activity className="h-4 w-4" /> },
+        { path: 'legal/tasks', label: 'Tasks', icon: <CheckSquare className="h-4 w-4" /> },
+        { path: 'legal/audit-logs', label: 'Audit Logs', icon: <Database className="h-4 w-4" /> }
+      ]
+    },
+    { 
+      path: 'compliance', 
+      label: 'Compliance', 
+      icon: <AlertCircle className="h-5 w-5" />, 
+      section: 'compliance',
+      children: [
+        { path: 'compliance/dashboard', label: 'Dashboard', icon: <BarChart2 className="h-4 w-4" /> },
+        { path: 'compliance/uaf-report/new', label: 'UAF Report', icon: <FileText className="h-4 w-4" /> },
+        { path: 'compliance/pep-screening/new', label: 'PEP Screening', icon: <Users className="h-4 w-4" /> },
+        { path: 'compliance/sanctions-screening/new', label: 'Sanctions Screening', icon: <Shield className="h-4 w-4" /> }
+      ]
+    },
+    { 
+      path: 'traffic', 
+      label: 'Tráfico', 
+      icon: <Truck className="h-5 w-5" />, 
+      section: 'traffic',
+      children: [
+        { path: 'traffic/dashboard', label: 'Panel', icon: <BarChart2 className="h-4 w-4" /> },
+        { path: 'traffic/upload', label: 'Cargar Factura', icon: <FileText className="h-4 w-4" /> },
+        { path: 'traffic/records', label: 'Registros', icon: <Database className="h-4 w-4" /> },
+        { path: 'traffic/logs', label: 'Historial', icon: <Activity className="h-4 w-4" /> }
+      ]
+    },
+    { 
+      path: 'ai-dashboard', 
+      label: 'AI Center', 
+      icon: <Brain className="h-5 w-5" />, 
+      section: 'ai'
+    }
   ];
+
+  const getCurrentSection = () => {
+    const path = location.hash.replace('#/', '');
+    if (path.startsWith('legal/')) return 'legal';
+    if (path.startsWith('compliance/')) return 'compliance';
+    if (path.startsWith('contracts/')) return 'contracts';
+    if (path.startsWith('traffic/')) return 'traffic';
+    if (path.startsWith('ai-')) return 'ai';
+    return 'dashboard';
+  };
+
+  const currentSection = getCurrentSection();
+
+  const handleSearch = async (query: string) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      // const apiUrl = import.meta.env.VITE_API_URL || '';
+      
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const mockResults: SearchResult[] = [
+        {
+          id: '1',
+          title: 'Contract with Global Fragrances Ltd.',
+          type: 'contract',
+          path: '/contracts/1',
+          excerpt: 'Supply agreement for perfume ingredients...'
+        },
+        {
+          id: '2',
+          title: 'TechStart Inc. NDA',
+          type: 'contract',
+          path: '/contracts/2',
+          excerpt: 'Non-disclosure agreement for software development...'
+        },
+        {
+          id: '3',
+          title: 'Acme Corp License Agreement',
+          type: 'contract',
+          path: '/contracts/3',
+          excerpt: 'License for use of proprietary fragrance formulas...'
+        },
+        {
+          id: '4',
+          title: 'UAF Report - Q1 2025',
+          type: 'compliance',
+          path: '/compliance/reports/1',
+          excerpt: 'Quarterly financial activity report...'
+        },
+        {
+          id: '5',
+          title: 'Client: Luxury Scents International',
+          type: 'client',
+          path: '/legal/clients/1',
+          excerpt: 'Major distributor of premium fragrances...'
+        }
+      ].filter(item => 
+        item.title.toLowerCase().includes(query.toLowerCase()) || 
+        item.excerpt.toLowerCase().includes(query.toLowerCase())
+      );
+      
+      setSearchResults(mockResults);
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      handleSearch(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    setNotifications([
+      { id: '1', message: 'Contract with Global Fragrances Ltd. expires in 15 days', type: 'warning' },
+      { id: '2', message: 'New UAF report generated', type: 'info' },
+      { id: '3', message: 'PEP screening completed for TechStart Inc.', type: 'success' }
+    ]);
+  }, []);
+
+  const renderContextualPanel = () => {
+    switch (currentSection) {
+      case 'contracts':
+        return (
+          <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
+            <h3 className="font-medium text-gray-900 mb-3">Contract Actions</h3>
+            <div className="space-y-2">
+              <button 
+                onClick={() => navigate('/contracts/upload')}
+                className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
+              >
+                <span className="mr-2">📤</span>
+                Upload New Contract
+              </button>
+              <button 
+                onClick={() => navigate('/contracts')}
+                className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
+              >
+                <span className="mr-2">🔍</span>
+                Browse All Contracts
+              </button>
+              <button 
+                onClick={() => navigate('/ai-dashboard')}
+                className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
+              >
+                <span className="mr-2">🧠</span>
+                AI Contract Analysis
+              </button>
+            </div>
+            
+            <h3 className="font-medium text-gray-900 mt-6 mb-3">Expiring Soon</h3>
+            <div className="space-y-2">
+              <div className="p-3 bg-yellow-50 rounded-md">
+                <p className="text-sm font-medium text-yellow-800">Global Fragrances Ltd.</p>
+                <p className="text-xs text-yellow-700">Expires in 15 days</p>
+              </div>
+              <div className="p-3 bg-yellow-50 rounded-md">
+                <p className="text-sm font-medium text-yellow-800">TechStart Inc. NDA</p>
+                <p className="text-xs text-yellow-700">Expires in 30 days</p>
+              </div>
+            </div>
+          </div>
+        );
+      
+      case 'legal':
+        return (
+          <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
+            <h3 className="font-medium text-gray-900 mb-3">Legal Department</h3>
+            <div className="space-y-2">
+              <button 
+                onClick={() => navigate('/legal/clients/new')}
+                className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
+              >
+                <span className="mr-2">➕</span>
+                Add New Client
+              </button>
+              <button 
+                onClick={() => navigate('/legal/workflows/new')}
+                className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
+              >
+                <span className="mr-2">🔄</span>
+                Create Workflow
+              </button>
+              <button 
+                onClick={() => navigate('/legal/tasks/new')}
+                className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
+              >
+                <span className="mr-2">✅</span>
+                Create Task
+              </button>
+            </div>
+            
+            <h3 className="font-medium text-gray-900 mt-6 mb-3">Recent Activity</h3>
+            <div className="space-y-2">
+              <div className="p-3 bg-gray-50 rounded-md">
+                <p className="text-sm font-medium text-gray-800">Contract Review</p>
+                <p className="text-xs text-gray-600">Updated 2 hours ago</p>
+              </div>
+              <div className="p-3 bg-gray-50 rounded-md">
+                <p className="text-sm font-medium text-gray-800">Client Meeting</p>
+                <p className="text-xs text-gray-600">Scheduled for tomorrow</p>
+              </div>
+            </div>
+          </div>
+        );
+      
+      case 'compliance':
+        return (
+          <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
+            <h3 className="font-medium text-gray-900 mb-3">Compliance Actions</h3>
+            <div className="space-y-2">
+              <button 
+                onClick={() => navigate('/compliance/uaf-report/new')}
+                className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
+              >
+                <span className="mr-2">📊</span>
+                Generate UAF Report
+              </button>
+              <button 
+                onClick={() => navigate('/compliance/pep-screening/new')}
+                className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
+              >
+                <span className="mr-2">👥</span>
+                PEP Screening
+              </button>
+              <button 
+                onClick={() => navigate('/compliance/sanctions-screening/new')}
+                className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
+              >
+                <span className="mr-2">🛡️</span>
+                Sanctions Screening
+              </button>
+            </div>
+            
+            <h3 className="font-medium text-gray-900 mt-6 mb-3">Pending Reports</h3>
+            <div className="space-y-2">
+              <div className="p-3 bg-blue-50 rounded-md">
+                <p className="text-sm font-medium text-blue-800">UAF Report - Q2 2025</p>
+                <p className="text-xs text-blue-700">Due in 15 days</p>
+              </div>
+              <div className="p-3 bg-blue-50 rounded-md">
+                <p className="text-sm font-medium text-blue-800">Annual Compliance Review</p>
+                <p className="text-xs text-blue-700">Due in 45 days</p>
+              </div>
+            </div>
+          </div>
+        );
+      
+      case 'ai':
+        return (
+          <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
+            <h3 className="font-medium text-gray-900 mb-3">AI Tools</h3>
+            <div className="space-y-2">
+              <button 
+                onClick={() => navigate('/ai-dashboard')}
+                className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
+              >
+                <span className="mr-2">🧠</span>
+                AI Command Center
+              </button>
+              <button 
+                onClick={() => navigate('/contracts')}
+                className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
+              >
+                <span className="mr-2">📄</span>
+                Analyze Contract
+              </button>
+            </div>
+            
+            <h3 className="font-medium text-gray-900 mt-6 mb-3">Recent Analyses</h3>
+            <div className="space-y-2">
+              <div className="p-3 bg-purple-50 rounded-md">
+                <p className="text-sm font-medium text-purple-800">Global Fragrances Ltd. Contract</p>
+                <p className="text-xs text-purple-700">Analyzed 2 days ago</p>
+              </div>
+              <div className="p-3 bg-purple-50 rounded-md">
+                <p className="text-sm font-medium text-purple-800">TechStart Inc. NDA</p>
+                <p className="text-xs text-purple-700">Analyzed 1 week ago</p>
+              </div>
+            </div>
+          </div>
+        );
+      
+      case 'traffic':
+        return (
+          <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
+            <h3 className="font-medium text-gray-900 mb-3">Acciones de Tráfico</h3>
+            <div className="space-y-2">
+              <button 
+                onClick={() => navigate('/traffic/dashboard')}
+                className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
+              >
+                <span className="mr-2">📊</span>
+                Panel de Control
+              </button>
+              <button 
+                onClick={() => navigate('/traffic/upload')}
+                className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
+              >
+                <span className="mr-2">📤</span>
+                Cargar Factura
+              </button>
+              <button 
+                onClick={() => navigate('/traffic/records')}
+                className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
+              >
+                <span className="mr-2">📋</span>
+                Ver Registros
+              </button>
+            </div>
+            
+            <h3 className="font-medium text-gray-900 mt-6 mb-3">Actividad Reciente</h3>
+            <div className="space-y-2">
+              <div className="p-3 bg-orange-50 rounded-md">
+                <p className="text-sm font-medium text-orange-800">Declaración DMCE</p>
+                <p className="text-xs text-orange-700">Enviada hace 2 días</p>
+              </div>
+              <div className="p-3 bg-orange-50 rounded-md">
+                <p className="text-sm font-medium text-orange-800">Consolidación de Facturas</p>
+                <p className="text-xs text-orange-700">Completada hace 1 semana</p>
+              </div>
+            </div>
+          </div>
+        );
+      
+      default:
+        return (
+          <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
+            <h3 className="font-medium text-gray-900 mb-3">Quick Actions</h3>
+            <div className="space-y-2">
+              <button 
+                onClick={() => navigate('/contracts/upload')}
+                className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
+              >
+                <span className="mr-2">📤</span>
+                Upload Contract
+              </button>
+              <button 
+                onClick={() => navigate('/legal/clients')}
+                className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
+              >
+                <span className="mr-2">👥</span>
+                View Clients
+              </button>
+              <button 
+                onClick={() => navigate('/compliance/dashboard')}
+                className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
+              >
+                <span className="mr-2">📊</span>
+                Compliance Dashboard
+              </button>
+            </div>
+            
+            <h3 className="font-medium text-gray-900 mt-6 mb-3">System Status</h3>
+            <div className="p-3 bg-green-50 rounded-md">
+              <p className="text-sm font-medium text-green-800">All systems operational</p>
+              <p className="text-xs text-green-700">Last updated: {new Date().toLocaleTimeString()}</p>
+            </div>
+          </div>
+        );
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
       {/* Header */}
-      <header className="bg-white shadow-sm">
+      <header className="bg-white shadow-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <div className="flex items-center">
-            <h1 className="text-xl font-bold text-gray-900">LegalContractTracker</h1>
+            <h1 
+              onClick={() => navigate('/')} 
+              className="text-xl font-bold text-gray-900 cursor-pointer"
+            >
+              LegalContractTracker
+            </h1>
+          </div>
+          
+          {/* Global Search */}
+          <div className="flex-1 max-w-lg mx-4 relative">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search contracts, clients, tasks..."
+                className="w-full py-2 pl-10 pr-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setSearchOpen(true)}
+              />
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-gray-400" />
+              </div>
+              {searchQuery && (
+                <button
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setSearchResults([]);
+                  }}
+                >
+                  <X className="h-5 w-5 text-gray-400" />
+                </button>
+              )}
+            </div>
+            
+            {/* Search Results Dropdown */}
+            {searchOpen && searchQuery && (
+              <div className="absolute mt-1 w-full bg-white rounded-md shadow-lg z-10">
+                <div className="py-1">
+                  {isSearching ? (
+                    <div className="px-4 py-2 text-sm text-gray-500">Searching...</div>
+                  ) : searchResults.length > 0 ? (
+                    <>
+                      {searchResults.map((result) => (
+                        <div
+                          key={result.id}
+                          className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                          onClick={() => {
+                            navigate(result.path);
+                            setSearchOpen(false);
+                            setSearchQuery('');
+                          }}
+                        >
+                          <div className="flex items-start">
+                            <div className="flex-shrink-0 mt-1">
+                              {result.type === 'contract' && <FileText className="h-4 w-4 text-blue-500" />}
+                              {result.type === 'client' && <Users className="h-4 w-4 text-green-500" />}
+                              {result.type === 'compliance' && <Shield className="h-4 w-4 text-red-500" />}
+                            </div>
+                            <div className="ml-3">
+                              <p className="text-sm font-medium text-gray-900">{result.title}</p>
+                              <p className="text-xs text-gray-500">{result.excerpt}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      <div className="px-4 py-2 text-xs text-gray-500 border-t">
+                        Press Enter to see all results
+                      </div>
+                    </>
+                  ) : (
+                    <div className="px-4 py-2 text-sm text-gray-500">No results found</div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {/* Desktop Actions */}
+          <div className="hidden md:flex items-center space-x-4">
+            <button className="text-gray-500 hover:text-gray-700 relative">
+              <Bell className="h-5 w-5" />
+              {notifications.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                  {notifications.length}
+                </span>
+              )}
+            </button>
+            <button className="text-gray-500 hover:text-gray-700">
+              <Settings className="h-5 w-5" />
+            </button>
+            <button 
+              onClick={handleLogout}
+              className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+            >
+              <LogOut className="h-5 w-5 mr-2" />
+              Logout
+            </button>
           </div>
           
           {/* Mobile menu button */}
-          <div className="md:hidden">
+          <div className="md:hidden flex items-center">
+            <button className="text-gray-500 hover:text-gray-700 mr-4 relative">
+              <Bell className="h-5 w-5" />
+              {notifications.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                  {notifications.length}
+                </span>
+              )}
+            </button>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none"
             >
               <span className="sr-only">Open menu</span>
-              <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
+              <Menu className="h-6 w-6" />
             </button>
           </div>
-          
-          {/* Desktop menu */}
-          <nav className="hidden md:flex space-x-4">
-            {navItems.map((item) => (
-              <button
-                key={item.path}
-                onClick={() => navigate(item.path === '' ? '/' : `/${item.path}`)}
-                className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
-                  (location.hash === `#/${item.path}` || 
-                   (item.path === '' && location.hash === '#/') ||
-                   (item.path !== '' && location.hash.startsWith(`#/${item.path}`)))
-                    ? 'bg-gray-100 text-gray-900'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                }`}
-              >
-                <span className="mr-2">{item.icon}</span>
-                {item.label}
-              </button>
-            ))}
-            <button 
-              onClick={handleLogout}
-              className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-            >
-              <span className="mr-2">🚪</span>
-              Logout
-            </button>
-          </nav>
         </div>
         
         {/* Mobile menu, show/hide based on menu state */}
@@ -83,23 +579,57 @@ export default function Layout({ children, title }: LayoutProps) {
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
               {navItems.map((item) => (
-                <button
-                  key={item.path}
-                  onClick={() => {
-                    navigate(item.path === '' ? '/' : `/${item.path}`);
-                    setMobileMenuOpen(false);
-                  }}
-                  className={`flex w-full items-center px-3 py-2 text-sm font-medium rounded-md text-left ${
-                    (location.hash === `#/${item.path}` || 
-                     (item.path === '' && location.hash === '#/') ||
-                     (item.path !== '' && location.hash.startsWith(`#/${item.path}`)))
-                      ? 'bg-gray-100 text-gray-900'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
-                >
-                  <span className="mr-2">{item.icon}</span>
-                  {item.label}
-                </button>
+                <div key={item.path}>
+                  {item.children ? (
+                    <div>
+                      <button
+                        onClick={() => toggleSection(item.section || '')}
+                        className="flex w-full items-center justify-between px-3 py-2 text-sm font-medium rounded-md text-left text-gray-700"
+                      >
+                        <div className="flex items-center">
+                          {item.icon}
+                          <span className="ml-2">{item.label}</span>
+                        </div>
+                        {expandedSections[item.section || ''] ? (
+                          <ChevronDown className="h-4 w-4" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4" />
+                        )}
+                      </button>
+                      
+                      {expandedSections[item.section || ''] && item.children.map((child) => (
+                        <button
+                          key={child.path}
+                          onClick={() => {
+                            navigate(`/${child.path}`);
+                            setMobileMenuOpen(false);
+                          }}
+                          className="flex w-full items-center px-3 py-2 pl-8 text-sm font-medium rounded-md text-left text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                        >
+                          {child.icon}
+                          <span className="ml-2">{child.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        navigate(item.path === '' ? '/' : `/${item.path}`);
+                        setMobileMenuOpen(false);
+                      }}
+                      className={`flex w-full items-center px-3 py-2 text-sm font-medium rounded-md text-left ${
+                        (location.hash === `#/${item.path}` || 
+                         (item.path === '' && location.hash === '#/') ||
+                         (item.path !== '' && location.hash.startsWith(`#/${item.path}`)))
+                          ? 'bg-gray-100 text-gray-900'
+                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      }`}
+                    >
+                      {item.icon}
+                      <span className="ml-2">{item.label}</span>
+                    </button>
+                  )}
+                </div>
               ))}
               <button 
                 onClick={() => {
@@ -108,23 +638,97 @@ export default function Layout({ children, title }: LayoutProps) {
                 }}
                 className="flex w-full items-center px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
               >
-                <span className="mr-2">🚪</span>
-                Logout
+                <LogOut className="h-5 w-5" />
+                <span className="ml-2">Logout</span>
               </button>
             </div>
           </div>
         )}
       </header>
       
-      {/* Main content */}
-      <main className="flex-grow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
-          </div>
-          {children}
+      {/* Main content with sidebar */}
+      <div className="flex-grow flex">
+        {/* Sidebar - Desktop only */}
+        <div className="hidden md:block w-64 bg-white shadow-sm p-4 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
+          <nav className="space-y-1">
+            {navItems.map((item) => (
+              <div key={item.path}>
+                {item.children ? (
+                  <div className="mb-2">
+                    <button
+                      onClick={() => toggleSection(item.section || '')}
+                      className="flex w-full items-center justify-between px-3 py-2 text-sm font-medium rounded-md text-left text-gray-700 hover:bg-gray-50"
+                    >
+                      <div className="flex items-center">
+                        {item.icon}
+                        <span className="ml-2">{item.label}</span>
+                      </div>
+                      {expandedSections[item.section || ''] ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                    </button>
+                    
+                    {expandedSections[item.section || ''] && (
+                      <div className="ml-4 mt-1 space-y-1">
+                        {item.children.map((child) => (
+                          <button
+                            key={child.path}
+                            onClick={() => navigate(`/${child.path}`)}
+                            className={`flex w-full items-center px-3 py-2 text-sm font-medium rounded-md text-left ${
+                              location.hash === `#/${child.path}` 
+                                ? 'bg-gray-100 text-gray-900'
+                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                            }`}
+                          >
+                            {child.icon}
+                            <span className="ml-2">{child.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => navigate(item.path === '' ? '/' : `/${item.path}`)}
+                    className={`flex w-full items-center px-3 py-2 text-sm font-medium rounded-md text-left ${
+                      (location.hash === `#/${item.path}` || 
+                       (item.path === '' && location.hash === '#/') ||
+                       (item.path !== '' && location.hash.startsWith(`#/${item.path}`)))
+                        ? 'bg-gray-100 text-gray-900'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    }`}
+                  >
+                    {item.icon}
+                    <span className="ml-2">{item.label}</span>
+                  </button>
+                )}
+              </div>
+            ))}
+          </nav>
         </div>
-      </main>
+        
+        {/* Main content area */}
+        <main className="flex-grow p-6">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex flex-col md:flex-row">
+              {/* Main content */}
+              <div className="md:flex-1">
+                <div className="mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
+                </div>
+                {children}
+              </div>
+              
+              {/* Contextual side panel - Desktop only */}
+              <div className="hidden md:block md:w-80 md:ml-6">
+                {renderContextualPanel()}
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
       
       {/* Footer */}
       <footer className="bg-white shadow-sm mt-auto">
