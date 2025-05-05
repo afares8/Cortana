@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { getAuditLogs, getCompanies } from '../api/accountingApi';
 import { AuditLog, Company } from '../types';
-import * as Tabs from '@radix-ui/react-tabs';
 import { Loader2, Filter } from 'lucide-react';
 
 const AuditLogPage: React.FC = () => {

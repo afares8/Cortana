@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AIAnalysisRequest, AIAnalysisResponse, analyzeObligations } from '../api/accountingApi';
+import { AIAnalysisRequest, analyzeObligations } from '../api/accountingApi';
 import { Company } from '../types';
 import { BrainCircuit, Loader2 } from 'lucide-react';
 

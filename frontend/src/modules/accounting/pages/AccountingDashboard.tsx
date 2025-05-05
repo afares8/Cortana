@@ -11,7 +11,7 @@ import {
 import ObligationTable from '../components/ObligationTable';
 import AIAnalysisPanel from '../components/AIAnalysisPanel';
 import AlertBanner from '../components/AlertBanner';
-import { PlusCircle, BarChart3, Calendar, DollarSign, Download, FileText } from 'lucide-react';
+import { PlusCircle, BarChart3, Calendar, DollarSign, Download } from 'lucide-react';
 
 const AccountingDashboard: React.FC = () => {
   // Will be used in future phases for adding new obligations
