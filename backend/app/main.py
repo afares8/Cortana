@@ -12,6 +12,8 @@ from app.routers import auth, contracts, ai, test_mistral
 from app.services.email import setup_scheduler
 from app.legal.routers import router as legal_router
 from app.legal.services import init_legal_db
+from app.accounting.routers import router as accounting_router
+from app.accounting.services import init_accounting_db
 
 os.makedirs("/app/logs", exist_ok=True)
 
@@ -52,6 +54,9 @@ app.include_router(
     legal_router, prefix=f"{settings.API_V1_STR}/legal", tags=["legal"]
 )
 app.include_router(
+    accounting_router, prefix=f"{settings.API_V1_STR}/accounting", tags=["accounting"]
+)
+app.include_router(
     test_mistral.router, prefix=f"{settings.API_V1_STR}", tags=["test"]
 )
 
@@ -74,6 +79,7 @@ async def startup_event():
     
     init_db()
     init_legal_db()
+    init_accounting_db()
     
     scheduler = setup_scheduler()
     scheduler.start()

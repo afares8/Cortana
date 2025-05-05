@@ -18,6 +18,8 @@ import TaskList from './modules/legal/pages/TaskList';
 import TaskDetail from './modules/legal/pages/TaskDetail';
 import AuditLogList from './modules/legal/pages/AuditLogList';
 
+import AccountingDashboard from './modules/accounting/pages/AccountingDashboard';
+
 const queryClient = new QueryClient();
 
 if (typeof window !== 'undefined') {
@@ -57,6 +59,9 @@ function App() {
           <Route path="legal/tasks" element={<TaskList />} />
           <Route path="legal/tasks/:id" element={<TaskDetail />} />
           <Route path="legal/audit-logs" element={<AuditLogList />} />
+          
+          {/* Accounting Module Routes */}
+          <Route path="accounting/dashboard" element={<AccountingDashboard />} />
           
           {/* Catch-all redirect to dashboard */}
           <Route path="*" element={<Navigate to="/" replace />} />
