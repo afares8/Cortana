@@ -2,6 +2,8 @@ import logging
 import asyncio
 from typing import Tuple, List, Dict, Any, Optional
 from datetime import datetime
+import os
+from playwright.async_api import async_playwright, Browser, Page, ElementHandle
 
 from app.services.traffic.models.traffic import InvoiceRecord, InvoiceItem
 from app.core.config import settings
@@ -11,32 +13,14 @@ logger = logging.getLogger(__name__)
 class DMCEAutomator:
     """
     Utility for automating interactions with the DMCE portal.
-    Uses browser automation to fill and submit DMCE forms.
+    Uses Playwright for browser automation to fill and submit DMCE forms.
     """
     
     def __init__(self):
-        self.dmce_url = ""
-        self.username = ""
-        self.password = ""
+        self.dmce_url = settings.DMCE_PORTAL_URL if settings.DMCE_PORTAL_URL else "https://dmce2.zonalibredecolon.gob.pa/TFBFTZ/cusLogin/login.cl"
+        self.username = settings.DMCE_USERNAME
+        self.password = settings.DMCE_PASSWORD
         
-        try:
-            self.dmce_url = settings.DMCE_PORTAL_URL
-            logger.info(f"Loaded DMCE portal URL from settings")
-        except Exception as e:
-            logger.warning(f"Could not load DMCE_PORTAL_URL from settings: {str(e)}")
-            
-        try:
-            self.username = settings.DMCE_USERNAME
-            logger.info(f"Loaded DMCE username from settings")
-        except Exception as e:
-            logger.warning(f"Could not load DMCE_USERNAME from settings: {str(e)}")
-            
-        try:
-            self.password = settings.DMCE_PASSWORD
-            logger.info(f"Loaded DMCE password from settings")
-        except Exception as e:
-            logger.warning(f"Could not load DMCE_PASSWORD from settings: {str(e)}")
-            
         logger.info(f"Initialized DMCEAutomator with URL: {self.dmce_url}")
     
     async def submit_to_dmce(
@@ -57,54 +41,83 @@ class DMCEAutomator:
         try:
             logger.info(f"Starting DMCE submission for invoice {record.invoice_number}")
             
-            login_success = await self._login_to_dmce()
-            if not login_success:
-                return False, None, "Failed to login to DMCE portal"
-            
-            nav_success = await self._navigate_to_form(record.movement_type)
-            if not nav_success:
-                return False, None, f"Failed to navigate to {record.movement_type} form"
-            
-            # Step 3: Fill the form with record data
-            fill_success = await self._fill_form(record, items)
-            if not fill_success:
-                return False, None, "Failed to fill DMCE form"
-            
-            submit_success, dmce_number, error = await self._submit_form()
-            if not submit_success:
-                return False, None, f"Failed to submit DMCE form: {error}"
-            
-            logger.info(f"Successfully submitted to DMCE. Reference: {dmce_number}")
-            
-            return True, dmce_number, None
-            
+            async with async_playwright() as playwright:
+                browser = await playwright.chromium.launch(headless=True)
+                context = await browser.new_context()
+                page = await context.new_page()
+                
+                try:
+                    login_success = await self._login_to_dmce(page)
+                    if not login_success:
+                        await browser.close()
+                        return False, None, "Failed to login to DMCE portal"
+                    
+                    nav_success = await self._navigate_to_form(page, record.movement_type)
+                    if not nav_success:
+                        await browser.close()
+                        return False, None, f"Failed to navigate to {record.movement_type} form"
+                    
+                    # Step 3: Fill the header section
+                    header_success = await self._fill_form_header(page, record)
+                    if not header_success:
+                        await browser.close()
+                        return False, None, "Failed to fill DMCE header"
+                    
+                    items_success = await self._fill_item_details(page, items)
+                    if not items_success:
+                        await browser.close()
+                        return False, None, "Failed to fill DMCE item details"
+                    
+                    totals_success = await self._calculate_totals_and_select_mode(page, record)
+                    if not totals_success:
+                        await browser.close()
+                        return False, None, "Failed to calculate totals or select mode"
+                    
+                    submit_success, dmce_number, error = await self._submit_form(page)
+                    
+                    await browser.close()
+                    return submit_success, dmce_number, error
+                    
+                except Exception as e:
+                    await browser.close()
+                    raise e
+                
         except Exception as e:
             logger.error(f"Error submitting to DMCE: {str(e)}")
             return False, None, str(e)
     
-    async def _login_to_dmce(self) -> bool:
+    async def _login_to_dmce(self, page: Page) -> bool:
         """
         Log in to the DMCE portal.
         
+        Args:
+            page: Playwright page object
+            
         Returns:
             True if login successful, False otherwise
         """
         try:
             # Navigate to the DMCE portal URL
             logger.info(f"Navigating to DMCE portal: {self.dmce_url}")
-            
+            await page.goto(self.dmce_url, wait_until="networkidle")
             
             logger.info("Clicking login button to access login page")
-            
-            await asyncio.sleep(1)
+            login_button = await page.wait_for_selector("button:has-text('Ingresar')", timeout=10000)
+            if login_button:
+                await login_button.click()
             
             logger.info(f"Entering username: {self.username}")
+            await page.fill("input[name='username']", self.username)
             
             logger.info("Entering password")
+            await page.fill("input[name='password']", self.password)
             
             logger.info("Submitting login form")
+            await page.click("button[type='submit']")
             
-            await asyncio.sleep(2)
+            await page.wait_for_load_state("networkidle")
+            
+            dashboard_element = await page.wait_for_selector(".dashboard-container", timeout=5000)
             
             logger.info("Successfully logged in to DMCE portal")
             return True
@@ -113,67 +126,197 @@ class DMCEAutomator:
             logger.error(f"Error logging in to DMCE: {str(e)}")
             return False
     
-    async def _navigate_to_form(self, movement_type: str) -> bool:
+    async def _navigate_to_form(self, page: Page, movement_type: str) -> bool:
         """
         Navigate to the appropriate form based on movement type.
         
         Args:
+            page: Playwright page object
             movement_type: "Exit" or "Transfer"
             
         Returns:
             True if navigation successful, False otherwise
         """
         try:
-            
             logger.info(f"Navigating to {movement_type} form")
             
-            await asyncio.sleep(1)
+            await page.click("button:has-text('Crear Nueva DMCE')")
+            await page.wait_for_load_state("networkidle")
             
+            # Verify form is loaded by checking for header section
+            form_header = await page.wait_for_selector(".form-header", timeout=5000)
+            if not form_header:
+                logger.error("Failed to load DMCE form")
+                return False
+                
             return True
             
         except Exception as e:
             logger.error(f"Error navigating to form: {str(e)}")
             return False
     
-    async def _fill_form(self, record: InvoiceRecord, items: List[InvoiceItem]) -> bool:
+    async def _fill_form_header(self, page: Page, record: InvoiceRecord) -> bool:
         """
-        Fill the DMCE form with record and item data.
+        Fill the header section of the DMCE form.
         
         Args:
+            page: Playwright page object
             record: Invoice record data
+            
+        Returns:
+            True if header filled successfully, False otherwise
+        """
+        try:
+            logger.info(f"Filling header section for invoice {record.invoice_number}")
+            
+            await page.click("input.date-field")
+            await page.fill("input.date-field", record.invoice_date.strftime("%d/%m/%Y"))
+            
+            await page.fill("input[name='client_number']", record.client_id)
+            
+            await page.fill("input[name='address']", record.client_name)
+            
+            await page.fill("input[name='consignee']", record.client_name)
+            
+            await page.fill("input[name='shipper']", "Shipping Line")
+            
+            await page.fill("input[name='document']", "B/L")
+            
+            await page.fill("input[name='brand']", "")
+            
+            await page.fill("textarea[name='observations']", f"Invoice: {record.invoice_number}")
+            
+            await page.select_option("select[name='terms']", "FOB")
+            
+            await page.fill("input[name='freight']", "0.00")
+            
+            await page.fill("input[name='insurance']", "0.00")
+            
+            await page.fill("input[name='others']", "0.00")
+            
+            await page.click("button:has-text('Guardar')")
+            await page.wait_for_load_state("networkidle")
+            
+            logger.info("Successfully filled header section")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error filling header section: {str(e)}")
+            return False
+            
+    async def _fill_item_details(self, page: Page, items: List[InvoiceItem]) -> bool:
+        """
+        Fill the item details section of the DMCE form.
+        
+        Args:
+            page: Playwright page object
             items: List of invoice items
             
         Returns:
-            True if form filled successfully, False otherwise
+            True if details filled successfully, False otherwise
         """
         try:
+            logger.info(f"Filling item details for {len(items)} items")
             
-            logger.info(f"Filling form for invoice {record.invoice_number}")
+            # Navigate to the Detail tab
+            await page.click("button:has-text('Detalle')")
+            await page.wait_for_load_state("networkidle")
             
-            await asyncio.sleep(2)
+            for item in items:
+                logger.info(f"Adding item: {item.description}")
+                
+                await page.click("button:has-text('Agregar Detalle')")
+                
+                await page.fill("input[name='tariff_code']", item.tariff_code)
+                
+                description_field = await page.query_selector("input[name='description']")
+                if description_field:
+                    await description_field.fill(item.description)
+                
+                await page.select_option("select[name='unit']", item.unit)
+                
+                await page.fill("input[name='quantity']", str(item.quantity))
+                
+                await page.fill("input[name='packages']", str(int(item.quantity)))
+                
+                await page.fill("input[name='weight']", str(item.weight))
+                
+                subtotal = await page.wait_for_selector(".subtotal-field")
+                
+                await page.click("button:has-text('Confirmar')")
+            
+            logger.info("Successfully filled all item details")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error filling item details: {str(e)}")
+            return False
+    
+    async def _calculate_totals_and_select_mode(self, page: Page, record: InvoiceRecord) -> bool:
+        """
+        Calculate totals and select movement type.
+        
+        Args:
+            page: Playwright page object
+            record: Invoice record data
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            logger.info("Calculating totals and selecting movement type")
+            
+            # Navigate to Totals tab
+            await page.click("button:has-text('Totales')")
+            await page.wait_for_load_state("networkidle")
+            
+            await page.click("button:has-text('Calcular Totales')")
+            await page.wait_for_load_state("networkidle")
+            
+            total_field = await page.query_selector(".total-dmce-field")
+            if total_field:
+                total_value = await total_field.text_content()
+                logger.info(f"Total DMCE value: {total_value}")
+            
+            movement_type = "Salida" if record.movement_type.lower() == "exit" else "Traspaso"
+            logger.info(f"Selecting movement type: {movement_type}")
+            
+            await page.click(f"input[name='movement_type'][value='{movement_type}']")
             
             return True
             
         except Exception as e:
-            logger.error(f"Error filling form: {str(e)}")
+            logger.error(f"Error calculating totals and selecting mode: {str(e)}")
             return False
     
-    async def _submit_form(self) -> Tuple[bool, Optional[str], Optional[str]]:
+    async def _submit_form(self, page: Page) -> Tuple[bool, Optional[str], Optional[str]]:
         """
         Submit the DMCE form and capture the result.
         
+        Args:
+            page: Playwright page object
+            
         Returns:
             Tuple of (success, dmce_number, error_message)
         """
         try:
-            
             logger.info("Submitting DMCE form")
             
-            await asyncio.sleep(1)
+            await page.click("button:has-text('Guardar DMCE')")
+            await page.wait_for_load_state("networkidle")
             
-            dmce_number = f"DMCE-{datetime.now().strftime('%Y%m%d')}-{int(datetime.now().timestamp())}"
-            
-            return True, dmce_number, None
+            success_message = await page.query_selector(".success-message")
+            if success_message:
+                message_text = await success_message.text_content()
+                
+                dmce_number = "DMCE-" + message_text.split("DMCE-")[1].split(" ")[0]
+                
+                logger.info(f"Successfully submitted DMCE. Reference: {dmce_number}")
+                return True, dmce_number, None
+            else:
+                error_message = "No success message found after submission"
+                logger.error(error_message)
+                return False, None, error_message
             
         except Exception as e:
             logger.error(f"Error submitting form: {str(e)}")
