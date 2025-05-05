@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getCompanies, getFormTemplates, generateForm } from '../api/accountingApi';
 import { Company } from '../types';
 import { Loader2, FileText, Download, Upload, Calendar } from 'lucide-react';
 
 const DocumentGenerationPage: React.FC = () => {
+  const { t } = useTranslation();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [templates, setTemplates] = useState<string[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<string>('');
@@ -28,7 +30,7 @@ const DocumentGenerationPage: React.FC = () => {
         setTemplates(templatesData);
       } catch (error) {
         console.error('Error fetching data:', error);
-        setError('Failed to load companies or templates. Please try again.');
+        setError(t('common.messages.error'));
       } finally {
         setLoading(false);
       }
@@ -39,7 +41,7 @@ const DocumentGenerationPage: React.FC = () => {
 
   const handleGenerateDocument = async () => {
     if (!selectedCompany || !selectedTemplate) {
-      setError('Please select both a company and a template');
+      setError(t('accounting.documents.error.selectBoth'));
       return;
     }
 
@@ -65,10 +67,10 @@ const DocumentGenerationPage: React.FC = () => {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
       
-      setSuccess('Document generated successfully!');
+      setSuccess(t('accounting.documents.success.generated'));
     } catch (error) {
       console.error('Error generating document:', error);
-      setError('Failed to generate document. Please try again.');
+      setError(t('accounting.documents.error.generation'));
     } finally {
       setGenerating(false);
     }
@@ -82,7 +84,7 @@ const DocumentGenerationPage: React.FC = () => {
 
   const handleUploadTemplate = async () => {
     if (!uploadFile) {
-      setError('Please select a file to upload');
+      setError(t('accounting.documents.error.selectFile'));
       return;
     }
 
@@ -96,14 +98,14 @@ const DocumentGenerationPage: React.FC = () => {
       const templatesData = await getFormTemplates();
       setTemplates(templatesData);
       
-      setSuccess('Template uploaded successfully!');
+      setSuccess(t('accounting.documents.success.uploaded'));
       setUploadFile(null);
       
       const fileInput = document.getElementById('template-upload') as HTMLInputElement;
       if (fileInput) fileInput.value = '';
     } catch (error) {
       console.error('Error uploading template:', error);
-      setError('Failed to upload template. Please try again.');
+      setError(t('accounting.documents.error.upload'));
     } finally {
       setUploadLoading(false);
     }
@@ -119,7 +121,7 @@ const DocumentGenerationPage: React.FC = () => {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <h1 className="text-3xl font-bold mb-6">Document Generation</h1>
+      <h1 className="text-3xl font-bold mb-6">{t('accounting.documents.title')}</h1>
       
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -137,20 +139,20 @@ const DocumentGenerationPage: React.FC = () => {
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold mb-4 flex items-center">
             <FileText className="h-5 w-5 mr-2" />
-            Generate Document
+            {t('accounting.documents.generate')}
           </h2>
           
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Company
+                {t('accounting.documents.company')}
               </label>
               <select
                 className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={selectedCompany}
                 onChange={(e) => setSelectedCompany(e.target.value)}
               >
-                <option value="">Select a company</option>
+                <option value="">{t('common.messages.noData')}</option>
                 {companies.map((company) => (
                   <option key={company.id} value={company.id.toString()}>
                     {company.name}
@@ -161,17 +163,19 @@ const DocumentGenerationPage: React.FC = () => {
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Template
+                {t('accounting.documents.template')}
               </label>
               <select
                 className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={selectedTemplate}
                 onChange={(e) => setSelectedTemplate(e.target.value)}
               >
-                <option value="">Select a template</option>
+                <option value="">{t('common.messages.noData')}</option>
                 {templates.map((template) => (
                   <option key={template} value={template}>
-                    {template}
+                    {template in t('accounting.documents.templates', { returnObjects: true }) 
+                      ? t(`accounting.documents.templates.${template}`)
+                      : template}
                   </option>
                 ))}
               </select>
@@ -179,7 +183,7 @@ const DocumentGenerationPage: React.FC = () => {
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Period (Optional)
+                {t('accounting.documents.period')}
               </label>
               <div className="flex items-center">
                 <Calendar className="h-5 w-5 mr-2 text-gray-400" />
@@ -192,7 +196,7 @@ const DocumentGenerationPage: React.FC = () => {
                 />
               </div>
               <p className="text-sm text-gray-500 mt-1">
-                Format: YYYY-MM (e.g., 2025-05)
+                {t('common.messages.formatDate')}
               </p>
             </div>
             
@@ -204,12 +208,12 @@ const DocumentGenerationPage: React.FC = () => {
               {generating ? (
                 <>
                   <Loader2 className="animate-spin h-4 w-4 mr-2" />
-                  Generating...
+                  {t('common.messages.loading')}
                 </>
               ) : (
                 <>
                   <Download className="h-4 w-4 mr-2" />
-                  Generate Document
+                  {t('accounting.documents.generate')}
                 </>
               )}
             </button>
@@ -219,13 +223,13 @@ const DocumentGenerationPage: React.FC = () => {
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold mb-4 flex items-center">
             <Upload className="h-5 w-5 mr-2" />
-            Upload Template
+            {t('accounting.documents.upload')}
           </h2>
           
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Template File
+                {t('accounting.documents.templateFile')}
               </label>
               <input
                 id="template-upload"
@@ -235,7 +239,7 @@ const DocumentGenerationPage: React.FC = () => {
                 className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <p className="text-sm text-gray-500 mt-1">
-                Accepted formats: .docx, .pdf, .xlsx, .xls
+                {t('accounting.documents.acceptedFormats')}
               </p>
             </div>
             
@@ -247,12 +251,12 @@ const DocumentGenerationPage: React.FC = () => {
               {uploadLoading ? (
                 <>
                   <Loader2 className="animate-spin h-4 w-4 mr-2" />
-                  Uploading...
+                  {t('common.messages.loading')}
                 </>
               ) : (
                 <>
                   <Upload className="h-4 w-4 mr-2" />
-                  Upload Template
+                  {t('accounting.documents.upload')}
                 </>
               )}
             </button>
