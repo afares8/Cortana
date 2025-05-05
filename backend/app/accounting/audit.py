@@ -3,9 +3,9 @@ from uuid import UUID
 from datetime import datetime
 
 from app.accounting.models import AuditLog
-from app.db.in_memory_db import InMemoryDB
+from app.db.base import InMemoryDB
 
-audit_logs_db = InMemoryDB[AuditLog]()
+audit_logs_db = InMemoryDB(AuditLog)
 
 def create_audit_log(
     user_id: int,
