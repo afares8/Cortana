@@ -1,6 +1,6 @@
 # Legal Contract Tracker
 
-A specialized internal tool for the Legal Department of the Zona Libre de Colón perfumery business to manage, track, and monitor legal contracts and documents with AI-powered analysis.
+A specialized internal tool for the Legal Department of the Zona Libre de Colón perfumery business to manage, track, and monitor legal contracts and documents with AI-powered analysis and compliance automation.
 
 ## Features
 
@@ -18,12 +18,24 @@ A specialized internal tool for the Legal Department of the Zona Libre de Colón
 - Natural language querying of contract database
 - AI-assisted task generation based on contract content
 - Spanish language preprocessing for legal documents
+- Contextual AI generation with Retrieval-Augmented Generation (RAG)
+
+### Compliance Automation
+- Compliance manual integration with document embeddings
+- Multi-level due diligence automation (Basic, Enhanced, Simplified)
+- Risk classification matrices for client, geographic, product, channel, and transactional risk
+- Suspicious activity detection with automated red flag identification
+- PEP and sanctions screening via OpenSanctions integration
+- UAF (Unidad de Análisis Financiero) report generation
+- Document retention policy enforcement
+- Comprehensive compliance dashboard
 
 ### Modular Architecture
 - Legal Department module with client and contract management
 - Workflow and task management system
 - Audit and compliance tracking
 - Designed for future integration with Accounting, HR, and Procurement
+- Microservice-based design with clear service boundaries
 
 ## Tech Stack
 
@@ -33,6 +45,8 @@ A specialized internal tool for the Legal Department of the Zona Libre de Colón
 - **Authentication**: JWT-based login
 - **Email notifications**: APScheduler for automated reminders
 - **AI Integration**: Mistral 7B model via Text Generation Inference
+- **Vector Database**: FAISS for document embeddings
+- **Embeddings**: Sentence Transformers with multilingual support
 - **Docker**: Multi-environment container setup with GPU support
 
 ## Project Structure
@@ -41,7 +55,7 @@ A specialized internal tool for the Legal Department of the Zona Libre de Colón
 /
 ├── backend/                      # FastAPI backend
 │   ├── app/
-│   │   ├── ai/                   # AI service integration
+│   │   ├── ai/                   # Legacy AI service integration
 │   │   ├── auth/                 # Authentication logic
 │   │   ├── core/                 # Core configurations
 │   │   ├── db/                   # Database models and connections
@@ -53,10 +67,31 @@ A specialized internal tool for the Legal Department of the Zona Libre de Colón
 │   │   ├── models/               # Shared data models
 │   │   ├── routers/              # API endpoints
 │   │   ├── schemas/              # Pydantic schemas
-│   │   ├── services/             # Business logic services
-│   │   │   └── ai/               # AI services
-│   │   │       ├── contract_intelligence.py  # Contract analysis
-│   │   │       └── mistral_client.py         # Mistral API client
+│   │   ├── services/             # Business logic services (microservices)
+│   │   │   ├── ai/               # AI services
+│   │   │   │   ├── api/          # AI API endpoints
+│   │   │   │   ├── models/       # AI data models
+│   │   │   │   ├── schemas/      # AI Pydantic schemas
+│   │   │   │   ├── services/     # AI business logic
+│   │   │   │   └── utils/        # AI utilities
+│   │   │   │       ├── mistral_client.py     # Mistral API client
+│   │   │   │       ├── spanish_input_pipeline.py  # Spanish preprocessing
+│   │   │   │       ├── intent_classifier.py  # Query intent classification
+│   │   │   │       ├── context_retriever.py  # Context retrieval for RAG
+│   │   │   │       └── prompt_builder.py     # AI prompt construction
+│   │   │   ├── audit/            # Audit services
+│   │   │   ├── clients/          # Client management services
+│   │   │   ├── compliance/       # Compliance automation services
+│   │   │   │   ├── api/          # Compliance API endpoints
+│   │   │   │   ├── models/       # Compliance data models
+│   │   │   │   ├── schemas/      # Compliance Pydantic schemas
+│   │   │   │   ├── services/     # Compliance business logic
+│   │   │   │   └── utils/        # Compliance utilities
+│   │   │   │       ├── document_embeddings.py  # Document embedding system
+│   │   │   │       └── open_sanctions.py       # Sanctions screening client
+│   │   │   ├── contracts/        # Contract management services
+│   │   │   ├── tasks/            # Task management services
+│   │   │   └── workflows/        # Workflow management services
 │   │   └── main.py               # Application entry point
 │   ├── Dockerfile                # Backend container definition
 │   └── pyproject.toml            # Python dependencies
@@ -65,7 +100,13 @@ A specialized internal tool for the Legal Department of the Zona Libre de Colón
 │   ├── public/                   # Static assets
 │   ├── src/
 │   │   ├── components/           # Reusable UI components
-│   │   │   └── ai/               # AI-specific components
+│   │   │   ├── ai/               # AI-specific components
+│   │   │   │   ├── AIContractAnalysis.tsx  # Contract analysis component
+│   │   │   │   └── AIContextualChat.tsx    # Contextual AI chat component
+│   │   │   ├── compliance/       # Compliance components
+│   │   │   │   ├── ComplianceDashboardWidget.tsx  # Dashboard widget
+│   │   │   │   └── ComplianceManualUploader.tsx   # Manual uploader
+│   │   │   └── ui/               # UI components
 │   │   ├── lib/                  # Utility functions and API client
 │   │   ├── modules/              # Module-specific code
 │   │   │   └── legal/            # Legal department module
@@ -73,12 +114,17 @@ A specialized internal tool for the Legal Department of the Zona Libre de Colón
 │   │   │       ├── pages/        # Legal-specific pages
 │   │   │       └── types/        # Legal-specific types
 │   │   ├── pages/                # Page components
+│   │   │   ├── ComplianceDashboard.tsx  # Compliance dashboard
+│   │   │   ├── UAFReportForm.tsx        # UAF report generation
+│   │   │   └── SanctionsScreeningForm.tsx  # Sanctions screening
 │   │   ├── types/                # TypeScript type definitions
 │   │   └── App.tsx               # Main application component
 │   └── package.json              # JavaScript dependencies
 │
 ├── docker-compose.yml            # Docker Compose configuration
-└── AI_SETUP.md                   # AI setup documentation
+├── AI_SETUP.md                   # AI setup documentation
+├── ARCHITECTURE.md               # Architecture documentation
+└── IMPLEMENTATION_PLAN.md        # Implementation plan
 ```
 
 ## Setup Instructions
@@ -90,6 +136,8 @@ A specialized internal tool for the Legal Department of the Zona Libre de Colón
 - PostgreSQL (for production)
 - Docker and Docker Compose (for containerized setup)
 - NVIDIA GPU with CUDA support (optional, for AI features)
+- At least 8GB RAM (16GB recommended for AI features)
+- 20GB free disk space
 
 ### Local Development Setup
 
@@ -164,6 +212,17 @@ docker compose up --build -d
 
 If you don't specify a profile, the system will default to CPU mode with fallback AI responses.
 
+### Compliance Module Setup
+
+For the compliance automation features to work properly:
+
+1. Upload a compliance manual PDF through the ComplianceManualUploader component
+2. Configure OpenSanctions API key (if available) in the environment variables:
+   ```
+   OPENSANCTIONS_API_KEY=your_api_key
+   ```
+3. If no API key is provided, the system will use the public API with rate limiting
+
 ## Default Admin Account
 
 - Email: admin@legalcontracttracker.com
@@ -203,9 +262,64 @@ If you don't specify a profile, the system will default to CPU mode with fallbac
     "debug": false
   }
   ```
+- `POST /api/v1/ai/contextual-generate` - Generate context-aware responses
+  ```json
+  {
+    "query": "What contracts are expiring this month?",
+    "context_retrieval": true,
+    "max_new_tokens": 500,
+    "temperature": 0.7
+  }
+  ```
 - `GET /api/v1/test-mistral` - Test Mistral model connection and environment
 - `POST /api/v1/ai/analyze-contract` - Analyze contract for risks and clauses
 - `POST /api/v1/ai/extract-clauses` - Extract clauses from contract text
+
+### Compliance Endpoints
+
+- `POST /api/v1/compliance/manual/upload` - Upload compliance manual for embedding
+- `POST /api/v1/compliance/uaf-reports` - Generate UAF report
+  ```json
+  {
+    "client_id": 123,
+    "start_date": "2025-01-01T00:00:00",
+    "end_date": "2025-03-31T23:59:59"
+  }
+  ```
+- `GET /api/v1/compliance/dashboard` - Get compliance dashboard data
+- `POST /api/v1/compliance/pep-screening` - Screen client against PEP lists
+  ```json
+  {
+    "client_id": 123,
+    "name": "John Doe",
+    "country": "PA",
+    "birth_date": "1980-01-01"
+  }
+  ```
+- `POST /api/v1/compliance/sanctions-screening` - Screen entity against sanctions lists
+  ```json
+  {
+    "entity_id": 123,
+    "name": "Acme Corp",
+    "entity_type": "Company",
+    "country": "PA"
+  }
+  ```
+- `POST /api/v1/compliance/manual/query` - Query compliance manual with natural language
+  ```json
+  {
+    "query": "What are the requirements for enhanced due diligence?",
+    "max_context_chunks": 5
+  }
+  ```
+- `POST /api/v1/compliance/due-diligence/requirements` - Get due diligence requirements
+  ```json
+  {
+    "client_risk_level": "high",
+    "client_type": "legal_entity",
+    "is_pep": true
+  }
+  ```
 
 ## Deployment
 
@@ -231,6 +345,23 @@ npm run build
 
 The built files will be in the `dist` directory, which can be deployed to any static hosting service.
 
+### Docker Deployment
+
+For production deployment with Docker:
+
+```bash
+# Build and tag the images
+docker build -t legal-contract-tracker-backend ./backend
+docker build -t legal-contract-tracker-frontend ./frontend
+
+# Push to your container registry
+docker push your-registry/legal-contract-tracker-backend
+docker push your-registry/legal-contract-tracker-frontend
+
+# Deploy using docker-compose
+docker-compose -f docker-compose.prod.yml up -d
+```
+
 ## Environment Configuration
 
 The application supports different environments through environment variables:
@@ -244,43 +375,92 @@ The application supports different environments through environment variables:
 - `MISTRAL_API_URL` - URL for Mistral API service (default: http://ai-service:80)
 - `AI_FALLBACK_MODE` - Force fallback mode for AI features (auto-detected by default)
 - `AI_LANGUAGE_MODE` - Set to "es" to force Spanish language processing for all inputs
+- `OPENSANCTIONS_API_KEY` - API key for OpenSanctions (optional)
+- `COMPLIANCE_MANUAL_PATH` - Path to pre-loaded compliance manual (optional)
+- `DOCUMENT_EMBEDDINGS_MODEL` - Model name for document embeddings (default: paraphrase-multilingual-MiniLM-L12-v2)
+- `ENABLE_2FA` - Enable two-factor authentication (default: false)
+- `ENCRYPTION_KEY` - Key for document encryption (required if ENABLE_ENCRYPTION=true)
+- `ENABLE_ENCRYPTION` - Enable document encryption (default: false)
 
 ### Frontend Environment Variables
 
 - `VITE_API_URL` - Backend API URL
 - `VITE_ENABLE_AI_FEATURES` - Enable/disable AI features in UI
+- `VITE_ENABLE_COMPLIANCE_FEATURES` - Enable/disable compliance features in UI
+- `VITE_DEFAULT_LANGUAGE` - Default language for UI (en/es)
 
 ## AI Integration
 
-The system integrates with the Mistral 7B language model for contract analysis:
+The system integrates with the Mistral 7B language model for contract analysis and compliance automation:
 
 - **Hardware Requirements**: NVIDIA GPU with CUDA support (recommended)
 - **Fallback Mode**: Automatically uses fallback responses in CPU-only environments
 - **Docker Integration**: Uses Docker Compose profiles to select appropriate services
 - **Environment Detection**: Automatically detects GPU availability
 - **Spanish Language Support**: Comprehensive preprocessing pipeline for Spanish legal documents
+- **Retrieval-Augmented Generation (RAG)**: Contextual AI responses based on application data
+- **Document Embeddings**: Vector database for semantic search of compliance manuals
 
 For detailed AI setup instructions, see [AI_SETUP.md](./AI_SETUP.md).
 
-## Module Architecture
+## Microservice Architecture
 
-The application follows a modular architecture designed for future expansion:
+The application follows a modular microservice architecture designed for future expansion:
 
-### Legal Department Module
+### Contracts Service
+
+- **Contract Registry**: Manage contract information and metadata
+- **Document Storage**: Handle document uploads and versioning
+- **Expiration Tracking**: Monitor contract deadlines and send notifications
+- **Contract Analysis**: Integrate with AI for clause extraction and risk assessment
+- **E-Signature Integration**: Prepare for future digital signature capabilities
+
+### Clients/Providers Service
 
 - **Client Registry**: Manage client information and relationships
-- **Contract Management**: Handle contracts with versioning and history
-- **Workflow System**: Define and track approval workflows
-- **Task Management**: Assign and track legal tasks
-- **Audit Logging**: Track all changes for compliance
+- **KYC Documents**: Store and manage Know Your Client documentation
+- **Risk Ratings**: Calculate and track client risk levels
+- **Relationship Management**: Track client interactions and history
 
-### AI Module
+### Compliance Service
+
+- **Manual Integration**: Process compliance manuals with document embeddings
+- **Due Diligence Automation**: Implement Basic, Enhanced, and Simplified due diligence
+- **Risk Assessment**: Calculate risk across multiple dimensions
+- **Suspicious Activity Detection**: Identify and report suspicious activities
+- **PEP/Sanctions Screening**: Screen entities against PEP and sanctions lists
+- **UAF Reporting**: Generate regulatory reports for Panamanian authorities
+- **Document Retention**: Enforce document retention policies
+
+### Workflow Service
+
+- **Workflow Templates**: Define approval and review workflows
+- **Workflow Instances**: Track active workflow processes
+- **Approval Chains**: Manage sequential and parallel approvals
+- **Notifications**: Alert users of pending actions
+
+### Tasks Service
+
+- **Task Management**: Create and assign tasks
+- **Reminders**: Send notifications for upcoming deadlines
+- **Task Dependencies**: Define relationships between tasks
+- **Task Templates**: Create reusable task patterns
+
+### Audit Service
+
+- **Action Logging**: Record all user actions
+- **System Events**: Track system-generated events
+- **Compliance Tracking**: Monitor compliance-related activities
+- **Report Generation**: Create audit reports for regulatory purposes
+
+### AI Service
 
 - **Contract Intelligence**: Extract and analyze contract clauses
 - **Risk Assessment**: Score contracts based on risk factors
-- **Natural Language Interface**: Query contracts using natural language
+- **Natural Language Interface**: Query application data using natural language
 - **Task Suggestions**: Generate tasks based on contract content
 - **Spanish Language Support**: Preprocess Spanish legal documents for AI analysis
+- **Contextual Generation**: Provide context-aware responses using RAG
 
 ### Spanish Language Support
 
@@ -327,32 +507,72 @@ Response includes preprocessing details:
     "changes_made": true
   }
 }
+```
+
+### Compliance Automation
+
+The compliance automation system integrates with Mistral 7B to provide context-aware compliance guidance:
+
+#### Document Embeddings
+
+The system uses Sentence Transformers and FAISS to create embeddings of compliance manuals:
+
+- **Multilingual Support**: Works with both Spanish and English compliance documents
+- **Intelligent Chunking**: Breaks documents into semantic chunks for better retrieval
+- **Vector Search**: Finds relevant sections based on semantic similarity
+- **Context Retrieval**: Provides relevant context for AI responses
+
+#### Due Diligence Automation
+
+The system automates different levels of due diligence based on risk factors:
+
+- **Basic Due Diligence**: Standard KYC for low-risk clients
+- **Enhanced Due Diligence**: Additional checks for high-risk clients and PEPs
+- **Simplified Due Diligence**: Streamlined process for very low-risk scenarios
+- **Dynamic Requirements**: Adjusts requirements based on client risk profile
+
+#### Risk Assessment
+
+Comprehensive risk assessment across multiple dimensions:
+
+- **Client Risk**: Based on client type, location, and business activity
+- **Geographic Risk**: Country and region-specific risk factors
+- **Product/Service Risk**: Risk associated with specific financial products
+- **Channel Risk**: Risk based on delivery channels
+- **Transactional Risk**: Patterns and anomalies in transactions
+
+#### Sanctions Screening
+
+Integration with OpenSanctions for comprehensive screening:
+
+- **PEP Screening**: Identifies politically exposed persons
+- **Sanctions Lists**: Checks against OFAC, UN, EU, and other sanctions lists
+- **Intelligent Caching**: 24-hour caching to reduce API calls
+- **Detailed Results**: Provides match scores and entity details
 
 ## Recent Updates
 
-- Enhanced AI integration with Mistral 7B model
-- Added Docker support for both GPU and CPU environments
-- Implemented modular architecture for future department integration
-- Created comprehensive legal department module
-- Added Spanish language support pipeline for legal document preprocessing
-- Fixed fallback detection logic between frontend and backend
-- Updated AIDashboard to use dedicated Mistral endpoint for consistent behavior
-
-## Recent Updates
-
-- Enhanced AI integration with Mistral 7B model
-- Added Docker support for both GPU and CPU environments
-- Implemented modular architecture for future department integration
-- Created comprehensive legal department module
-- Fixed fallback detection logic between frontend and backend
-- Updated AIDashboard to use dedicated Mistral endpoint for consistent behavior
+- Implemented comprehensive compliance automation with Mistral 7B integration
+- Added document embeddings for compliance manual integration
+- Integrated OpenSanctions for PEP and sanctions screening
+- Implemented contextual AI generation with RAG capabilities
+- Enhanced Spanish language support pipeline for legal document preprocessing
+- Refactored architecture into microservices for better scalability
+- Added compliance dashboard with comprehensive metrics
+- Implemented UAF report generation for regulatory compliance
+- Added document retention policy enforcement
+- Enhanced security with encryption capabilities
 
 ## Future Enhancements
 
 - Digital signatures integration
 - Automated contract renewals
 - Advanced document versioning with diff visualization
-- Enhanced analytics dashboard
+- Enhanced analytics dashboard with predictive capabilities
 - Integration with other departments (Accounting, HR, Procurement)
 - Mobile application for on-the-go access
 - Expanded AI capabilities with fine-tuned models
+- Integration with Risk 365 platform for enhanced risk management
+- SAP Business One integration for real-time financial data
+- Blockchain-based document verification
+- Advanced anomaly detection using machine learning
