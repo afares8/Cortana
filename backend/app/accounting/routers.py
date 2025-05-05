@@ -17,7 +17,8 @@ from app.accounting.services import (
     create_tax_type, get_tax_type, get_tax_types, update_tax_type, delete_tax_type,
     create_obligation, get_obligation, get_obligations, update_obligation, delete_obligation,
     create_payment, get_payment, get_payments, update_payment, delete_payment,
-    create_attachment, get_attachment, get_attachments, delete_attachment
+    create_attachment, get_attachment, get_attachments, delete_attachment,
+    get_upcoming_obligations, get_overdue_obligations, analyze_obligation_history
 )
 
 router = APIRouter()
@@ -286,3 +287,37 @@ async def delete_attachment_endpoint(attachment_id: int = Path(..., gt=0)):
     if not result:
         raise HTTPException(status_code=404, detail="Attachment not found")
     return {"success": True}
+
+@router.get("/alerts", response_model=Dict[str, List])
+async def get_alerts():
+    """
+    Get upcoming and overdue obligations.
+    """
+    upcoming = get_upcoming_obligations()
+    overdue = get_overdue_obligations()
+    
+    return {
+        "upcoming": upcoming,
+        "overdue": overdue
+    }
+
+@router.post("/ai/analyze", response_model=Dict[str, Any])
+async def analyze_company_obligations(
+    request: Dict[str, Any]
+):
+    """
+    Analyze obligation and payment history for a company using AI.
+    """
+    company_id = request.get("company_id")
+    months = request.get("months", 6)
+    language = request.get("language", "es")
+    
+    if not company_id:
+        raise HTTPException(status_code=400, detail="company_id is required")
+    
+    result = await analyze_obligation_history(company_id, months, language)
+    
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+    
+    return result

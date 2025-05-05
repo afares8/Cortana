@@ -23,6 +23,7 @@ from app.legal.routers import router as legal_router
 from app.legal.services import init_legal_db
 from app.accounting.routers import router as accounting_router
 from app.accounting.services import init_accounting_db
+from app.accounting.reminder import setup_accounting_scheduler
 
 logs_dir = "/app/logs" if os.path.exists("/app") else "logs"
 os.makedirs(logs_dir, exist_ok=True)
@@ -92,6 +93,7 @@ async def startup_event():
     
     scheduler = setup_scheduler()
     scheduler.start()
+    setup_accounting_scheduler(scheduler)
     logger.info("Scheduler started")
 
 

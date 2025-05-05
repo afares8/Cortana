@@ -5,7 +5,7 @@ from pydantic import BaseModel, EmailStr
 from app.models.base import TimestampModel
 
 class Company(TimestampModel):
-    id: int
+    id: Optional[int] = None
     name: str
     location: str  # Chitré, Arraiján, Zona Libre de Colón, etc.
     address: Optional[str] = None
@@ -15,13 +15,13 @@ class Company(TimestampModel):
     notes: Optional[str] = None
 
 class TaxType(TimestampModel):
-    id: int
+    id: Optional[int] = None
     name: str  # ITBMS, ISR, CSS, Municipal, etc.
     authority: str  # DGI, CSS, Municipio, ANIP/ZLC
     description: Optional[str] = None
 
 class Obligation(TimestampModel):
-    id: int
+    id: Optional[int] = None
     company_id: int
     tax_type_id: int
     name: str
@@ -34,6 +34,8 @@ class Obligation(TimestampModel):
     last_payment_date: Optional[datetime] = None
     next_due_date: datetime
     penalties: Optional[Dict[str, Any]] = None  # Dictionary with penalty information
+    company_name: Optional[str] = None  # Added for frontend display
+    tax_type_name: Optional[str] = None  # Added for frontend display
 
 class Payment(TimestampModel):
     id: int
