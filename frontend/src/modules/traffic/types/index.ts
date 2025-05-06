@@ -95,6 +95,7 @@ export interface SubmissionResponse {
   submission_id: number;
   dmce_number?: string;
   message: string;
+  error?: string;
 }
 
 export interface DMCELoginResponse {
