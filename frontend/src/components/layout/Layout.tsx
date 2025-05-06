@@ -1,6 +1,6 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, X, Menu, LogOut, ChevronRight, ChevronDown, AlertCircle, Bell, Settings, Shield, FileText, Users, Activity, CheckSquare, Database, Brain, BarChart2, Truck } from 'lucide-react';
+import { Search, X, Menu, LogOut, ChevronRight, ChevronDown, AlertCircle, Bell, Settings, Shield, FileText, Users, Activity, CheckSquare, Database, Brain, BarChart2, Truck, DollarSign, Mail, UserCog } from 'lucide-react';
 import NotificationBadge from '../../modules/accounting/components/NotificationBadge';
 import LanguageToggle from '../LanguageToggle';
 
@@ -116,10 +116,18 @@ export default function Layout({ children, title }: LayoutProps) {
       section: 'ai'
     },
     { 
-      path: 'accounting/notifications', 
-      label: 'Notifications', 
-      icon: <Bell className="h-5 w-5" />, 
-      section: 'accounting'
+      path: 'accounting', 
+      label: 'Accounting', 
+      icon: <DollarSign className="h-5 w-5" />, 
+      section: 'accounting',
+      children: [
+        { path: 'accounting/dashboard', label: 'Dashboard', icon: <BarChart2 className="h-4 w-4" /> },
+        { path: 'accounting/documents', label: 'Documents', icon: <FileText className="h-4 w-4" /> },
+        { path: 'accounting/notifications', label: 'Notifications', icon: <Bell className="h-4 w-4" /> },
+        { path: 'accounting/audit', label: 'Audit Logs', icon: <Database className="h-4 w-4" /> },
+        { path: 'accounting/email-drafts', label: 'Email Drafts', icon: <Mail className="h-4 w-4" /> },
+        { path: 'accounting/admin/users', label: 'User Access', icon: <UserCog className="h-4 w-4" /> }
+      ]
     }
   ];
 
@@ -129,6 +137,7 @@ export default function Layout({ children, title }: LayoutProps) {
     if (path.startsWith('compliance/')) return 'compliance';
     if (path.startsWith('contracts/')) return 'contracts';
     if (path.startsWith('traffic/')) return 'traffic';
+    if (path.startsWith('accounting/')) return 'accounting';
     if (path.startsWith('ai-')) return 'ai';
     return 'dashboard';
   };
@@ -406,6 +415,48 @@ export default function Layout({ children, title }: LayoutProps) {
               <div className="p-3 bg-orange-50 rounded-md">
                 <p className="text-sm font-medium text-orange-800">Consolidación de Facturas</p>
                 <p className="text-xs text-orange-700">Completada hace 1 semana</p>
+              </div>
+            </div>
+          </div>
+        );
+      
+      case 'accounting':
+        return (
+          <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
+            <h3 className="font-medium text-gray-900 mb-3">Accounting Actions</h3>
+            <div className="space-y-2">
+              <button 
+                onClick={() => navigate('/accounting/dashboard')}
+                className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
+              >
+                <span className="mr-2">📊</span>
+                Dashboard
+              </button>
+              <button 
+                onClick={() => navigate('/accounting/documents')}
+                className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
+              >
+                <span className="mr-2">📄</span>
+                Generate Documents
+              </button>
+              <button 
+                onClick={() => navigate('/accounting/email-drafts')}
+                className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
+              >
+                <span className="mr-2">✉️</span>
+                Email Drafts
+              </button>
+            </div>
+            
+            <h3 className="font-medium text-gray-900 mt-6 mb-3">Upcoming Obligations</h3>
+            <div className="space-y-2">
+              <div className="p-3 bg-blue-50 rounded-md">
+                <p className="text-sm font-medium text-blue-800">ITBMS Declaration</p>
+                <p className="text-xs text-blue-700">Due in 5 days</p>
+              </div>
+              <div className="p-3 bg-blue-50 rounded-md">
+                <p className="text-sm font-medium text-blue-800">CSS Planilla</p>
+                <p className="text-xs text-blue-700">Due in 12 days</p>
               </div>
             </div>
           </div>
