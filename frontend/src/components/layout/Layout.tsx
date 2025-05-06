@@ -1,5 +1,6 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Search, X, Menu, LogOut, ChevronRight, ChevronDown, AlertCircle, Bell, Settings, Shield, FileText, Users, Activity, CheckSquare, Database, Brain, BarChart2, Truck } from 'lucide-react';
 import NotificationBadge from '../../modules/accounting/components/NotificationBadge';
 import LanguageToggle from '../LanguageToggle';
@@ -26,6 +27,7 @@ interface SearchResult {
 }
 
 export default function Layout({ children, title }: LayoutProps) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -414,14 +416,14 @@ export default function Layout({ children, title }: LayoutProps) {
       default:
         return (
           <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
-            <h3 className="font-medium text-gray-900 mb-3">Quick Actions</h3>
+            <h3 className="font-medium text-gray-900 mb-3">{t('dashboard.quickActions')}</h3>
             <div className="space-y-2">
               <button 
                 onClick={() => navigate('/contracts/upload')}
                 className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
               >
                 <span className="mr-2">📤</span>
-                Upload Contract
+                {t('dashboard.uploadNewContract')}
               </button>
               <button 
                 onClick={() => navigate('/legal/clients')}
@@ -435,13 +437,13 @@ export default function Layout({ children, title }: LayoutProps) {
                 className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
               >
                 <span className="mr-2">📊</span>
-                Compliance Dashboard
+                {t('dashboard.complianceDashboard')}
               </button>
             </div>
             
-            <h3 className="font-medium text-gray-900 mt-6 mb-3">System Status</h3>
+            <h3 className="font-medium text-gray-900 mt-6 mb-3">{t('dashboard.systemStatus')}</h3>
             <div className="p-3 bg-green-50 rounded-md">
-              <p className="text-sm font-medium text-green-800">All systems operational</p>
+              <p className="text-sm font-medium text-green-800">{t('dashboard.allSystemsOperational')}</p>
               <p className="text-xs text-green-700">Last updated: {new Date().toLocaleTimeString()}</p>
             </div>
           </div>
@@ -459,7 +461,7 @@ export default function Layout({ children, title }: LayoutProps) {
               onClick={() => navigate('/')} 
               className="text-xl font-bold text-gray-900 cursor-pointer"
             >
-              LegalContractTracker
+              Cortana
             </h1>
           </div>
           
@@ -468,7 +470,7 @@ export default function Layout({ children, title }: LayoutProps) {
             <div className="relative">
               <input
                 type="text"
-                placeholder="Search contracts, clients, tasks..."
+                placeholder={t('common.searchPlaceholder')}
                 className="w-full py-2 pl-10 pr-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -495,7 +497,7 @@ export default function Layout({ children, title }: LayoutProps) {
               <div className="absolute mt-1 w-full bg-white rounded-md shadow-lg z-10">
                 <div className="py-1">
                   {isSearching ? (
-                    <div className="px-4 py-2 text-sm text-gray-500">Searching...</div>
+                    <div className="px-4 py-2 text-sm text-gray-500">{t('common.searching')}</div>
                   ) : searchResults.length > 0 ? (
                     <>
                       {searchResults.map((result) => (
@@ -522,11 +524,11 @@ export default function Layout({ children, title }: LayoutProps) {
                         </div>
                       ))}
                       <div className="px-4 py-2 text-xs text-gray-500 border-t">
-                        Press Enter to see all results
+                        {t('common.pressEnterForAllResults')}
                       </div>
                     </>
                   ) : (
-                    <div className="px-4 py-2 text-sm text-gray-500">No results found</div>
+                    <div className="px-4 py-2 text-sm text-gray-500">{t('common.noResultsFound')}</div>
                   )}
                 </div>
               </div>
@@ -545,7 +547,7 @@ export default function Layout({ children, title }: LayoutProps) {
               className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
             >
               <LogOut className="h-5 w-5 mr-2" />
-              Logout
+              {t('common.logout')}
             </button>
           </div>
           
@@ -627,7 +629,7 @@ export default function Layout({ children, title }: LayoutProps) {
                 className="flex w-full items-center px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
               >
                 <LogOut className="h-5 w-5" />
-                <span className="ml-2">Logout</span>
+                <span className="ml-2">{t('common.logout')}</span>
               </button>
               <div className="px-3 py-2">
                 <LanguageToggle />
@@ -725,7 +727,7 @@ export default function Layout({ children, title }: LayoutProps) {
       <footer className="bg-white shadow-sm mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <p className="text-center text-sm text-gray-500">
-            &copy; {new Date().getFullYear()} LegalContractTracker. All rights reserved.
+            &copy; {new Date().getFullYear()} Cortana. {t('common.allRightsReserved')}
           </p>
         </div>
       </footer>

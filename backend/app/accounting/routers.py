@@ -59,9 +59,10 @@ async def get_companies_endpoint(
 @router.get("/companies/{company_id}", response_model=Company)
 async def get_company_endpoint(
     company_id: int = Path(..., gt=0),
-    current_user = Depends(company_read_permission(company_id))
+    current_user = Depends(get_current_user)
 ):
     """Get a company by ID."""
+    current_user = await company_read_permission(company_id)(current_user)
     company = get_company(company_id)
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
@@ -71,9 +72,10 @@ async def get_company_endpoint(
 async def update_company_endpoint(
     company_id: int = Path(..., gt=0),
     company_update: CompanyUpdate = Body(...),
-    current_user = Depends(company_write_permission(company_id))
+    current_user = Depends(get_current_user)
 ):
     """Update a company."""
+    current_user = await company_write_permission(company_id)(current_user)
     company = update_company(company_id, company_update.model_dump(exclude_unset=True))
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
@@ -82,9 +84,10 @@ async def update_company_endpoint(
 @router.delete("/companies/{company_id}", response_model=Dict[str, bool])
 async def delete_company_endpoint(
     company_id: int = Path(..., gt=0),
-    current_user = Depends(company_write_permission(company_id))
+    current_user = Depends(get_current_user)
 ):
     """Delete a company."""
+    current_user = await company_write_permission(company_id)(current_user)
     result = delete_company(company_id)
     if not result:
         raise HTTPException(status_code=404, detail="Company not found or has associated obligations")
