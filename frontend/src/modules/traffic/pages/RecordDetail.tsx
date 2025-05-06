@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { FileText, AlertCircle, Clock, CheckCircle, ArrowRight, Truck, Tag, DollarSign, Package } from 'lucide-react';
 import { getRecord, submitToDMCE } from '../api/trafficApi';
 import { InvoiceRecord, SubmissionRequest } from '../types';
+import DMCEManualLogin from '../components/DMCEManualLogin';
 
 const RecordDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -13,6 +14,7 @@ const RecordDetail = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [showManualLogin, setShowManualLogin] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -57,14 +59,28 @@ const RecordDetail = () => {
         setSubmitSuccess(`Registro enviado exitosamente al portal DMCE. Número DMCE: ${response.dmce_number || 'Pendiente'}`);
         fetchRecord(parseInt(id));
       } else {
-        setSubmitError('Error al enviar al portal DMCE: ' + response.message);
+        if (response.error && response.error.includes('login')) {
+          setSubmitError('Error de inicio de sesión en el portal DMCE. Se requiere inicio de sesión manual.');
+          setShowManualLogin(true);
+        } else {
+          setSubmitError('Error al enviar al portal DMCE: ' + response.message);
+        }
       }
     } catch (err) {
       console.error('Error submitting to DMCE:', err);
-      setSubmitError('Error al enviar al portal DMCE. Por favor, inténtelo de nuevo.');
+      
+      setSubmitError('Error al enviar al portal DMCE. Se intentará inicio de sesión manual.');
+      setShowManualLogin(true);
     } finally {
       setIsSubmitting(false);
     }
+  };
+  
+  const handleManualLoginSuccess = () => {
+    setShowManualLogin(false);
+    setTimeout(() => {
+      handleSubmit();
+    }, 1000);
   };
 
   const getStatusColor = (status: string) => {
@@ -368,6 +384,13 @@ const RecordDetail = () => {
           </button>
         </div>
       )}
+      
+      {/* Manual Login Popup */}
+      <DMCEManualLogin
+        open={showManualLogin}
+        onClose={() => setShowManualLogin(false)}
+        onSuccess={handleManualLoginSuccess}
+      />
     </div>
   );
 };

@@ -95,4 +95,13 @@ export interface SubmissionResponse {
   submission_id: number;
   dmce_number?: string;
   message: string;
+  error?: string;
+}
+
+export interface DMCELoginResponse {
+  success: boolean;
+  message: string;
+  error?: string;
+  loginUrl?: string;
+  sessionId?: string;
 }

@@ -10,7 +10,8 @@ import {
   ConsolidationRequest,
   ConsolidationResponse,
   SubmissionRequest,
-  SubmissionResponse
+  SubmissionResponse,
+  DMCELoginResponse
 } from '../types';
 
 export const uploadInvoiceData = async (data: InvoiceDataUpload): Promise<InvoiceRecord[]> => {
@@ -60,4 +61,26 @@ export const getSubmissionLogs = async (params?: {
 export const getSubmissionLog = async (id: number): Promise<TrafficSubmission> => {
   const response = await axios.get(`${API_BASE}/traffic/logs/${id}`);
   return response.data;
+};
+
+export const startDMCEManualLogin = async (company?: string): Promise<DMCELoginResponse> => {
+  const response = await axios.post(`${API_BASE}/traffic/dmce/manual-login/start`, { company });
+  return response.data;
+};
+
+export const completeDMCEManualLogin = async (sessionId?: string): Promise<DMCELoginResponse> => {
+  const response = await axios.post(`${API_BASE}/traffic/dmce/manual-login/complete`, { sessionId });
+  return response.data;
+};
+
+export const trafficApi = {
+  uploadInvoiceData,
+  getRecords,
+  getRecord,
+  consolidateInvoices,
+  submitToDMCE,
+  getSubmissionLogs,
+  getSubmissionLog,
+  startDMCEManualLogin,
+  completeDMCEManualLogin
 };
