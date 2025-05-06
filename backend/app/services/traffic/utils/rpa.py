@@ -88,7 +88,10 @@ class DMCEAutomator:
     
     async def _login_to_dmce(self, page: Page) -> bool:
         """
-        Log in to the DMCE portal.
+        Log in to the DMCE portal using a three-layered approach as suggested by Ahmed:
+        1. Listen for a true popup window
+        2. If no popup, try same-tab navigation to signin.cl
+        3. If that fails, look for an injected modal form in the same page
         
         Args:
             page: Playwright page object
@@ -101,7 +104,7 @@ class DMCEAutomator:
             logger.info(f"Navigating to DMCE portal: {self.dmce_url}")
             await page.goto(self.dmce_url, wait_until="networkidle")
             
-            logger.info("Looking for LOGIN button in the top right corner")
+            logger.info("Looking for LOGIN button")
             
             login_selectors = [
                 "text=LOGIN",
@@ -133,7 +136,7 @@ class DMCEAutomator:
                     continue
             
             if not login_button:
-                logger.info("Trying to find login button by taking a screenshot and analyzing it")
+                logger.info("Trying to find login button by position in top right corner")
                 await page.screenshot(path="/tmp/dmce_login_page.png")
                 
                 top_right_elements = await page.query_selector_all(".header a, .header button, .nav a, .nav button, header a, header button")
@@ -148,37 +151,115 @@ class DMCEAutomator:
                             break
             
             if login_button:
-                logger.info("Clicking login button to access login page")
-                await login_button.click()
+                login_context = None
                 
-                logger.info("Waiting for login form to appear in emerging window")
-                await page.wait_for_load_state("networkidle")
+                logger.info("Strategy 1: Listening for popup window")
+                try:
+                    popup_promise = page.wait_for_event('popup', timeout=10000)
+                    
+                    logger.info("Clicking login button")
+                    await login_button.click()
+                    
+                    popup = await popup_promise
+                    logger.info(f"✅ Detected popup window at: {popup.url()}")
+                    await popup.wait_for_load_state('networkidle')
+                    await popup.screenshot(path="/tmp/dmce_popup_window.png")
+                    login_context = popup
+                except Exception as e:
+                    logger.info(f"No popup window detected: {str(e)}")
+                    login_context = None
                 
-                username_field = await page.wait_for_selector("input[type='text'], input[name='username'], input#username", timeout=10000)
-                password_field = await page.wait_for_selector("input[type='password'], input[name='password'], input#password", timeout=5000)
+                if not login_context:
+                    logger.info("Strategy 2: Trying same-tab navigation")
+                    try:
+                        if "popup_promise" in locals():
+                            logger.info("Clicking login button again for same-tab navigation")
+                            await login_button.click()
+                        
+                        await page.wait_for_url("**/signin.cl?language=*", timeout=10000)
+                        logger.info(f"✅ Page navigated to signin.cl: {page.url()}")
+                        await page.screenshot(path="/tmp/dmce_same_tab_navigation.png")
+                        login_context = page
+                    except Exception as e:
+                        logger.info(f"No same-tab navigation detected: {str(e)}")
+                        login_context = None
                 
-                if username_field and password_field:
+                if not login_context:
+                    logger.info("Strategy 3: Looking for injected modal form")
+                    try:
+                        if "popup_promise" in locals():
+                            logger.info("Clicking login button again for modal form detection")
+                            await login_button.click()
+                            await page.wait_for_load_state("networkidle")
+                        
+                        await page.wait_for_selector("form[action*='signin.cl'], input#username, input[name='username']", timeout=5000)
+                        logger.info("✅ Found login form in-page")
+                        await page.screenshot(path="/tmp/dmce_modal_form.png")
+                        login_context = page
+                    except Exception as e:
+                        logger.info(f"No modal form detected: {str(e)}")
+                        
+                        logger.info("Last resort: Checking all frames for login form")
+                        frames = page.frames
+                        logger.info(f"Number of frames: {len(frames)}")
+                        
+                        for i, frame in enumerate(frames):
+                            logger.info(f"Checking frame {i}: {frame.url}")
+                            try:
+                                username_field = await frame.wait_for_selector("input[type='text'], input[name='username'], input#username", timeout=2000)
+                                password_field = await frame.wait_for_selector("input[type='password'], input[name='password'], input#password", timeout=2000)
+                                
+                                if username_field and password_field:
+                                    logger.info(f"✅ Found login form in frame {i}")
+                                    login_context = frame
+                                    break
+                            except Exception:
+                                continue
+                
+                if login_context:
                     logger.info(f"Entering username: {self.username}")
-                    await username_field.fill(self.username)
+                    await login_context.fill("input[name='username'], input#username, input[type='text']", self.username)
                     
                     logger.info("Entering password")
-                    await password_field.fill(self.password)
+                    await login_context.fill("input[name='password'], input#password, input[type='password']", self.password)
                     
                     logger.info("Submitting login form")
-                    submit_button = await page.wait_for_selector("button[type='submit'], input[type='submit'], button:has-text('Ingresar'), button:has-text('Login')", timeout=5000)
+                    submit_button = await login_context.wait_for_selector("button[type='submit'], input[type='submit'], button:has-text('Ingresar'), button:has-text('Login')", timeout=5000)
                     if submit_button:
                         await submit_button.click()
                         await page.wait_for_load_state("networkidle")
                         
                         try:
-                            dashboard_element = await page.wait_for_selector(".dashboard-container, .main-container, .user-info", timeout=10000)
-                            logger.info("Successfully logged in to DMCE portal")
-                            return True
-                        except Exception as e:
-                            logger.error(f"Could not verify successful login: {str(e)}")
+                            dashboard_indicators = [
+                                ".dashboard-container", 
+                                ".main-container", 
+                                ".user-info",
+                                "text=Dashboard",
+                                "text=Logout",
+                                "text=Create New DMCE",
+                                "text=Crear Nueva DMCE",
+                                "text=Cerrar Sesión"
+                            ]
+                            
+                            for indicator in dashboard_indicators:
+                                try:
+                                    element = await page.wait_for_selector(indicator, timeout=2000)
+                                    if element:
+                                        logger.info(f"Successfully logged in to DMCE portal (found {indicator})")
+                                        return True
+                                except Exception:
+                                    continue
+                            
+                            logger.error("Could not verify successful login")
                             return False
+                        except Exception as e:
+                            logger.error(f"Error verifying login: {str(e)}")
+                            return False
+                    else:
+                        logger.error("Could not find submit button in login form")
+                        return False
                 else:
-                    logger.error("Could not find username or password fields in the login form")
+                    logger.error("❌ Cannot locate login form as popup, navigation, or in-page modal")
                     return False
             else:
                 logger.error("Could not find login button")
