@@ -313,3 +313,32 @@ export const createEmailDraft = async (
   );
   return response.data;
 };
+
+export interface ObligationStats {
+  total_obligations: number;
+  total_paid: number;
+  total_amount: number;
+  paid_amount: number;
+  by_company: {
+    company_id: number;
+    company_name: string;
+    count: number;
+    paid: number;
+    amount: number;
+  }[];
+  by_month: {
+    month: string;
+    count: number;
+    paid: number;
+    amount: number;
+  }[];
+}
+
+export const getObligationStats = async (params?: {
+  company_id?: number;
+  year?: number;
+  month?: number;
+}): Promise<ObligationStats> => {
+  const response = await axios.get<ObligationStats>(`${API_BASE}/accounting/stats/obligations`, { params });
+  return response.data;
+};

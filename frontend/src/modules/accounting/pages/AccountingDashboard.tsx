@@ -7,12 +7,13 @@ import {
   getTaxTypes, 
   getAlerts,
   getObligationsExportUrl,
-  getTemplateUrl
+  getTemplateUrl,
+  getObligationStats
 } from '../api/accountingApi';
 import ObligationTable from '../components/ObligationTable';
 import AIAnalysisPanel from '../components/AIAnalysisPanel';
 import AlertBanner from '../components/AlertBanner';
-import { PlusCircle, BarChart3, Calendar, DollarSign, Download } from 'lucide-react';
+import { PlusCircle, BarChart3, Calendar, DollarSign, Download, PieChart, TrendingUp } from 'lucide-react';
 
 const AccountingDashboard: React.FC = () => {
   const { t } = useTranslation();
@@ -49,6 +50,14 @@ const AccountingDashboard: React.FC = () => {
   } = useQuery({
     queryKey: ['alerts'],
     queryFn: () => getAlerts()
+  });
+  
+  const {
+    data: stats,
+    isLoading: isLoadingStats
+  } = useQuery({
+    queryKey: ['obligationStats'],
+    queryFn: () => getObligationStats()
   });
 
   const pendingObligations = obligations.filter(o => o.status === 'pending').length;
@@ -189,6 +198,111 @@ const AccountingDashboard: React.FC = () => {
                 <option value="dgi_income_tax">{t('accounting.documents.templates.isr')}</option>
               </select>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Statistics Visualization */}
+      <div className="mt-8 mb-6">
+        <h2 className="text-xl font-bold mb-4">{t('accounting.stats.title', 'Obligation Statistics')}</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Trend Analysis Card */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center mb-4">
+              <TrendingUp className="h-6 w-6 text-blue-600 mr-2" />
+              <h3 className="text-lg font-semibold">{t('accounting.stats.trends', 'Payment Trends')}</h3>
+            </div>
+            {isLoadingStats ? (
+              <div className="h-64 flex items-center justify-center bg-gray-50 rounded-md">
+                <p className="text-gray-500 text-sm">
+                  {t('accounting.stats.loadingData', 'Loading trend data...')}
+                </p>
+              </div>
+            ) : stats ? (
+              <div className="h-64 p-4 bg-gray-50 rounded-md overflow-auto">
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">{t('accounting.stats.totalObligations', 'Total Obligations')}:</span>
+                    <span className="text-sm">{stats.total_obligations}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">{t('accounting.stats.totalPaid', 'Total Paid')}:</span>
+                    <span className="text-sm">{stats.total_paid}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">{t('accounting.stats.totalAmount', 'Total Amount')}:</span>
+                    <span className="text-sm">${stats.total_amount.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">{t('accounting.stats.paidAmount', 'Paid Amount')}:</span>
+                    <span className="text-sm">${stats.paid_amount.toFixed(2)}</span>
+                  </div>
+                  
+                  <h4 className="text-sm font-semibold mt-4">{t('accounting.stats.monthlyTrends', 'Monthly Trends')}</h4>
+                  {stats.by_month.map((month, index) => (
+                    <div key={index} className="flex justify-between items-center">
+                      <span className="text-xs">{month.month}</span>
+                      <div className="flex-1 mx-2">
+                        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-blue-500" 
+                            style={{ width: `${(month.paid / month.count) * 100}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                      <span className="text-xs">{month.paid}/{month.count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="h-64 flex items-center justify-center bg-gray-50 rounded-md">
+                <p className="text-gray-500 text-sm">
+                  {t('accounting.stats.noData', 'No data available')}
+                </p>
+              </div>
+            )}
+          </div>
+          
+          {/* Distribution Card */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center mb-4">
+              <PieChart className="h-6 w-6 text-purple-600 mr-2" />
+              <h3 className="text-lg font-semibold">{t('accounting.stats.distribution', 'Obligation Distribution')}</h3>
+            </div>
+            {isLoadingStats ? (
+              <div className="h-64 flex items-center justify-center bg-gray-50 rounded-md">
+                <p className="text-gray-500 text-sm">
+                  {t('accounting.stats.loadingData', 'Loading distribution data...')}
+                </p>
+              </div>
+            ) : stats ? (
+              <div className="h-64 p-4 bg-gray-50 rounded-md overflow-auto">
+                <h4 className="text-sm font-semibold mb-2">{t('accounting.stats.byCompany', 'By Company')}</h4>
+                <div className="space-y-3">
+                  {stats.by_company.map((company, index) => (
+                    <div key={index}>
+                      <div className="flex justify-between text-xs">
+                        <span>{company.company_name}</span>
+                        <span>{company.paid}/{company.count}</span>
+                      </div>
+                      <div className="h-2 bg-gray-200 rounded-full overflow-hidden mt-1">
+                        <div 
+                          className="h-full bg-purple-500" 
+                          style={{ width: `${(company.paid / company.count) * 100}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="h-64 flex items-center justify-center bg-gray-50 rounded-md">
+                <p className="text-gray-500 text-sm">
+                  {t('accounting.stats.noData', 'No data available')}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
