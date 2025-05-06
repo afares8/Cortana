@@ -41,8 +41,9 @@ async def start_manual_login(company: Optional[str] = None) -> Dict[str, Any]:
         url = settings.DMCE_PORTAL_URL or "https://dmce2.zonalibredecolon.gob.pa/TFBFTZ/cusLogin/login.cl"
         
         playwright = await async_playwright().start()
+        headless_mode = os.environ.get("DMCE_TEST_HEADLESS", "false").lower() == "true"
         browser = await playwright.firefox.launch(
-            headless=False,
+            headless=headless_mode,
             args=["--private"]  # Enable Private Browsing mode
         )
         
