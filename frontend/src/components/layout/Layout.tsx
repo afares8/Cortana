@@ -60,66 +60,66 @@ export default function Layout({ children, title }: LayoutProps) {
   const navItems: NavItem[] = [
     { 
       path: '', 
-      label: 'Dashboard', 
+      label: 'common.navigation.dashboard', 
       icon: <BarChart2 className="h-5 w-5" />, 
       section: 'dashboard'
     },
     { 
       path: 'contracts', 
-      label: 'Contracts', 
+      label: 'common.navigation.contracts', 
       icon: <FileText className="h-5 w-5" />, 
       section: 'contracts',
       children: [
-        { path: 'contracts', label: 'All Contracts', icon: <FileText className="h-4 w-4" /> },
-        { path: 'contracts/upload', label: 'Upload Contract', icon: <FileText className="h-4 w-4" /> }
+        { path: 'contracts', label: 'common.navigation.allContracts', icon: <FileText className="h-4 w-4" /> },
+        { path: 'contracts/upload', label: 'common.navigation.uploadContract', icon: <FileText className="h-4 w-4" /> }
       ]
     },
     { 
       path: 'legal', 
-      label: 'Legal', 
+      label: 'common.navigation.legal', 
       icon: <Shield className="h-5 w-5" />, 
       section: 'legal',
       children: [
-        { path: 'legal/clients', label: 'Clients', icon: <Users className="h-4 w-4" /> },
-        { path: 'legal/contracts', label: 'Contracts', icon: <FileText className="h-4 w-4" /> },
-        { path: 'legal/workflows', label: 'Workflows', icon: <Activity className="h-4 w-4" /> },
-        { path: 'legal/tasks', label: 'Tasks', icon: <CheckSquare className="h-4 w-4" /> },
-        { path: 'legal/audit-logs', label: 'Audit Logs', icon: <Database className="h-4 w-4" /> }
+        { path: 'legal/clients', label: 'common.navigation.clients', icon: <Users className="h-4 w-4" /> },
+        { path: 'legal/contracts', label: 'common.navigation.contracts', icon: <FileText className="h-4 w-4" /> },
+        { path: 'legal/workflows', label: 'common.navigation.workflows', icon: <Activity className="h-4 w-4" /> },
+        { path: 'legal/tasks', label: 'common.navigation.tasks', icon: <CheckSquare className="h-4 w-4" /> },
+        { path: 'legal/audit-logs', label: 'common.navigation.auditLogs', icon: <Database className="h-4 w-4" /> }
       ]
     },
     { 
       path: 'compliance', 
-      label: 'Compliance', 
+      label: 'common.navigation.compliance', 
       icon: <AlertCircle className="h-5 w-5" />, 
       section: 'compliance',
       children: [
-        { path: 'compliance/dashboard', label: 'Dashboard', icon: <BarChart2 className="h-4 w-4" /> },
-        { path: 'compliance/uaf-report/new', label: 'UAF Report', icon: <FileText className="h-4 w-4" /> },
-        { path: 'compliance/pep-screening/new', label: 'PEP Screening', icon: <Users className="h-4 w-4" /> },
-        { path: 'compliance/sanctions-screening/new', label: 'Sanctions Screening', icon: <Shield className="h-4 w-4" /> }
+        { path: 'compliance/dashboard', label: 'common.navigation.dashboard', icon: <BarChart2 className="h-4 w-4" /> },
+        { path: 'compliance/uaf-report/new', label: 'common.navigation.uafReport', icon: <FileText className="h-4 w-4" /> },
+        { path: 'compliance/pep-screening/new', label: 'common.navigation.pepScreening', icon: <Users className="h-4 w-4" /> },
+        { path: 'compliance/sanctions-screening/new', label: 'common.navigation.sanctionsScreening', icon: <Shield className="h-4 w-4" /> }
       ]
     },
     { 
       path: 'traffic', 
-      label: 'Tráfico', 
+      label: 'common.navigation.traffic', 
       icon: <Truck className="h-5 w-5" />, 
       section: 'traffic',
       children: [
-        { path: 'traffic/dashboard', label: 'Panel', icon: <BarChart2 className="h-4 w-4" /> },
-        { path: 'traffic/upload', label: 'Cargar Factura', icon: <FileText className="h-4 w-4" /> },
-        { path: 'traffic/records', label: 'Registros', icon: <Database className="h-4 w-4" /> },
-        { path: 'traffic/logs', label: 'Historial', icon: <Activity className="h-4 w-4" /> }
+        { path: 'traffic/dashboard', label: 'common.navigation.panel', icon: <BarChart2 className="h-4 w-4" /> },
+        { path: 'traffic/upload', label: 'common.navigation.uploadInvoice', icon: <FileText className="h-4 w-4" /> },
+        { path: 'traffic/records', label: 'common.navigation.records', icon: <Database className="h-4 w-4" /> },
+        { path: 'traffic/logs', label: 'common.navigation.history', icon: <Activity className="h-4 w-4" /> }
       ]
     },
     { 
       path: 'ai-dashboard', 
-      label: 'AI Center', 
+      label: 'common.navigation.aiCenter', 
       icon: <Brain className="h-5 w-5" />, 
       section: 'ai'
     },
     { 
       path: 'accounting/notifications', 
-      label: 'Notifications', 
+      label: 'common.navigation.notifications', 
       icon: <Bell className="h-5 w-5" />, 
       section: 'accounting'
     }
@@ -578,7 +578,7 @@ export default function Layout({ children, title }: LayoutProps) {
                       >
                         <div className="flex items-center">
                           {item.icon}
-                          <span className="ml-2">{item.label}</span>
+                          <span className="ml-2">{t(item.label)}</span>
                         </div>
                         {expandedSections[item.section || ''] ? (
                           <ChevronDown className="h-4 w-4" />
@@ -597,7 +597,7 @@ export default function Layout({ children, title }: LayoutProps) {
                           className="flex w-full items-center px-3 py-2 pl-8 text-sm font-medium rounded-md text-left text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                         >
                           {child.icon}
-                          <span className="ml-2">{child.label}</span>
+                          <span className="ml-2">{t(child.label)}</span>
                         </button>
                       ))}
                     </div>
@@ -616,7 +616,7 @@ export default function Layout({ children, title }: LayoutProps) {
                       }`}
                     >
                       {item.icon}
-                      <span className="ml-2">{item.label}</span>
+                      <span className="ml-2">{t(item.label)}</span>
                     </button>
                   )}
                 </div>
@@ -654,7 +654,7 @@ export default function Layout({ children, title }: LayoutProps) {
                     >
                       <div className="flex items-center">
                         {item.icon}
-                        <span className="ml-2">{item.label}</span>
+                        <span className="ml-2">{t(item.label)}</span>
                       </div>
                       {expandedSections[item.section || ''] ? (
                         <ChevronDown className="h-4 w-4" />
@@ -676,7 +676,7 @@ export default function Layout({ children, title }: LayoutProps) {
                             }`}
                           >
                             {child.icon}
-                            <span className="ml-2">{child.label}</span>
+                            <span className="ml-2">{t(child.label)}</span>
                           </button>
                         ))}
                       </div>
@@ -694,7 +694,7 @@ export default function Layout({ children, title }: LayoutProps) {
                     }`}
                   >
                     {item.icon}
-                    <span className="ml-2">{item.label}</span>
+                    <span className="ml-2">{t(item.label)}</span>
                   </button>
                 )}
               </div>

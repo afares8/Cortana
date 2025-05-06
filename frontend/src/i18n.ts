@@ -7,6 +7,8 @@ import esTranslation from './locales/es.json';
 
 const isDevelopment = process.env.NODE_ENV === 'development' || false;
 
+localStorage.setItem('i18nextLng', 'es');
+
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
@@ -19,7 +21,8 @@ i18n
         translation: esTranslation
       }
     },
-    fallbackLng: 'en',
+    fallbackLng: 'es', // Set Spanish as fallback
+    lng: 'es', // Force Spanish language
     debug: isDevelopment,
     interpolation: {
       escapeValue: false // React already escapes values
