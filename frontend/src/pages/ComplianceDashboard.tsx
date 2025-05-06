@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,7 @@ interface DashboardData {
 }
 
 const ComplianceDashboard: React.FC = () => {
+  const { t } = useTranslation();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -135,7 +137,7 @@ const ComplianceDashboard: React.FC = () => {
       <div className="p-3">
         <Alert>
           <AlertTriangle className="h-4 w-4 mr-2" />
-          No dashboard data available.
+          {t('compliance.noDashboardData')}
         </Alert>
       </div>
     );
@@ -145,26 +147,26 @@ const ComplianceDashboard: React.FC = () => {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">
-          Compliance Dashboard
+          {t('compliance.dashboard')}
         </h1>
         <div className="flex space-x-2">
           <Button 
             variant="default"
             onClick={handleGenerateUAFReport}
           >
-            Generate UAF Report
+            {t('compliance.generateUAFReport')}
           </Button>
           <Button 
             variant="outline"
             onClick={handleRunPEPScreening}
           >
-            Run PEP Screening
+            {t('compliance.runPEPScreening')}
           </Button>
           <Button 
             variant="outline"
             onClick={handleRunSanctionsScreening}
           >
-            Run Sanctions Screening
+            {t('compliance.runSanctionsScreening')}
           </Button>
         </div>
       </div>
@@ -174,26 +176,26 @@ const ComplianceDashboard: React.FC = () => {
         <div>
           <Card>
             <CardHeader>
-              <CardTitle>Compliance Reports</CardTitle>
+              <CardTitle>{t('compliance.reports')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-3 gap-4">
                 <div className="text-center p-2">
                   <div className="text-2xl font-bold">{dashboardData.reports.total}</div>
-                  <div className="text-sm text-muted-foreground">Total Reports</div>
+                  <div className="text-sm text-muted-foreground">{t('compliance.totalReports')}</div>
                 </div>
                 <div className="text-center p-2">
                   <div className="text-2xl font-bold">{dashboardData.reports.pending}</div>
-                  <div className="text-sm text-muted-foreground">Pending</div>
+                  <div className="text-sm text-muted-foreground">{t('compliance.pending')}</div>
                 </div>
                 <div className="text-center p-2">
                   <div className="text-2xl font-bold">{dashboardData.reports.submitted}</div>
-                  <div className="text-sm text-muted-foreground">Submitted</div>
+                  <div className="text-sm text-muted-foreground">{t('compliance.submitted')}</div>
                 </div>
               </div>
               <Separator className="my-4" />
               <div className="text-sm font-medium mb-2">
-                Reports by Type
+                {t('compliance.reportsByType')}
               </div>
               <div className="flex flex-wrap gap-2 mt-2">
                 {Object.entries(dashboardData.reports.by_type).map(([type, count]) => (
@@ -214,12 +216,12 @@ const ComplianceDashboard: React.FC = () => {
         <div>
           <Card>
             <CardHeader>
-              <CardTitle>Screening Results</CardTitle>
+              <CardTitle>{t('compliance.screeningResults')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-2">
-                  <div className="text-sm font-medium">PEP Screenings</div>
+                  <div className="text-sm font-medium">{t('compliance.pepScreenings')}</div>
                   <div className="flex items-center mt-2">
                     <div className="relative inline-flex mr-2">
                       <div className="h-12 w-12 rounded-full flex items-center justify-center border-4 border-primary">
@@ -230,13 +232,13 @@ const ComplianceDashboard: React.FC = () => {
                     </div>
                     <div>
                       <div className="text-sm">
-                        {dashboardData.screenings.pep.matches} matches out of {dashboardData.screenings.pep.total} screenings
+                        {dashboardData.screenings.pep.matches} {t('compliance.matchesOutOf')} {dashboardData.screenings.pep.total} {t('compliance.screenings')}
                       </div>
                     </div>
                   </div>
                 </div>
                 <div className="p-2">
-                  <div className="text-sm font-medium">Sanctions Screenings</div>
+                  <div className="text-sm font-medium">{t('compliance.sanctionsScreenings')}</div>
                   <div className="flex items-center mt-2">
                     <div className="relative inline-flex mr-2">
                       <div className="h-12 w-12 rounded-full flex items-center justify-center border-4 border-destructive">
@@ -247,7 +249,7 @@ const ComplianceDashboard: React.FC = () => {
                     </div>
                     <div>
                       <div className="text-sm">
-                        {dashboardData.screenings.sanctions.matches} matches out of {dashboardData.screenings.sanctions.total} screenings
+                        {dashboardData.screenings.sanctions.matches} {t('compliance.matchesOutOf')} {dashboardData.screenings.sanctions.total} {t('compliance.screenings')}
                       </div>
                     </div>
                   </div>
@@ -261,7 +263,7 @@ const ComplianceDashboard: React.FC = () => {
         <div className="col-span-1 md:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
+              <CardTitle>{t('compliance.recentActivity')}</CardTitle>
             </CardHeader>
             <CardContent>
               <ScrollArea className="h-[400px]">
@@ -287,10 +289,10 @@ const ComplianceDashboard: React.FC = () => {
                           </span>
                           <span className="font-medium">
                             {activity.type === 'report' 
-                              ? `${activity.report_type} Report` 
+                              ? `${activity.report_type} ${t('compliance.report')}` 
                               : activity.type === 'pep_screening'
-                                ? 'PEP Screening'
-                                : 'Sanctions Screening'
+                                ? t('compliance.pepScreening')
+                                : t('compliance.sanctionsScreening')
                             }
                           </span>
                           {(activity.status || activity.match_status) && (
