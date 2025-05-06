@@ -14,8 +14,11 @@ from app.services.traffic.schemas.traffic import (
 )
 from app.auth.token import get_current_user
 from app.models.user import User
+from app.services.traffic.api.dmce_endpoints import router as dmce_router
 
 router = APIRouter(tags=["traffic"])
+
+router.include_router(dmce_router, prefix="")
 
 @router.post("/upload", response_model=List[InvoiceRecordResponse])
 async def upload_invoice_data(
