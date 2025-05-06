@@ -101,26 +101,88 @@ class DMCEAutomator:
             logger.info(f"Navigating to DMCE portal: {self.dmce_url}")
             await page.goto(self.dmce_url, wait_until="networkidle")
             
-            logger.info("Clicking login button to access login page")
-            login_button = await page.wait_for_selector("button:has-text('Ingresar')", timeout=10000)
+            logger.info("Looking for LOGIN button in the top right corner")
+            
+            login_selectors = [
+                "text=LOGIN",
+                "text=Login",
+                "text=INICIAR SESIÓN",
+                "text=Iniciar Sesión",
+                "a.login-button",
+                ".login-link",
+                ".header-login",
+                "a:has-text('LOGIN')",
+                "a:has-text('Login')",
+                "a:has-text('INICIAR')",
+                "a:has-text('Iniciar')",
+                "button:has-text('LOGIN')",
+                "button:has-text('Login')",
+                "button:has-text('INICIAR')",
+                "button:has-text('Iniciar')"
+            ]
+            
+            login_button = None
+            for selector in login_selectors:
+                try:
+                    logger.info(f"Trying to find login button with selector: {selector}")
+                    login_button = await page.wait_for_selector(selector, timeout=2000)
+                    if login_button:
+                        logger.info(f"Found login button with selector: {selector}")
+                        break
+                except Exception:
+                    continue
+            
+            if not login_button:
+                logger.info("Trying to find login button by taking a screenshot and analyzing it")
+                await page.screenshot(path="/tmp/dmce_login_page.png")
+                
+                top_right_elements = await page.query_selector_all(".header a, .header button, .nav a, .nav button, header a, header button")
+                
+                for element in top_right_elements:
+                    bounding_box = await element.bounding_box()
+                    if bounding_box:
+                        viewport_size = await page.viewport_size()
+                        if bounding_box["x"] > viewport_size["width"] / 2 and bounding_box["y"] < viewport_size["height"] / 3:
+                            login_button = element
+                            logger.info("Found potential login button in top right corner")
+                            break
+            
             if login_button:
+                logger.info("Clicking login button to access login page")
                 await login_button.click()
-            
-            logger.info(f"Entering username: {self.username}")
-            await page.fill("input[name='username']", self.username)
-            
-            logger.info("Entering password")
-            await page.fill("input[name='password']", self.password)
-            
-            logger.info("Submitting login form")
-            await page.click("button[type='submit']")
-            
-            await page.wait_for_load_state("networkidle")
-            
-            dashboard_element = await page.wait_for_selector(".dashboard-container", timeout=5000)
-            
-            logger.info("Successfully logged in to DMCE portal")
-            return True
+                
+                logger.info("Waiting for login form to appear in emerging window")
+                await page.wait_for_load_state("networkidle")
+                
+                username_field = await page.wait_for_selector("input[type='text'], input[name='username'], input#username", timeout=10000)
+                password_field = await page.wait_for_selector("input[type='password'], input[name='password'], input#password", timeout=5000)
+                
+                if username_field and password_field:
+                    logger.info(f"Entering username: {self.username}")
+                    await username_field.fill(self.username)
+                    
+                    logger.info("Entering password")
+                    await password_field.fill(self.password)
+                    
+                    logger.info("Submitting login form")
+                    submit_button = await page.wait_for_selector("button[type='submit'], input[type='submit'], button:has-text('Ingresar'), button:has-text('Login')", timeout=5000)
+                    if submit_button:
+                        await submit_button.click()
+                        await page.wait_for_load_state("networkidle")
+                        
+                        try:
+                            dashboard_element = await page.wait_for_selector(".dashboard-container, .main-container, .user-info", timeout=10000)
+                            logger.info("Successfully logged in to DMCE portal")
+                            return True
+                        except Exception as e:
+                            logger.error(f"Could not verify successful login: {str(e)}")
+                            return False
+                else:
+                    logger.error("Could not find username or password fields in the login form")
+                    return False
+            else:
+                logger.error("Could not find login button")
+                return False
             
         except Exception as e:
             logger.error(f"Error logging in to DMCE: {str(e)}")
