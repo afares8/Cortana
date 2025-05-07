@@ -94,13 +94,13 @@ function App() {
           <Route path="legal/audit-logs" element={<AuditLogList />} />
           
           {/* User Management Module Routes */}
-          <Route path="users" element={<UserList />} />
-          <Route path="users/new" element={<UserForm />} />
-          <Route path="users/:id" element={<UserForm />} />
-          <Route path="users/:id/edit" element={<UserForm />} />
-          <Route path="users/:id/reset-password" element={<UserForm />} />
-          <Route path="users/:id/lock" element={<UserForm />} />
-          <Route path="users/:id/unlock" element={<UserForm />} />
+          <Route path="users" element={<UserList />} key="user-list" />
+          <Route path="users/new" element={<UserForm />} key="user-new" />
+          <Route path="users/:id" element={<UserForm />} key="user-detail" />
+          <Route path="users/:id/edit" element={<UserForm />} key="user-edit" />
+          <Route path="users/:id/reset-password" element={<UserForm />} key="user-reset-password" />
+          <Route path="users/:id/lock" element={<UserForm />} key="user-lock" />
+          <Route path="users/:id/unlock" element={<UserForm />} key="user-unlock" />
           
           {/* Accounting Module Routes */}
           <Route path="accounting/dashboard" element={<AccountingDashboard />} />

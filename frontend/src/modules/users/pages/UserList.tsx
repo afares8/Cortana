@@ -107,7 +107,7 @@ const UserList: React.FC = () => {
   }
   
   return (
-    <>
+    <div className="bg-red-100 mx-auto max-w-6xl"> {/* Temporary background for debugging */}
       <Card className="mx-auto max-w-6xl">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
@@ -247,7 +247,7 @@ const UserList: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </div>
   );
 };
 

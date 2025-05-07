@@ -42,7 +42,8 @@ export default function Layout({ children, title }: LayoutProps) {
     compliance: true,
     traffic: true,
     ai: true,
-    accounting: true
+    accounting: true,
+    users: true
   });
 
   const handleLogout = () => {
@@ -100,6 +101,16 @@ export default function Layout({ children, title }: LayoutProps) {
       ]
     },
     { 
+      path: 'users', 
+      label: 'common.navigation.userManagement', 
+      icon: <UserCog className="h-5 w-5" />, 
+      section: 'users',
+      children: [
+        { path: 'users', label: 'common.navigation.users', icon: <Users className="h-4 w-4" /> },
+        { path: 'users/new', label: 'common.navigation.newUser', icon: <UserCog className="h-4 w-4" /> }
+      ]
+    },
+    { 
       path: 'traffic', 
       label: 'common.navigation.traffic', 
       icon: <Truck className="h-5 w-5" />, 
@@ -140,6 +151,7 @@ export default function Layout({ children, title }: LayoutProps) {
     if (path.startsWith('contracts/')) return 'contracts';
     if (path.startsWith('traffic/')) return 'traffic';
     if (path.startsWith('accounting/')) return 'accounting';
+    if (path.startsWith('users/')) return 'users';
     if (path.startsWith('ai-')) return 'ai';
     return 'dashboard';
   };
