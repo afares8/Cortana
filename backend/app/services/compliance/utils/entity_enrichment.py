@@ -3,7 +3,7 @@ import logging
 from datetime import datetime
 import asyncio
 
-from app.services.compliance.utils.data_sources import wikidata_client, gleif_api_url
+from app.services.compliance.utils.data_sources import wikidata_client, GLEIF_API_URL as gleif_api_url
 
 logger = logging.getLogger(__name__)
 
