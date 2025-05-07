@@ -31,7 +31,7 @@ Set your DMCE credentials and declaration data as environment variables:
 
 ```bash
 # Copy the example environment file
-cp dmce_env_example.js config/.env
+cp config/.env.example config/.env
 
 # Edit the .env file with your specific values
 ```
