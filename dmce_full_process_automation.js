@@ -160,13 +160,54 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
     
     console.log('Waiting for dashboard to load');
     
-    await popup.waitForFunction(() => {
-      return document.readyState === 'complete' && 
-             !document.querySelector('body[style*="display: none"]') &&
-             document.body.offsetHeight > 0;
-    }, { timeout: 30000 });
+    let dashboardLoaded = false;
+    let retryCount = 0;
+    const maxRetries = 3;
+    const timeout = 60000; // Increased timeout to 60 seconds
     
-    console.log('Dashboard loaded');
+    while (!dashboardLoaded && retryCount < maxRetries) {
+      try {
+        console.log(`Dashboard loading attempt ${retryCount + 1}/${maxRetries}`);
+        
+        await Promise.race([
+          popup.waitForFunction(() => {
+            return document.readyState === 'complete' && 
+                  document.body.offsetHeight > 0;
+          }, { timeout: timeout / maxRetries }),
+          
+          popup.waitForSelector('a:text("Declaración"), a:text("Factura"), a:text("Consulta"), nav, .menu, .navbar', { 
+            timeout: timeout / maxRetries,
+            state: 'visible' 
+          }),
+          
+          popup.waitForSelector('iframe', { 
+            timeout: timeout / maxRetries,
+            state: 'visible' 
+          })
+        ]);
+        
+        dashboardLoaded = true;
+        console.log('Dashboard loaded successfully');
+        
+      } catch (error) {
+        retryCount++;
+        console.log(`Dashboard loading attempt ${retryCount} failed: ${error.message}`);
+        
+        if (retryCount < maxRetries) {
+          console.log(`Waiting 5 seconds before retry ${retryCount + 1}...`);
+          await popup.waitForTimeout(5000);
+          
+          await popup.screenshot({ 
+            path: `./screenshots/dashboard_loading_retry_${retryCount}.png`,
+            fullPage: true
+          });
+        } else {
+          console.log('Maximum retries reached. Continuing with best effort...');
+        }
+      }
+    }
+    
+    console.log('Dashboard loading phase complete');
     
     try {
       await popup.screenshot({ 
@@ -183,42 +224,414 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
       console.log('Continuing with process...');
     }
     
+    console.log('Checking for iframes in the dashboard...');
+    const iframeCount = await popup.$$eval('iframe', iframes => iframes.length);
+    console.log(`Found ${iframeCount} iframes in the dashboard`);
+    
+    if (iframeCount > 0) {
+      console.log('Attempting to access iframe content...');
+      
+      const iframeHandles = await popup.$$('iframe');
+      
+      for (let i = 0; i < iframeHandles.length; i++) {
+        try {
+          console.log(`Accessing iframe ${i + 1}/${iframeCount}`);
+          
+          const frame = await iframeHandles[i].contentFrame();
+          
+          if (frame) {
+            console.log(`Successfully accessed iframe ${i + 1}`);
+            
+            try {
+              await frame.screenshot({ 
+                path: `./screenshots/iframe_${i + 1}_content.png`,
+                fullPage: true 
+              });
+            } catch (screenshotError) {
+              console.log(`Warning: Screenshot error for iframe ${i + 1}: ${screenshotError.message}`);
+            }
+            
+            try {
+              const frameContent = await frame.content();
+              fs.writeFileSync(`./logs/iframe_${i + 1}_content.html`, frameContent);
+            } catch (contentError) {
+              console.log(`Warning: Error getting content of iframe ${i + 1}: ${contentError.message}`);
+            }
+            
+            try {
+              console.log(`Searching for Declaración menu in iframe ${i + 1}...`);
+              
+              const frameSelectors = [
+                'text="Declaración"',
+                'a:has-text("Declaración")',
+                '.menu a:has-text("Declaración")',
+                'nav a:has-text("Declaración")',
+                'div.menu-item:has-text("Declaración")',
+                '[role="menuitem"]:has-text("Declaración")'
+              ];
+              
+              for (const selector of frameSelectors) {
+                try {
+                  const declaracionElement = await frame.$(selector);
+                  
+                  if (declaracionElement) {
+                    console.log(`Found "Declaración" menu in iframe ${i + 1} with selector: ${selector}`);
+                    await declaracionElement.click();
+                    console.log('Clicked on "Declaración" menu in iframe');
+                    await popup.waitForTimeout(2000);
+                    await popup.screenshot({ 
+                      path: './screenshots/after_declaration_menu_click_iframe.png',
+                      fullPage: true 
+                    });
+                    
+                    const crearSelectors = [
+                      'text="Crear Declaración"',
+                      'a:has-text("Crear Declaración")',
+                      'a:has-text("Nueva Declaración")',
+                      'a[href*="crear"]',
+                      'button:has-text("Crear")'
+                    ];
+                    
+                    for (const crearSelector of crearSelectors) {
+                      try {
+                        const crearElement = await frame.$(crearSelector);
+                        
+                        if (crearElement) {
+                          console.log(`Found "Crear Declaración" link in iframe with selector: ${crearSelector}`);
+                          await crearElement.click();
+                          console.log('Clicked on "Crear Declaración" link in iframe');
+                          await popup.waitForTimeout(2000);
+                          await popup.screenshot({ 
+                            path: './screenshots/after_crear_declaration_click_iframe.png',
+                            fullPage: true 
+                          });
+                          
+                          break;
+                        }
+                      } catch (crearError) {
+                        console.log(`Error with selector ${crearSelector} in iframe ${i + 1}: ${crearError.message}`);
+                      }
+                    }
+                    
+                    break; // Break out of the selector loop if we found and clicked Declaración
+                  }
+                } catch (selectorError) {
+                  console.log(`Error with selector ${selector} in iframe ${i + 1}: ${selectorError.message}`);
+                }
+              }
+              
+              const clickableElements = await frame.$$eval('a, button', elements => {
+                return elements.map(el => ({
+                  tagName: el.tagName,
+                  text: el.textContent.trim(),
+                  id: el.id,
+                  className: el.className,
+                  href: el.href || null
+                })).filter(el => el.text.length > 0);
+              });
+              
+              fs.writeFileSync(`./logs/iframe_${i + 1}_clickable_elements.json`, JSON.stringify(clickableElements, null, 2));
+              console.log(`Found ${clickableElements.length} clickable elements in iframe ${i + 1}`);
+              
+              const potentialMenuItems = clickableElements.filter(el => 
+                el.text.toLowerCase().includes('declaraci') || 
+                el.text.toLowerCase().includes('declar') ||
+                (el.href && (el.href.includes('declaracion') || el.href.includes('declar')))
+              );
+              
+              if (potentialMenuItems.length > 0) {
+                console.log(`Found ${potentialMenuItems.length} potential Declaración menu items in iframe ${i + 1}`);
+                console.log('Potential menu items:', JSON.stringify(potentialMenuItems, null, 2));
+                
+                try {
+                  const menuSelector = potentialMenuItems[0].id ? 
+                    `#${potentialMenuItems[0].id}` : 
+                    `text="${potentialMenuItems[0].text}"`;
+                  
+                  const menuElement = await frame.$(menuSelector);
+                  
+                  if (menuElement) {
+                    console.log(`Clicking potential menu item: ${menuSelector}`);
+                    await menuElement.click();
+                    console.log('Clicked on potential Declaración menu item');
+                    await popup.waitForTimeout(2000);
+                    await popup.screenshot({ 
+                      path: './screenshots/after_potential_menu_click.png',
+                      fullPage: true 
+                    });
+                  }
+                } catch (menuClickError) {
+                  console.log(`Error clicking potential menu item: ${menuClickError.message}`);
+                }
+              }
+            } catch (frameSearchError) {
+              console.log(`Error searching in iframe ${i + 1}: ${frameSearchError.message}`);
+            }
+          } else {
+            console.log(`Could not access content of iframe ${i + 1}`);
+          }
+        } catch (iframeError) {
+          console.log(`Error accessing iframe ${i + 1}: ${iframeError.message}`);
+        }
+      }
+    }
+    
     console.log('Step 2: Navigating to "Crear Declaración"');
     
+    await popup.screenshot({ 
+      path: './screenshots/pre_navigation_dashboard.png',
+      fullPage: true 
+    });
+    
+    console.log('Using direct JavaScript evaluation to interact with the dashboard');
+    
     try {
-      const declMenu = await popup.waitForSelector('a:text("Declaración")', { 
-        timeout: 10000,
-        state: 'visible' 
+      const clickedDeclaracion = await popup.evaluate(() => {
+        function findElementsByText(text, elements) {
+          const results = [];
+          for (const el of elements) {
+            if (el.textContent && el.textContent.trim().includes(text)) {
+              results.push(el);
+            }
+          }
+          return results;
+        }
+        
+        
+        // 1. Look for elements with exact text "Declaración"
+        const declaracionElements = findElementsByText('Declaración', document.querySelectorAll('a, span, div, button'));
+        if (declaracionElements.length > 0) {
+          console.log('Found Declaración element by text content');
+          declaracionElements[0].click();
+          return true;
+        }
+        
+        const sidebarElements = document.querySelectorAll('.sidebar a, .sidebar-menu a, .nav-sidebar a, .left-menu a, [role="navigation"] a');
+        for (const el of sidebarElements) {
+          if (el.textContent && el.textContent.trim().includes('Declaración')) {
+            console.log('Found Declaración in sidebar');
+            el.click();
+            return true;
+          }
+        }
+        
+        const leftMenuItems = document.querySelectorAll('.sidebar a, .sidebar-menu a, .nav-sidebar a, .left-menu a, [role="navigation"] a');
+        if (leftMenuItems.length > 0) {
+          console.log('Clicking first menu item in left sidebar');
+          leftMenuItems[0].click();
+          return true;
+        }
+        
+        const expandIcons = document.querySelectorAll('a i.fa-caret-down, a i.fa-chevron-down, a i.fa-angle-down, a i.expand-icon, a .dropdown-icon');
+        if (expandIcons.length > 0) {
+          console.log('Found expand icon, clicking parent element');
+          expandIcons[0].closest('a').click();
+          return true;
+        }
+        
+        return false;
       });
-      await declMenu.click();
-      console.log('Clicked on "Declaración" menu');
-    } catch (error) {
-      console.error('Error finding "Declaración" menu:', error);
-      await popup.screenshot({ path: './screenshots/declaration_menu_error.png', fullPage: true });
-      throw new Error('Could not find "Declaración" menu');
+      
+      if (clickedDeclaracion) {
+        console.log('Successfully clicked on Declaración menu using JavaScript evaluation');
+        await popup.waitForTimeout(2000);
+        await popup.screenshot({ path: './screenshots/after_declaration_menu_click_js.png', fullPage: true });
+      } else {
+        console.log('Could not find Declaración menu using JavaScript evaluation');
+      }
+    } catch (jsError) {
+      console.error('Error using JavaScript to click Declaración menu:', jsError);
     }
     
     try {
-      const createDecl = await popup.waitForSelector('a:text("Crear Declaración")', { 
-        timeout: 5000,
-        state: 'visible' 
+      const clickedCrearDeclaracion = await popup.evaluate(() => {
+        function findElementsByText(text, elements) {
+          const results = [];
+          for (const el of elements) {
+            if (el.textContent && el.textContent.trim().includes(text)) {
+              results.push(el);
+            }
+          }
+          return results;
+        }
+        
+        
+        // 1. Look for elements with exact text "Crear Declaración"
+        const crearElements = findElementsByText('Crear Declaración', document.querySelectorAll('a, span, div, button'));
+        if (crearElements.length > 0) {
+          console.log('Found Crear Declaración element by text content');
+          crearElements[0].click();
+          return true;
+        }
+        
+        // 2. Look for elements with text containing "Crear" and "Declaración"
+        const crearElements2 = findElementsByText('Crear', document.querySelectorAll('a, span, div, button'));
+        for (const el of crearElements2) {
+          if (el.textContent && el.textContent.trim().includes('Declaración')) {
+            console.log('Found element with Crear and Declaración');
+            el.click();
+            return true;
+          }
+        }
+        
+        // 3. Look for elements with text containing "Nueva" and "Declaración"
+        const nuevaElements = findElementsByText('Nueva', document.querySelectorAll('a, span, div, button'));
+        for (const el of nuevaElements) {
+          if (el.textContent && el.textContent.trim().includes('Declaración')) {
+            console.log('Found element with Nueva and Declaración');
+            el.click();
+            return true;
+          }
+        }
+        
+        // 4. Try clicking on any visible submenu items after clicking Declaración
+        const submenuItems = document.querySelectorAll('.submenu a, .dropdown-menu a, .menu-item a');
+        if (submenuItems.length > 0) {
+          console.log('Clicking first submenu item');
+          submenuItems[0].click();
+          return true;
+        }
+        
+        return false;
       });
-      await createDecl.click();
-      console.log('Clicked on "Crear Declaración"');
-    } catch (error) {
-      console.error('Error finding "Crear Declaración" link:', error);
-      await popup.screenshot({ path: './screenshots/crear_declaration_error.png', fullPage: true });
-      throw new Error('Could not find "Crear Declaración" link');
+      
+      if (clickedCrearDeclaracion) {
+        console.log('Successfully clicked on Crear Declaración link using JavaScript evaluation');
+        await popup.waitForTimeout(2000);
+        await popup.screenshot({ path: './screenshots/after_crear_declaration_click_js.png', fullPage: true });
+      } else {
+        console.log('Could not find Crear Declaración link using JavaScript evaluation');
+      }
+    } catch (jsError) {
+      console.error('Error using JavaScript to click Crear Declaración link:', jsError);
     }
     
     try {
-      await popup.waitForSelector('#crearDeclaracionForm', { timeout: 10000 });
-      console.log('Declaration form loaded');
-      await popup.screenshot({ path: './screenshots/declaration_form.png' });
+      console.log('Attempting fallback using direct coordinate click for Declaración menu');
+      
+      await popup.mouse.click(150, 70); // Adjust these coordinates based on the screenshot
+      console.log('Clicked on approximate Declaración menu coordinates');
+      await popup.waitForTimeout(3000);
+      await popup.screenshot({ path: './screenshots/after_declaration_menu_coordinate_click.png', fullPage: true });
+      
+      console.log('Attempting to click on Crear Declaración submenu');
+      await popup.mouse.click(150, 108); // Adjusted coordinates based on the screenshot
+      console.log('Clicked on approximate Crear Declaración coordinates');
+      await popup.waitForTimeout(5000); // Increased timeout to allow page to load
+      await popup.screenshot({ path: './screenshots/after_crear_declaration_coordinate_click.png', fullPage: true });
+      
+      const pageTitle = await popup.evaluate(() => {
+        const breadcrumbElements = document.querySelectorAll('a, span, div');
+        for (const el of breadcrumbElements) {
+          if (el.textContent && el.textContent.includes('Crear declaración')) {
+            return 'Crear declaración page found';
+          }
+        }
+        return null;
+      });
+      
+      if (pageTitle) {
+        console.log('Successfully navigated to Crear declaración page');
+      } else {
+        console.log('Could not confirm navigation to Crear declaración page');
+      }
+    } catch (coordinateError) {
+      console.error('Error using coordinate click:', coordinateError);
+    }
+    
+    console.log('Waiting for declaration form to load...');
+    let formFound = false;
+    
+    try {
+      const formSelectors = [
+        '#crearDeclaracionForm',
+        'form',
+        '.form',
+        '.form-container',
+        '[role="form"]',
+        '.panel-body form',
+        '.content form',
+        '.main-content form'
+      ];
+      
+      for (const selector of formSelectors) {
+        try {
+          console.log(`Trying form selector: ${selector}`);
+          const form = await popup.waitForSelector(selector, { 
+            timeout: 5000,
+            state: 'visible' 
+          });
+          
+          if (form) {
+            console.log(`Found form with selector: ${selector}`);
+            formFound = true;
+            await popup.screenshot({ path: './screenshots/declaration_form.png' });
+            break;
+          }
+        } catch (selectorError) {
+          console.log(`Selector ${selector} failed: ${selectorError.message}`);
+        }
+      }
+      
+      if (!formFound) {
+        console.log('Trying to find input fields as fallback');
+        const inputSelectors = [
+          'input',
+          'textarea',
+          'select',
+          '#inputFactura',
+          '#inputFechaDeclaracion',
+          '#inputCliente'
+        ];
+        
+        for (const selector of inputSelectors) {
+          try {
+            const input = await popup.waitForSelector(selector, { 
+              timeout: 5000,
+              state: 'visible' 
+            });
+            
+            if (input) {
+              console.log(`Found input field with selector: ${selector}`);
+              formFound = true;
+              await popup.screenshot({ path: './screenshots/form_input_found.png' });
+              break;
+            }
+          } catch (inputError) {
+            console.log(`Input selector ${selector} failed: ${inputError.message}`);
+          }
+        }
+      }
+      
+      if (formFound) {
+        console.log('Form or input fields found, ready to proceed with form filling');
+      } else {
+        console.log('Could not find form or input fields, but continuing with best effort');
+        await popup.screenshot({ path: './screenshots/form_not_found.png', fullPage: true });
+        
+        const html = await popup.content();
+        fs.writeFileSync('./logs/form_page_content.html', html);
+        
+        const pageElements = await popup.evaluate(() => {
+          const elements = Array.from(document.querySelectorAll('*'));
+          return elements
+            .filter(el => el.id || (el.className && typeof el.className === 'string' && el.className.length > 0))
+            .slice(0, 50)  // Limit to first 50 elements
+            .map(el => ({
+              tagName: el.tagName,
+              id: el.id,
+              className: typeof el.className === 'string' ? el.className : null,
+              text: el.textContent ? el.textContent.substring(0, 100) : null
+            }));
+        });
+        
+        fs.writeFileSync('./logs/form_page_elements.json', JSON.stringify(pageElements, null, 2));
+        console.log('Saved page elements to logs/form_page_elements.json for debugging');
+      }
     } catch (error) {
-      console.error('Error finding declaration form:', error);
-      await popup.screenshot({ path: './screenshots/form_load_error.png', fullPage: true });
-      throw new Error('Could not find declaration form');
+      console.error('Error during form detection:', error);
+      await popup.screenshot({ path: './screenshots/form_detection_error.png', fullPage: true });
+      console.log('Continuing with process despite form detection error');
     }
     
     console.log('Step 3: Filling Section A - Datos de la Declaración');
