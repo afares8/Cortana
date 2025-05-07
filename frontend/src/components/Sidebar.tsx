@@ -105,13 +105,25 @@ const Sidebar = () => {
             </div>
             <ul className="space-y-1">
               <li>
-                <Link to="/users" className="flex items-center p-2 rounded hover:bg-gray-700">
+                <Link 
+                  to="/users" 
+                  className="flex items-center p-2 rounded hover:bg-gray-700"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent event bubbling but allow default navigation
+                  }}
+                >
                   <Users className="h-5 w-5 mr-3" />
                   {t('common.navigation.users')}
                 </Link>
               </li>
               <li>
-                <Link to="/users/new" className="flex items-center p-2 rounded hover:bg-gray-700">
+                <Link 
+                  to="/users/new" 
+                  className="flex items-center p-2 rounded hover:bg-gray-700"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent event bubbling but allow default navigation
+                  }}
+                >
                   <UserCog className="h-5 w-5 mr-3" />
                   {t('common.navigation.newUser')}
                 </Link>
