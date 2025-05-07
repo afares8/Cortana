@@ -21,8 +21,10 @@ import { getAuditLogs } from '../api/legalApi';
 import { AuditLog } from '../types';
 import { format, parseISO } from 'date-fns';
 import { Loader2, Search, Filter, FileText, User, Calendar } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const AuditLogList: React.FC = () => {
+  const { t } = useTranslation();
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -115,32 +117,32 @@ const AuditLogList: React.FC = () => {
   const getActionBadge = (action: string) => {
     switch (action) {
       case 'create':
-        return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Create</Badge>;
+        return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">{t('legal.auditLogs.actions.create')}</Badge>;
       case 'update':
-        return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">Update</Badge>;
+        return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">{t('legal.auditLogs.actions.update')}</Badge>;
       case 'delete':
-        return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Delete</Badge>;
+        return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">{t('legal.auditLogs.actions.delete')}</Badge>;
       case 'view':
-        return <Badge variant="outline" className="bg-gray-100 text-gray-800 hover:bg-gray-100">View</Badge>;
+        return <Badge variant="outline" className="bg-gray-100 text-gray-800 hover:bg-gray-100">{t('legal.auditLogs.actions.view')}</Badge>;
       case 'approve':
-        return <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100">Approve</Badge>;
+        return <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100">{t('legal.auditLogs.actions.approve')}</Badge>;
       default:
-        return <Badge variant="outline">{action}</Badge>;
+        return <Badge variant="outline">{t(`legal.auditLogs.actions.${action}`)}</Badge>;
     }
   };
 
   const getEntityBadge = (entityType: string) => {
     switch (entityType) {
       case 'contract':
-        return <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">Contract</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">{t('legal.auditLogs.entities.contract')}</Badge>;
       case 'client':
-        return <Badge className="bg-indigo-100 text-indigo-800 hover:bg-indigo-100">Client</Badge>;
+        return <Badge className="bg-indigo-100 text-indigo-800 hover:bg-indigo-100">{t('legal.auditLogs.entities.client')}</Badge>;
       case 'task':
-        return <Badge className="bg-cyan-100 text-cyan-800 hover:bg-cyan-100">Task</Badge>;
+        return <Badge className="bg-cyan-100 text-cyan-800 hover:bg-cyan-100">{t('legal.auditLogs.entities.task')}</Badge>;
       case 'workflow':
-        return <Badge className="bg-pink-100 text-pink-800 hover:bg-pink-100">Workflow</Badge>;
+        return <Badge className="bg-pink-100 text-pink-800 hover:bg-pink-100">{t('legal.auditLogs.entities.workflow')}</Badge>;
       default:
-        return <Badge variant="outline">{entityType}</Badge>;
+        return <Badge variant="outline">{t(`legal.auditLogs.entities.${entityType}`)}</Badge>;
     }
   };
 
@@ -148,8 +150,8 @@ const AuditLogList: React.FC = () => {
     <div className="container mx-auto py-6">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Audit Logs</h1>
-          <p className="text-gray-500">Track all changes and activities in the system</p>
+          <h1 className="text-3xl font-bold">{t('legal.auditLogs.title')}</h1>
+          <p className="text-gray-500">{t('legal.auditLogs.description')}</p>
         </div>
         <Button 
           variant="outline"
@@ -157,14 +159,14 @@ const AuditLogList: React.FC = () => {
           className="flex items-center gap-2"
         >
           <FileText size={16} />
-          Export Logs
+          {t('legal.auditLogs.exportLogs')}
         </Button>
       </div>
 
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Filters</CardTitle>
-          <CardDescription>Search and filter audit logs</CardDescription>
+          <CardTitle>{t('legal.auditLogs.filters')}</CardTitle>
+          <CardDescription>{t('legal.auditLogs.searchAndFilter')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row gap-4">
@@ -173,7 +175,7 @@ const AuditLogList: React.FC = () => {
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
                 <Input
                   type="text"
-                  placeholder="Search logs..."
+                  placeholder={t('legal.auditLogs.searchPlaceholder')}
                   className="pl-8"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -188,10 +190,10 @@ const AuditLogList: React.FC = () => {
                   value={actionFilter}
                   onChange={(e) => setActionFilter(e.target.value)}
                 >
-                  <option value="">All Actions</option>
+                  <option value="">{t('legal.auditLogs.allActions')}</option>
                   {actions.map((action) => (
                     <option key={action} value={action}>
-                      {action.charAt(0).toUpperCase() + action.slice(1)}
+                      {t(`legal.auditLogs.actions.${action}`)}
                     </option>
                   ))}
                 </select>
@@ -205,10 +207,10 @@ const AuditLogList: React.FC = () => {
                   value={entityFilter}
                   onChange={(e) => setEntityFilter(e.target.value)}
                 >
-                  <option value="">All Entities</option>
+                  <option value="">{t('legal.auditLogs.allEntities')}</option>
                   {entityTypes.map((type) => (
                     <option key={type} value={type}>
-                      {type.charAt(0).toUpperCase() + type.slice(1)}
+                      {t(`legal.auditLogs.entities.${type}`)}
                     </option>
                   ))}
                 </select>
@@ -228,18 +230,18 @@ const AuditLogList: React.FC = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Timestamp</TableHead>
-                  <TableHead>User</TableHead>
-                  <TableHead>Action</TableHead>
-                  <TableHead>Entity Type</TableHead>
-                  <TableHead>Details</TableHead>
+                  <TableHead>{t('legal.auditLogs.tableHeaders.timestamp')}</TableHead>
+                  <TableHead>{t('legal.auditLogs.tableHeaders.user')}</TableHead>
+                  <TableHead>{t('legal.auditLogs.tableHeaders.action')}</TableHead>
+                  <TableHead>{t('legal.auditLogs.tableHeaders.entityType')}</TableHead>
+                  <TableHead>{t('legal.auditLogs.tableHeaders.details')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredLogs.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                      No audit logs found. Try adjusting your filters.
+                      {t('legal.auditLogs.noLogsFound')}
                     </TableCell>
                   </TableRow>
                 ) : (

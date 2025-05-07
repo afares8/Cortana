@@ -32,7 +32,10 @@
       "documents": "Documentos",
       "notifications": "Notificaciones",
       "emailDrafts": "Borradores de Correo",
-      "workflows": "Flujos de Trabajo"
+      "workflows": "Flujos de Trabajo",
+      "userManagement": "Gestión de Usuarios",
+      "users": "Usuarios",
+      "newUser": "Nuevo Usuario"
     },
     "searchPlaceholder": "Buscar...",
     "labels": {
@@ -78,7 +81,38 @@
     "department": "Departamento Legal",
     "addNewClient": "Añadir Nuevo Cliente",
     "createWorkflow": "Crear Flujo de Trabajo",
-    "createTask": "Crear Tarea"
+    "createTask": "Crear Tarea",
+    "auditLogs": {
+      "title": "Registros de Auditoría",
+      "description": "Seguimiento de todos los cambios y actividades en el sistema",
+      "filters": "Filtros",
+      "searchAndFilter": "Buscar y filtrar registros de auditoría",
+      "searchPlaceholder": "Buscar registros...",
+      "allActions": "Todas las Acciones",
+      "allEntities": "Todas las Entidades",
+      "noLogsFound": "No se encontraron registros de auditoría. Intente ajustar sus filtros.",
+      "exportLogs": "Exportar Registros",
+      "tableHeaders": {
+        "timestamp": "Fecha y Hora",
+        "user": "Usuario",
+        "action": "Acción",
+        "entityType": "Tipo de Entidad",
+        "details": "Detalles"
+      },
+      "actions": {
+        "create": "Crear",
+        "update": "Actualizar",
+        "delete": "Eliminar",
+        "view": "Ver",
+        "approve": "Aprobar"
+      },
+      "entities": {
+        "contract": "Contrato",
+        "client": "Cliente",
+        "task": "Tarea",
+        "workflow": "Flujo de Trabajo"
+      }
+    }
   },
   "compliance": {
     "customerVerification": "Verificación de Cliente",

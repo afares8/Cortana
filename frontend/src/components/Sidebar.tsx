@@ -25,6 +25,7 @@ const Sidebar = () => {
       
       <nav className="flex-1 p-4">
         <ul className="space-y-2">
+          {/* Dashboard */}
           <li>
             <Link to="/" className="flex items-center p-2 rounded hover:bg-gray-700">
               <Home className="h-5 w-5 mr-3" />
@@ -32,8 +33,11 @@ const Sidebar = () => {
             </Link>
           </li>
           
+          {/* Legal */}
           <li className="pt-4">
-            <div className="text-gray-400 text-xs uppercase font-semibold mb-2 pl-2">{t('common.navigation.legal')}</div>
+            <div className="text-gray-400 text-xs uppercase font-semibold mb-2 pl-2">
+              {t('common.navigation.legal')}
+            </div>
             <ul className="space-y-1">
               <li>
                 <Link to="/legal/clients" className="flex items-center p-2 rounded hover:bg-gray-700">
@@ -50,8 +54,11 @@ const Sidebar = () => {
             </ul>
           </li>
           
+          {/* Compliance */}
           <li className="pt-4">
-            <div className="text-gray-400 text-xs uppercase font-semibold mb-2 pl-2">{t('common.navigation.compliance')}</div>
+            <div className="text-gray-400 text-xs uppercase font-semibold mb-2 pl-2">
+              {t('common.navigation.compliance')}
+            </div>
             <ul className="space-y-1">
               <li>
                 <Link to="/compliance/dashboard" className="flex items-center p-2 rounded hover:bg-gray-700">
@@ -68,8 +75,11 @@ const Sidebar = () => {
             </ul>
           </li>
           
+          {/* Accounting */}
           <li className="pt-4">
-            <div className="text-gray-400 text-xs uppercase font-semibold mb-2 pl-2">{t('common.navigation.accounting')}</div>
+            <div className="text-gray-400 text-xs uppercase font-semibold mb-2 pl-2">
+              {t('common.navigation.accounting')}
+            </div>
             <ul className="space-y-1">
               <li>
                 <Link to="/accounting/dashboard" className="flex items-center p-2 rounded hover:bg-gray-700">
@@ -88,8 +98,32 @@ const Sidebar = () => {
             </ul>
           </li>
           
+          {/* User Management */}
           <li className="pt-4">
-            <div className="text-gray-400 text-xs uppercase font-semibold mb-2 pl-2">{t('common.navigation.account')}</div>
+            <div className="text-gray-400 text-xs uppercase font-semibold mb-2 pl-2">
+              {t('common.navigation.userManagement')}
+            </div>
+            <ul className="space-y-1">
+              <li>
+                <Link to="/users" className="flex items-center p-2 rounded hover:bg-gray-700">
+                  <Users className="h-5 w-5 mr-3" />
+                  {t('common.navigation.users')}
+                </Link>
+              </li>
+              <li>
+                <Link to="/users/new" className="flex items-center p-2 rounded hover:bg-gray-700">
+                  <UserCog className="h-5 w-5 mr-3" />
+                  {t('common.navigation.newUser')}
+                </Link>
+              </li>
+            </ul>
+          </li>
+          
+          {/* Account */}
+          <li className="pt-4">
+            <div className="text-gray-400 text-xs uppercase font-semibold mb-2 pl-2">
+              {t('common.navigation.account')}
+            </div>
             <ul className="space-y-1">
               <li>
                 <Link to="/settings" className="flex items-center p-2 rounded hover:bg-gray-700">
