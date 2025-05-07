@@ -25,6 +25,9 @@ import TaskList from './modules/legal/pages/TaskList';
 import TaskDetail from './modules/legal/pages/TaskDetail';
 import AuditLogList from './modules/legal/pages/AuditLogList';
 
+import UserList from './modules/users/pages/UserList';
+import UserForm from './modules/users/pages/UserForm';
+
 import AccountingDashboard from './modules/accounting/pages/AccountingDashboard';
 import UserAccessManagement from './modules/accounting/pages/UserAccessManagement';
 import NotificationsPage from './modules/accounting/pages/NotificationsPage';
@@ -89,6 +92,15 @@ function App() {
           <Route path="legal/tasks" element={<TaskList />} />
           <Route path="legal/tasks/:id" element={<TaskDetail />} />
           <Route path="legal/audit-logs" element={<AuditLogList />} />
+          
+          {/* User Management Module Routes */}
+          <Route path="users" element={<UserList />} />
+          <Route path="users/new" element={<UserForm />} />
+          <Route path="users/:id" element={<UserForm />} />
+          <Route path="users/:id/edit" element={<UserForm />} />
+          <Route path="users/:id/reset-password" element={<UserForm />} />
+          <Route path="users/:id/lock" element={<UserForm />} />
+          <Route path="users/:id/unlock" element={<UserForm />} />
           
           {/* Accounting Module Routes */}
           <Route path="accounting/dashboard" element={<AccountingDashboard />} />

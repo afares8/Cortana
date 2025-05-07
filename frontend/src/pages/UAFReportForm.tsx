@@ -51,12 +51,35 @@ const UAFReportForm: React.FC = () => {
         client_id: parseInt(clientId),
         start_date: startDate.toISOString(),
         end_date: endDate.toISOString()
+      }, {
+        responseType: 'blob' // Set response type to blob
       });
       
-      setSuccess(true);
-      setTimeout(() => {
-        navigate(`/compliance/reports/${response.data.id}`);
-      }, 1500);
+      const contentType = response.headers['content-type'];
+      if (contentType && contentType.includes('application/pdf')) {
+        const blob = new Blob([response.data], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        
+        const contentDisposition = response.headers['content-disposition'];
+        const filename = contentDisposition
+          ? contentDisposition.split('filename=')[1]?.replace(/"/g, '')
+          : `uaf-report-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+        
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+        
+        setSuccess(true);
+        setTimeout(() => {
+          setSuccess(false);
+        }, 3000);
+      } else {
+        throw new Error('Invalid file format received');
+      }
     } catch (err) {
       console.error('Error generating UAF report:', err);
       setError('Failed to generate UAF report. Please try again later.');

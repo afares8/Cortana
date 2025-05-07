@@ -88,6 +88,24 @@ const Sidebar = () => {
           </li>
           
           <li className="pt-4">
+            <div className="text-gray-400 text-xs uppercase font-semibold mb-2 pl-2">User Management</div>
+            <ul className="space-y-1">
+              <li>
+                <Link to="/users" className="flex items-center p-2 rounded hover:bg-gray-700">
+                  <Users className="h-5 w-5 mr-3" />
+                  Users
+                </Link>
+              </li>
+              <li>
+                <Link to="/users/new" className="flex items-center p-2 rounded hover:bg-gray-700">
+                  <UserCog className="h-5 w-5 mr-3" />
+                  New User
+                </Link>
+              </li>
+            </ul>
+          </li>
+          
+          <li className="pt-4">
             <div className="text-gray-400 text-xs uppercase font-semibold mb-2 pl-2">Account</div>
             <ul className="space-y-1">
               <li>
