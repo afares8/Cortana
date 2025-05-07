@@ -81,6 +81,21 @@
     "createTask": "Create Task"
   },
   "compliance": {
+    "dashboard": "Compliance Dashboard",
+    "reports": "Reports",
+    "totalReports": "Total Reports",
+    "pending": "Pending",
+    "submitted": "Submitted",
+    "reportsByType": "Reports by Type",
+    "screeningResults": "Screening Results",
+    "pepScreenings": "PEP Screenings",
+    "sanctionsScreenings": "Sanctions Screenings",
+    "matchesOutOf": "matches out of",
+    "screenings": "screenings",
+    "recentActivity": "Recent Activity",
+    "report": "Report",
+    "pepScreening": "PEP Screening",
+    "sanctionsScreening": "Sanctions Screening",
     "customerVerification": "Customer Verification",
     "verifyCustomer": "Customer Verification",
     "runComplianceCheck": "Run Compliance Check",
@@ -107,7 +122,8 @@
     "continue": "Continue",
     "back": "Back",
     "actions": "Compliance Actions",
-    "pendingReports": "Pending Reports"
+    "pendingReports": "Pending Reports",
+    "noDashboardData": "No dashboard data available"
   },
   "ai": {
     "tools": "AI Tools",

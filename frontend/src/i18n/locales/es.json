@@ -115,6 +115,21 @@
     }
   },
   "compliance": {
+    "dashboard": "Panel de Cumplimiento",
+    "reports": "Informes",
+    "totalReports": "Total de Informes",
+    "pending": "Pendientes",
+    "submitted": "Enviados",
+    "reportsByType": "Informes por Tipo",
+    "screeningResults": "Resultados de Verificación",
+    "pepScreenings": "Verificaciones PEP",
+    "sanctionsScreenings": "Verificaciones de Sanciones",
+    "matchesOutOf": "coincidencias de",
+    "screenings": "verificaciones",
+    "recentActivity": "Actividad Reciente",
+    "report": "Informe",
+    "pepScreening": "Verificación PEP",
+    "sanctionsScreening": "Verificación de Sanciones",
     "customerVerification": "Verificación de Cliente",
     "verifyCustomer": "Verificación de Cliente",
     "runComplianceCheck": "Ejecutar Verificación de Cumplimiento",
@@ -141,7 +156,8 @@
     "continue": "Continuar",
     "back": "Volver",
     "actions": "Acciones de Cumplimiento",
-    "pendingReports": "Informes Pendientes"
+    "pendingReports": "Informes Pendientes",
+    "noDashboardData": "No hay datos de panel disponibles"
   },
   "ai": {
     "tools": "Herramientas de IA",
