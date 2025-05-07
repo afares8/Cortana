@@ -1,0 +1,41 @@
+Collecting evidence:
+1. Terminal Output (Console Logs):
+-----------------------------------
+Loaded initial login page
+Popup URL: https://dmce2.zonalibredecolon.gob.pa/TFBFTZ/cusLogin/signin.cl?language=es
+Filled credentials
+Response: 302 https://dmce2.zonalibredecolon.gob.pa/TFBFTZ/j_spring_security_check_ftz_form
+Response: 200 https://dmce2.zonalibredecolon.gob.pa/TFBFTZ/cusLogin/signin.cl?login_error=1&language=es
+Post-login URL: https://dmce2.zonalibredecolon.gob.pa/TFBFTZ/cusLogin/signin.cl?login_error=1&language=es
+Response: 404 https://dmce2.zonalibredecolon.gob.pa/TFBFTZ/facturas/automate.cl
+Error: page.waitForSelector: Timeout 10000ms exceeded.
+Call log: waiting for locator('#invoice-list') to be visible
+
+2. Video Recordings:
+-------------------
+total 1564
+drwxr-xr-x 2 ubuntu ubuntu   4096 May  7 05:41 .
+drwxrwxr-x 7 ubuntu ubuntu   4096 May  7 05:42 ..
+-rw-r--r-- 1 ubuntu ubuntu 743062 May  7 05:41 1a9e3263-c56f-4faf-916e-b709ec46fd40.webm
+-rw-r--r-- 1 ubuntu ubuntu 258189 May  7 05:40 2cec5481-2119-4adc-9655-499f7ca29801.webm
+-rw-r--r-- 1 ubuntu ubuntu  73728 May  7 05:39 595558f0-5cec-48ae-a45d-5524b24fc78a.webm
+-rw-r--r-- 1 ubuntu ubuntu 430408 May  7 05:41 67bf9b6b-4750-409c-9059-3bb0a96c1aec.webm
+-rw-r--r-- 1 ubuntu ubuntu  61440 May  7 05:40 89d58f42-e21f-4c9e-8c27-dd593deb2225.webm
+-rw-r--r-- 1 ubuntu ubuntu  16384 May  7 05:40 8cc41d52-9ab6-45f3-95f2-fd865472f481.webm
+
+3. Trace File:
+-------------
+No trace.zip file was generated due to script termination before completion.
+
+4. Error Screenshots:
+-------------------
+No screenshots were captured, but errors were logged in console output.
+
+5. Notes on Issues:
+-----------------
+- Login Failure: Test credentials were rejected (login_error=1 in URL)
+- URL Error: The invoice automation URL returned 404 (page not found)
+- Selector Timeout: #invoice-list selector not found within 10000ms timeout
+- Automation Not Reached: Script terminated before reaching automation step
+- Environment Setup: Successfully used Firefox in Private Mode with xvfb
+- Human Simulation: Successfully implemented random delays and mouse movements

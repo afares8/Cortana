@@ -2,10 +2,10 @@
   "name": "cortana-dmce-automation",
   "version": "1.0.0",
   "description": "DMCE automation for Cortana",
-  "main": "stealth_traffic_login.js",
+  "main": "dmce/scripts/stealth_traffic_login.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node stealth_traffic_login.js"
+    "start": "node dmce/scripts/stealth_traffic_login.js"
   },
   "keywords": [],
   "author": "",

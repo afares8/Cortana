@@ -609,3 +609,16 @@ Integration with OpenSanctions for comprehensive screening:
 - SAP Business One integration for real-time financial data
 - Blockchain-based document verification
 - Advanced anomaly detection using machine learning
+
+## DMCE Module
+
+The DMCE (Declaración de Movimiento Comercial Electrónico) module provides automation for the DMCE portal processes. See [DMCE documentation](dmce/reports/README_DMCE_UPDATE.md) for details.
+
+### Directory Structure
+
+- `dmce/scripts/`: Contains all automation scripts
+- `dmce/reports/`: Contains documentation and test reports
+- `dmce/screenshots/`: Contains screenshots from automation runs
+- `dmce/videos/`: Contains video recordings from automation runs
+- `dmce/logs/`: Contains logs from automation runs
+- `dmce/downloads/`: Contains downloaded files from automation runs

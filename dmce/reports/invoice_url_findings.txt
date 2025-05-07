@@ -1,0 +1,50 @@
+# DMCE Portal Invoice URL Investigation Results
+
+## URL Testing Results
+All tested potential invoice URLs returned 404 errors:
+- https://dmce2.zonalibredecolon.gob.pa/TFBFTZ/factura/list.cl?language=es (404)
+- https://dmce2.zonalibredecolon.gob.pa/TFBFTZ/invoice/list.cl?language=es (404)
+- https://dmce2.zonalibredecolon.gob.pa/TFBFTZ/facturas/list.cl?language=es (404)
+- https://dmce2.zonalibredecolon.gob.pa/TFBFTZ/invoices/list.cl?language=es (404)
+- https://dmce2.zonalibredecolon.gob.pa/TFBFTZ/tfbftz/factura/list.cl?language=es (404)
+- https://dmce2.zonalibredecolon.gob.pa/TFBFTZ/factura/manage.cl?language=es (404)
+- https://dmce2.zonalibredecolon.gob.pa/TFBFTZ/invoice/manage.cl?language=es (404)
+- https://dmce2.zonalibredecolon.gob.pa/TFBFTZ/facturas/manage.cl?language=es (404)
+- https://dmce2.zonalibredecolon.gob.pa/TFBFTZ/dmce/list.cl?language=es (404)
+- https://dmce2.zonalibredecolon.gob.pa/TFBFTZ/dmce/manage.cl?language=es (404)
+- https://dmce2.zonalibredecolon.gob.pa/TFBFTZ/dmce/factura.cl?language=es (404)
+
+## Dashboard Menu Analysis
+No invoice-related menu items were found in the dashboard. This could be due to:
+1. The dashboard not fully loading when menu items were extracted
+2. Menu items being loaded dynamically via JavaScript after initial page load
+3. Invoice functionality being nested in submenus or requiring specific user interactions
+
+## Conclusions
+1. Direct URL access to invoice functionality is not possible with the patterns we tried
+2. The invoice functionality likely requires UI navigation through the dashboard
+3. The dashboard uses a complex loading mechanism with SmartClient framework
+
+## Recommended Next Steps
+1. **UI Navigation Approach**: Instead of direct URL access, we should navigate through the UI:
+   - Wait for dashboard to fully load using a more robust waiting strategy
+   - Explore and click on menu items, tabs, or buttons that might lead to invoice functionality
+   - Record the navigation path and resulting URL
+
+2. **SmartClient Framework Analysis**: The dashboard uses SmartClient (ISC) framework:
+   - This framework often uses AJAX for navigation rather than direct URL changes
+   - Menu items and functionality might be loaded dynamically
+   - Need to interact with SmartClient components rather than relying on URLs
+
+3. **Script Updates**:
+   - Implement a more robust waiting strategy for dashboard loading
+   - Add code to explore and interact with dashboard UI elements
+   - Implement a step-by-step navigation approach to find invoice functionality
+
+4. **Alternative Approach**:
+   - Since the original URL (/TFBFTZ/facturas/automate.cl) returned 404, we should consider that:
+     a) The automation endpoint might be accessed through a different path
+     b) Automation might be a button/action within the invoice list view rather than a direct URL
+     c) We might need to navigate to invoices first, then trigger automation action
+
+Based on these findings, we recommend updating the script to focus on UI navigation rather than direct URL access, and to implement a more robust approach for interacting with the SmartClient-based dashboard.
