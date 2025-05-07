@@ -5,7 +5,7 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import enTranslation from './locales/en.json';
 import esTranslation from './locales/es.json';
 
-const isDevelopment = process.env.NODE_ENV === 'development' || false;
+const isDevelopment = import.meta.env.MODE === 'development' || false;
 
 localStorage.setItem('i18nextLng', 'es');
 
