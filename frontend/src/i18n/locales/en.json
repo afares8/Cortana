@@ -1,4 +1,40 @@
 {
+  "common": {
+    "navigation": {
+      "dashboard": "Dashboard",
+      "contracts": "Contracts",
+      "clients": "Clients",
+      "legal": "Legal",
+      "compliance": "Compliance",
+      "allClients": "All Clients",
+      "uploadContract": "Upload Contract",
+      "allContracts": "All Contracts",
+      "workflow": "Workflow",
+      "tasks": "Tasks",
+      "audit": "Audit",
+      "uafReports": "UAF Reports",
+      "pepScreening": "PEP Screening",
+      "sanctionsScreening": "Sanctions Screening",
+      "customerVerification": "Customer Verification"
+    },
+    "searchPlaceholder": "Search...",
+    "labels": {
+      "english": "English",
+      "spanish": "Spanish"
+    },
+    "logout": "Logout"
+  },
+  "dashboard": {
+    "welcomeMessage": "Welcome to Cortana",
+    "quickActions": "Quick Actions",
+    "uploadNewContract": "Upload New Contract",
+    "viewAllContracts": "View All Contracts",
+    "viewClients": "View Clients",
+    "complianceDashboard": "Compliance Dashboard",
+    "reminders": "Reminders",
+    "systemStatus": "System Status",
+    "allSystemsOperational": "All Systems Operational"
+  },
   "compliance": {
     "customerVerification": "Customer Verification",
     "verifyCustomer": "Customer Verification",

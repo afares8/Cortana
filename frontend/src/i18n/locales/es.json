@@ -1,4 +1,40 @@
 {
+  "common": {
+    "navigation": {
+      "dashboard": "Panel de Control",
+      "contracts": "Contratos",
+      "clients": "Clientes",
+      "legal": "Legal",
+      "compliance": "Cumplimiento",
+      "allClients": "Todos los Clientes",
+      "uploadContract": "Subir Contrato",
+      "allContracts": "Todos los Contratos",
+      "workflow": "Flujo de Trabajo",
+      "tasks": "Tareas",
+      "audit": "Auditoría",
+      "uafReports": "Informes UAF",
+      "pepScreening": "Verificación PEP",
+      "sanctionsScreening": "Verificación de Sanciones",
+      "customerVerification": "Verificación de Cliente"
+    },
+    "searchPlaceholder": "Buscar...",
+    "labels": {
+      "english": "Inglés",
+      "spanish": "Español"
+    },
+    "logout": "Cerrar Sesión"
+  },
+  "dashboard": {
+    "welcomeMessage": "Bienvenido a Cortana",
+    "quickActions": "Acciones Rápidas",
+    "uploadNewContract": "Subir Nuevo Contrato",
+    "viewAllContracts": "Ver Todos los Contratos",
+    "viewClients": "Ver Clientes",
+    "complianceDashboard": "Panel de Cumplimiento",
+    "reminders": "Recordatorios",
+    "systemStatus": "Estado del Sistema",
+    "allSystemsOperational": "Todos los Sistemas Operativos"
+  },
   "compliance": {
     "customerVerification": "Verificación de Cliente",
     "verifyCustomer": "Verificación de Cliente",
