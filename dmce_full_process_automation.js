@@ -2,7 +2,7 @@ const { firefox } = require('playwright');
 const { randomInt } = require('crypto');
 const fs = require('fs');
 const path = require('path');
-const { getDMCECredentials } = require('./credential_handler');
+const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = require('./credential_handler');
 
 /**
  * DMCE Portal Full Process Automation Script
@@ -22,6 +22,14 @@ const { getDMCECredentials } = require('./credential_handler');
   });
   
   console.log('Starting DMCE full process automation');
+  
+  if (!validateDMCEEnvironment()) {
+    console.error('Environment validation failed. Please check your .env file.');
+    process.exit(1);
+  }
+  
+  const declarationData = getDMCEDeclarationData();
+  console.log('Environment variables validated successfully');
   
   const browser = await firefox.launch({
     headless: false,
@@ -216,7 +224,7 @@ const { getDMCECredentials } = require('./credential_handler');
     console.log('Step 3: Filling Section A - Datos de la Declaración');
     
     try {
-      await popup.fill('#inputFactura', process.env.DMCE_INVOICE_ID || '');
+      await popup.fill('#inputFactura', declarationData.invoiceId);
       console.log('Filled Invoice ID');
     } catch (error) {
       console.error('Error filling Invoice ID:', error);
@@ -224,7 +232,7 @@ const { getDMCECredentials } = require('./credential_handler');
     }
     
     try {
-      await popup.fill('#inputFechaDeclaracion', process.env.DMCE_DATE || '');
+      await popup.fill('#inputFechaDeclaracion', declarationData.date);
       console.log('Filled Declaration Date');
     } catch (error) {
       console.error('Error filling Declaration Date:', error);
@@ -232,7 +240,7 @@ const { getDMCECredentials } = require('./credential_handler');
     }
     
     try {
-      await popup.fill('#inputCliente', process.env.DMCE_CUSTOMER_CODE || '');
+      await popup.fill('#inputCliente', declarationData.customerCode);
       console.log('Filled Customer Code');
     } catch (error) {
       console.error('Error filling Customer Code:', error);
@@ -242,7 +250,7 @@ const { getDMCECredentials } = require('./credential_handler');
     console.log('Step 4: Filling Section B - Datos de la Mercancía');
     
     try {
-      await popup.fill('input[name="descripcion"]', process.env.DMCE_GOODS_DESCRIPTION || '');
+      await popup.fill('input[name="descripcion"]', declarationData.goodsDescription);
       console.log('Filled Goods Description');
     } catch (error) {
       console.error('Error filling Goods Description:', error);
@@ -250,7 +258,7 @@ const { getDMCECredentials } = require('./credential_handler');
     }
     
     try {
-      await popup.fill('input[name="cantidad"]', process.env.DMCE_QUANTITY || '');
+      await popup.fill('input[name="cantidad"]', declarationData.quantity);
       console.log('Filled Quantity');
     } catch (error) {
       console.error('Error filling Quantity:', error);
@@ -258,7 +266,7 @@ const { getDMCECredentials } = require('./credential_handler');
     }
     
     try {
-      await popup.fill('input[name="pesoKg"]', process.env.DMCE_WEIGHT_KG || '');
+      await popup.fill('input[name="pesoKg"]', declarationData.weightKg);
       console.log('Filled Weight');
     } catch (error) {
       console.error('Error filling Weight:', error);
@@ -266,7 +274,7 @@ const { getDMCECredentials } = require('./credential_handler');
     }
     
     try {
-      await popup.fill('input[name="volumenM3"]', process.env.DMCE_VOLUME_M3 || '');
+      await popup.fill('input[name="volumenM3"]', declarationData.volumeM3);
       console.log('Filled Volume');
     } catch (error) {
       console.error('Error filling Volume:', error);
@@ -276,16 +284,16 @@ const { getDMCECredentials } = require('./credential_handler');
     console.log('Step 5: Filling Section C - Transporte');
     
     try {
-      await popup.selectOption('#selectTransporte', process.env.DMCE_TRANSPORT_TYPE || '');
+      await popup.selectOption('#selectTransporte', declarationData.transportType);
       console.log('Selected Transport Type');
     } catch (error) {
       console.error('Error selecting Transport Type:', error);
       await popup.screenshot({ path: './screenshots/transport_type_error.png' });
     }
     
-    if (process.env.DMCE_TRANSPORT_TYPE === 'AIR') {
+    if (declarationData.transportType === 'AIR') {
       try {
-        await popup.fill('#inputVuelo', process.env.DMCE_FLIGHT_NUMBER || '');
+        await popup.fill('#inputVuelo', declarationData.flightNumber);
         console.log('Filled Flight Number');
       } catch (error) {
         console.error('Error filling Flight Number:', error);
@@ -293,7 +301,7 @@ const { getDMCECredentials } = require('./credential_handler');
       }
       
       try {
-        await popup.fill('#inputTransportista', process.env.DMCE_CARRIER_NAME || '');
+        await popup.fill('#inputTransportista', declarationData.carrierName);
         console.log('Filled Carrier Name');
       } catch (error) {
         console.error('Error filling Carrier Name:', error);
@@ -304,7 +312,7 @@ const { getDMCECredentials } = require('./credential_handler');
     console.log('Step 6: Filling Section D - Declaración Aduanera');
     
     try {
-      await popup.fill('#inputHsCode', process.env.DMCE_HS_CODE || '');
+      await popup.fill('#inputHsCode', declarationData.hsCode);
       console.log('Filled HS Code');
     } catch (error) {
       console.error('Error filling HS Code:', error);
@@ -312,7 +320,7 @@ const { getDMCECredentials } = require('./credential_handler');
     }
     
     try {
-      await popup.fill('input[name="paisOrigen"]', process.env.DMCE_ORIGIN_COUNTRY || '');
+      await popup.fill('input[name="paisOrigen"]', declarationData.originCountry);
       console.log('Filled Origin Country');
     } catch (error) {
       console.error('Error filling Origin Country:', error);
@@ -320,7 +328,7 @@ const { getDMCECredentials } = require('./credential_handler');
     }
     
     try {
-      await popup.fill('input[name="paisDestino"]', process.env.DMCE_DESTINATION_COUNTRY || '');
+      await popup.fill('input[name="paisDestino"]', declarationData.destinationCountry);
       console.log('Filled Destination Country');
     } catch (error) {
       console.error('Error filling Destination Country:', error);
@@ -328,7 +336,7 @@ const { getDMCECredentials } = require('./credential_handler');
     }
     
     try {
-      await popup.fill('input[name="valorDeclarado"]', process.env.DMCE_DECLARED_VALUE || '');
+      await popup.fill('input[name="valorDeclarado"]', declarationData.declaredValue);
       console.log('Filled Declared Value');
     } catch (error) {
       console.error('Error filling Declared Value:', error);
@@ -336,7 +344,7 @@ const { getDMCECredentials } = require('./credential_handler');
     }
     
     try {
-      await popup.selectOption('#selectMoneda', process.env.DMCE_VALUE_CURRENCY || '');
+      await popup.selectOption('#selectMoneda', declarationData.valueCurrency);
       console.log('Selected Currency');
     } catch (error) {
       console.error('Error selecting Currency:', error);
@@ -345,10 +353,9 @@ const { getDMCECredentials } = require('./credential_handler');
     
     console.log('Step 7: Filling Section E - Documentos Adjuntos');
     
-    if (process.env.DMCE_COMMERCIAL_INVOICE_PATH) {
+    if (declarationData.commercialInvoicePath) {
       try {
-        const invoicePath = process.env.DMCE_COMMERCIAL_INVOICE_PATH;
-        await popup.setInputFiles('input#uploadFacturaComercial', invoicePath);
+        await popup.setInputFiles('input#uploadFacturaComercial', declarationData.commercialInvoicePath);
         console.log('Uploaded Commercial Invoice');
       } catch (error) {
         console.error('Error uploading Commercial Invoice:', error);
@@ -356,10 +363,9 @@ const { getDMCECredentials } = require('./credential_handler');
       }
     }
     
-    if (process.env.DMCE_PACKING_LIST_PATH) {
+    if (declarationData.packingListPath) {
       try {
-        const packingListPath = process.env.DMCE_PACKING_LIST_PATH;
-        await popup.setInputFiles('input#uploadPackingList', packingListPath);
+        await popup.setInputFiles('input#uploadPackingList', declarationData.packingListPath);
         console.log('Uploaded Packing List');
       } catch (error) {
         console.error('Error uploading Packing List:', error);
@@ -407,7 +413,7 @@ const { getDMCECredentials } = require('./credential_handler');
       console.log('Clicked download button');
       
       const download = await downloadPromise;
-      const downloadPath = path.join(process.env.DMCE_DOWNLOAD_DIR || './downloads', `declaration_${transactionId || 'unknown'}.pdf`);
+      const downloadPath = path.join(declarationData.downloadDir, `declaration_${transactionId || 'unknown'}.pdf`);
       await download.saveAs(downloadPath);
       console.log(`PDF downloaded to: ${downloadPath}`);
     } catch (error) {
@@ -416,7 +422,7 @@ const { getDMCECredentials } = require('./credential_handler');
     }
     
     try {
-      const screenshotPath = path.join(process.env.DMCE_DOWNLOAD_DIR || './screenshots', `declaration_${transactionId || 'unknown'}.png`);
+      const screenshotPath = path.join(declarationData.downloadDir, `declaration_${transactionId || 'unknown'}.png`);
       await popup.screenshot({ path: screenshotPath, fullPage: true });
       console.log(`Audit screenshot saved to: ${screenshotPath}`);
     } catch (error) {
