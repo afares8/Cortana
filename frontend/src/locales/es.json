@@ -78,7 +78,10 @@
       "uploadInvoice": "Cargar Factura",
       "records": "Registros",
       "history": "Historial",
-      "aiCenter": "Centro de IA"
+      "aiCenter": "Centro de IA",
+      "documents": "Documentos",
+      "emailDrafts": "Borradores de Correo",
+      "userAccess": "Acceso de Usuario"
     },
     "searchPlaceholder": "Buscar contratos, clientes, tareas...",
     "searching": "Buscando...",
