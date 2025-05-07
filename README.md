@@ -524,6 +524,50 @@ Response includes preprocessing details:
 }
 ```
 
+### Internationalization (i18n)
+
+Cortana supports multiple languages using i18next and react-i18next. The default fallback language is Spanish, with English also supported.
+
+#### Translation Files
+- English: `frontend/src/i18n/locales/en.json`
+- Spanish: `frontend/src/i18n/locales/es.json`
+
+#### Translation Keys Structure
+- `common`: Shared components and general UI elements
+  - `navigation`: Navigation items and menu labels
+  - `labels`: Form labels and general UI labels
+  - `enterpriseManagement`: Application subtitle
+  - `logout`: Logout text
+  - `openMenu`: Accessibility text for menu button
+  - `recentActivity`: Section headers for activity lists
+- `dashboard`: Dashboard-specific content
+  - `welcomeMessage`: Welcome text
+  - `quickActions`: Quick action section headers
+  - `systemStatus`: System status information
+  - `lastUpdated`: Timestamp labels
+- `contracts`: Contract module content
+- `legal`: Legal module content
+- `compliance`: Compliance module content
+- `accounting`: Accounting module content
+- `traffic`: Traffic module content
+- `ai`: AI module content
+
+#### Best Practices
+1. **Never hardcode text** directly in components. Always use the translation function:
+   ```tsx
+   const { t } = useTranslation();
+   return <div>{t('common.navigation.dashboard')}</div>;
+   ```
+   
+2. **Add new keys** to both language files when adding new UI text
+3. **Follow the existing namespace structure** for consistency
+4. **Use concise business-appropriate terms** for Spanish translations
+5. **Test both languages** before submitting changes
+6. **Use interpolation** for dynamic content:
+   ```tsx
+   {t('traffic.sentDaysAgo', { days: 2 })}
+   ```
+
 ### Compliance Automation
 
 The compliance automation system integrates with Mistral 7B to provide context-aware compliance guidance:
