@@ -788,6 +788,11 @@ def user_can_access_company(
     required_permission: str = "read"
 ) -> bool:
     """Check if a user has access to a company with the required permission level."""
+    # If permission bypass is enabled, always return True
+    if settings.BYPASS_ACCOUNTING_PERMISSIONS:
+        print(f"DEBUG: Bypassing permission check for user_id={user_id}, company_id={company_id}")
+        return True
+        
     users = users_db.get_multi(filters={"id": user_id})
     if not users:
         return False
