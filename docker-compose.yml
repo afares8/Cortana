@@ -15,7 +15,7 @@ services:
       # - AI_FALLBACK_MODE=true  # Force fallback mode (CPU only)
       # - AI_FALLBACK_MODE=false # Force real model (GPU only)
       - MISTRAL_API_URL=http://ai-service:80
-      # AI_FALLBACK_MODE=false
+      - AI_FALLBACK_MODE=false  # Explicitly disable fallback mode for GPU profile
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 86400s  # Daily check

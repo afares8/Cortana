@@ -114,3 +114,23 @@ If the backend can't connect to the AI service:
    - CPU mode: `docker ps | grep ai-service-cpu`
 2. Check the AI service logs for the appropriate service
 3. Ensure the URL is correct: `MISTRAL_API_URL=http://ai-service:80`
+4. Verify that AI_FALLBACK_MODE is set correctly:
+   - For GPU environments: `AI_FALLBACK_MODE=false`
+   - For CPU environments: `AI_FALLBACK_MODE=true` or leave unset
+5. Check for DNS resolution errors in the logs, which may indicate network configuration issues
+
+### Fallback Mode Troubleshooting
+If the system is unexpectedly falling back to CPU mode:
+1. Check if AI_FALLBACK_MODE is explicitly set in your environment
+2. Verify GPU detection is working correctly with `nvidia-smi`
+3. Examine the logs for connection errors to the AI service
+4. Use the test endpoint to diagnose issues: `curl http://localhost:8000/api/v1/test-mistral`
+5. Run the validation script to check both endpoints:
+   ```bash
+   cd backend
+   python -m app.scripts.test_mistral_integration
+   ```
+6. Ensure all required Python dependencies are installed:
+   ```bash
+   pip install -r requirements.txt
+   ```
