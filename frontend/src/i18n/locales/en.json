@@ -1,6 +1,7 @@
 {
   "compliance": {
     "customerVerification": "Customer Verification",
+    "verifyCustomer": "Customer Verification",
     "runComplianceCheck": "Run Compliance Check",
     "naturalPerson": "Natural Person",
     "legalEntity": "Legal Entity",

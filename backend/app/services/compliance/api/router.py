@@ -1,7 +1,10 @@
 from typing import List, Optional, Dict, Any
 from datetime import datetime
+import logging
 from fastapi import APIRouter, Depends, HTTPException, Path, Body, Query, File, UploadFile
 from pydantic import EmailStr
+
+logger = logging.getLogger(__name__)
 
 from app.services.compliance.models.compliance import ComplianceReport, PEPScreeningResult, SanctionsScreeningResult, DocumentRetentionPolicy
 from app.services.compliance.schemas.compliance import (
@@ -241,4 +244,11 @@ async def verify_customer_endpoint(request: CustomerVerifyRequest = Body(...)):
     
     Returns a comprehensive verification response with results from all data sources.
     """
-    return await verification_service.verify_customer(request)
+    try:
+        return await verification_service.verify_customer(request)
+    except Exception as e:
+        logger.error(f"Error in customer verification: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to perform compliance check. Please try again later."
+        )
