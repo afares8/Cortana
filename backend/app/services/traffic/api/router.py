@@ -32,7 +32,12 @@ async def upload_invoice_data(
     and returns a list of processed invoice records with validation results.
     """
     traffic_interface = TrafficInterface(current_user=current_user)
-    return await traffic_interface.upload_invoice_data(data.data)
+    
+    invoice_data = data.data
+    if "data" in invoice_data:
+        return await traffic_interface.upload_invoice_data(invoice_data["data"])
+    else:
+        return await traffic_interface.upload_invoice_data(invoice_data)
 
 @router.post("/consolidate", response_model=ConsolidationResponse)
 async def consolidate_invoices(
