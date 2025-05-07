@@ -222,32 +222,32 @@ export default function Layout({ children, title }: LayoutProps) {
       case 'contracts':
         return (
           <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
-            <h3 className="font-medium text-gray-900 mb-3">Contract Actions</h3>
+            <h3 className="font-medium text-gray-900 mb-3">{t('contracts.actions')}</h3>
             <div className="space-y-2">
               <button 
                 onClick={() => navigate('/contracts/upload')}
                 className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
               >
                 <span className="mr-2">📤</span>
-                Upload New Contract
+                {t('dashboard.uploadNewContract')}
               </button>
               <button 
                 onClick={() => navigate('/contracts')}
                 className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
               >
                 <span className="mr-2">🔍</span>
-                Browse All Contracts
+                {t('contracts.browseAll')}
               </button>
               <button 
                 onClick={() => navigate('/ai-dashboard')}
                 className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
               >
                 <span className="mr-2">🧠</span>
-                AI Contract Analysis
+                {t('contracts.aiAnalysis')}
               </button>
             </div>
             
-            <h3 className="font-medium text-gray-900 mt-6 mb-3">Expiring Soon</h3>
+            <h3 className="font-medium text-gray-900 mt-6 mb-3">{t('contracts.expiringSoon')}</h3>
             <div className="space-y-2">
               <div className="p-3 bg-yellow-50 rounded-md">
                 <p className="text-sm font-medium text-yellow-800">Global Fragrances Ltd.</p>
@@ -264,32 +264,32 @@ export default function Layout({ children, title }: LayoutProps) {
       case 'legal':
         return (
           <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
-            <h3 className="font-medium text-gray-900 mb-3">Legal Department</h3>
+            <h3 className="font-medium text-gray-900 mb-3">{t('legal.department')}</h3>
             <div className="space-y-2">
               <button 
                 onClick={() => navigate('/legal/clients/new')}
                 className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
               >
                 <span className="mr-2">➕</span>
-                Add New Client
+                {t('legal.addNewClient')}
               </button>
               <button 
                 onClick={() => navigate('/legal/workflows/new')}
                 className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
               >
                 <span className="mr-2">🔄</span>
-                Create Workflow
+                {t('legal.createWorkflow')}
               </button>
               <button 
                 onClick={() => navigate('/legal/tasks/new')}
                 className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
               >
                 <span className="mr-2">✅</span>
-                Create Task
+                {t('legal.createTask')}
               </button>
             </div>
             
-            <h3 className="font-medium text-gray-900 mt-6 mb-3">Recent Activity</h3>
+            <h3 className="font-medium text-gray-900 mt-6 mb-3">{t('common.recentActivity')}</h3>
             <div className="space-y-2">
               <div className="p-3 bg-gray-50 rounded-md">
                 <p className="text-sm font-medium text-gray-800">Contract Review</p>
@@ -306,32 +306,32 @@ export default function Layout({ children, title }: LayoutProps) {
       case 'compliance':
         return (
           <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
-            <h3 className="font-medium text-gray-900 mb-3">Compliance Actions</h3>
+            <h3 className="font-medium text-gray-900 mb-3">{t('compliance.actions')}</h3>
             <div className="space-y-2">
               <button 
                 onClick={() => navigate('/compliance/uaf-report/new')}
                 className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
               >
                 <span className="mr-2">📊</span>
-                Generate UAF Report
+                {t('common.navigation.uafReport')}
               </button>
               <button 
                 onClick={() => navigate('/compliance/pep-screening/new')}
                 className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
               >
                 <span className="mr-2">👥</span>
-                PEP Screening
+                {t('common.navigation.pepScreening')}
               </button>
               <button 
                 onClick={() => navigate('/compliance/sanctions-screening/new')}
                 className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
               >
                 <span className="mr-2">🛡️</span>
-                Sanctions Screening
+                {t('common.navigation.sanctionsScreening')}
               </button>
             </div>
             
-            <h3 className="font-medium text-gray-900 mt-6 mb-3">Pending Reports</h3>
+            <h3 className="font-medium text-gray-900 mt-6 mb-3">{t('compliance.pendingReports')}</h3>
             <div className="space-y-2">
               <div className="p-3 bg-blue-50 rounded-md">
                 <p className="text-sm font-medium text-blue-800">UAF Report - Q2 2025</p>
@@ -348,25 +348,25 @@ export default function Layout({ children, title }: LayoutProps) {
       case 'ai':
         return (
           <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
-            <h3 className="font-medium text-gray-900 mb-3">AI Tools</h3>
+            <h3 className="font-medium text-gray-900 mb-3">{t('ai.tools')}</h3>
             <div className="space-y-2">
               <button 
                 onClick={() => navigate('/ai-dashboard')}
                 className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
               >
                 <span className="mr-2">🧠</span>
-                AI Command Center
+                {t('ai.commandCenter')}
               </button>
               <button 
                 onClick={() => navigate('/contracts')}
                 className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
               >
                 <span className="mr-2">📄</span>
-                Analyze Contract
+                {t('ai.analyzeContract')}
               </button>
             </div>
             
-            <h3 className="font-medium text-gray-900 mt-6 mb-3">Recent Analyses</h3>
+            <h3 className="font-medium text-gray-900 mt-6 mb-3">{t('ai.recentAnalyses')}</h3>
             <div className="space-y-2">
               <div className="p-3 bg-purple-50 rounded-md">
                 <p className="text-sm font-medium text-purple-800">Global Fragrances Ltd. Contract</p>
@@ -383,40 +383,40 @@ export default function Layout({ children, title }: LayoutProps) {
       case 'traffic':
         return (
           <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
-            <h3 className="font-medium text-gray-900 mb-3">Acciones de Tráfico</h3>
+            <h3 className="font-medium text-gray-900 mb-3">{t('traffic.actions')}</h3>
             <div className="space-y-2">
               <button 
                 onClick={() => navigate('/traffic/dashboard')}
                 className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
               >
                 <span className="mr-2">📊</span>
-                Panel de Control
+                {t('common.navigation.dashboard')}
               </button>
               <button 
                 onClick={() => navigate('/traffic/upload')}
                 className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
               >
                 <span className="mr-2">📤</span>
-                Cargar Factura
+                {t('traffic.uploadInvoice')}
               </button>
               <button 
                 onClick={() => navigate('/traffic/records')}
                 className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
               >
                 <span className="mr-2">📋</span>
-                Ver Registros
+                {t('traffic.viewRecords')}
               </button>
             </div>
             
-            <h3 className="font-medium text-gray-900 mt-6 mb-3">Actividad Reciente</h3>
+            <h3 className="font-medium text-gray-900 mt-6 mb-3">{t('common.recentActivity')}</h3>
             <div className="space-y-2">
               <div className="p-3 bg-orange-50 rounded-md">
-                <p className="text-sm font-medium text-orange-800">Declaración DMCE</p>
-                <p className="text-xs text-orange-700">Enviada hace 2 días</p>
+                <p className="text-sm font-medium text-orange-800">{t('traffic.dmceDeclaration')}</p>
+                <p className="text-xs text-orange-700">{t('traffic.sentDaysAgo', { days: 2 })}</p>
               </div>
               <div className="p-3 bg-orange-50 rounded-md">
-                <p className="text-sm font-medium text-orange-800">Consolidación de Facturas</p>
-                <p className="text-xs text-orange-700">Completada hace 1 semana</p>
+                <p className="text-sm font-medium text-orange-800">{t('traffic.invoiceConsolidation')}</p>
+                <p className="text-xs text-orange-700">{t('traffic.completedWeeksAgo', { weeks: 1 })}</p>
               </div>
             </div>
           </div>
@@ -439,7 +439,7 @@ export default function Layout({ children, title }: LayoutProps) {
                 className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
               >
                 <span className="mr-2">👥</span>
-                View Clients
+                {t('dashboard.viewClients')}
               </button>
               <button 
                 onClick={() => navigate('/compliance/dashboard')}
@@ -453,7 +453,7 @@ export default function Layout({ children, title }: LayoutProps) {
             <h3 className="font-medium text-gray-900 mt-6 mb-3">{t('dashboard.systemStatus')}</h3>
             <div className="p-3 bg-green-50 rounded-md">
               <p className="text-sm font-medium text-green-800">{t('dashboard.allSystemsOperational')}</p>
-              <p className="text-xs text-green-700">Last updated: {new Date().toLocaleTimeString()}</p>
+              <p className="text-xs text-green-700">{t('dashboard.lastUpdated')}: {new Date().toLocaleTimeString()}</p>
             </div>
           </div>
         );
@@ -567,7 +567,7 @@ export default function Layout({ children, title }: LayoutProps) {
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none"
             >
-              <span className="sr-only">Open menu</span>
+              <span className="sr-only">{t('common.openMenu')}</span>
               <Menu className="h-6 w-6" />
             </button>
           </div>

@@ -1,28 +1,51 @@
 {
   "common": {
+    "enterpriseManagement": "Enterprise Management",
     "navigation": {
       "dashboard": "Dashboard",
       "contracts": "Contracts",
       "clients": "Clients",
       "legal": "Legal",
       "compliance": "Compliance",
+      "accounting": "Accounting",
+      "userAccess": "User Access",
+      "account": "Account",
+      "settings": "Settings",
       "allClients": "All Clients",
       "uploadContract": "Upload Contract",
       "allContracts": "All Contracts",
       "workflow": "Workflow",
       "tasks": "Tasks",
       "audit": "Audit",
+      "auditLogs": "Audit Logs",
       "uafReports": "UAF Reports",
       "pepScreening": "PEP Screening",
       "sanctionsScreening": "Sanctions Screening",
-      "customerVerification": "Customer Verification"
+      "customerVerification": "Customer Verification",
+      "uafReport": "Generate UAF Report",
+      "traffic": "Traffic",
+      "panel": "Panel",
+      "uploadInvoice": "Upload Invoice",
+      "records": "Records",
+      "history": "History",
+      "aiCenter": "AI Center",
+      "documents": "Documents",
+      "notifications": "Notifications",
+      "emailDrafts": "Email Drafts",
+      "workflows": "Workflows"
     },
     "searchPlaceholder": "Search...",
     "labels": {
       "english": "English",
       "spanish": "Spanish"
     },
-    "logout": "Logout"
+    "logout": "Logout",
+    "openMenu": "Open menu",
+    "recentActivity": "Recent Activity",
+    "allRightsReserved": "All Rights Reserved",
+    "searching": "Searching...",
+    "noResultsFound": "No results found",
+    "pressEnterForAllResults": "Press Enter for all results"
   },
   "dashboard": {
     "welcomeMessage": "Welcome to Cortana",
@@ -33,7 +56,29 @@
     "complianceDashboard": "Compliance Dashboard",
     "reminders": "Reminders",
     "systemStatus": "System Status",
-    "allSystemsOperational": "All Systems Operational"
+    "allSystemsOperational": "All Systems Operational",
+    "lastUpdated": "Last updated",
+    "contractsExpiringMessage": "You have {{count}} contracts expiring in the next 30 days.",
+    "overdueContractsMessage": "You have {{count}} overdue contracts that need attention.",
+    "viewExpiringContracts": "View expiring contracts",
+    "viewOverdueContracts": "View overdue contracts",
+    "noContractsExpiringSoon": "No contracts expiring soon",
+    "activeContracts": "Active Contracts",
+    "expiringSoon": "Expiring Soon",
+    "overdue": "Overdue",
+    "totalContracts": "Total Contracts"
+  },
+  "contracts": {
+    "actions": "Contract Actions",
+    "browseAll": "Browse All Contracts",
+    "aiAnalysis": "AI Contract Analysis",
+    "expiringSoon": "Expiring Soon"
+  },
+  "legal": {
+    "department": "Legal Department",
+    "addNewClient": "Add New Client",
+    "createWorkflow": "Create Workflow",
+    "createTask": "Create Task"
   },
   "compliance": {
     "customerVerification": "Customer Verification",
@@ -60,6 +105,23 @@
     "addUbo": "Add UBO",
     "remove": "Remove",
     "continue": "Continue",
-    "back": "Back"
+    "back": "Back",
+    "actions": "Compliance Actions",
+    "pendingReports": "Pending Reports"
+  },
+  "ai": {
+    "tools": "AI Tools",
+    "commandCenter": "AI Command Center",
+    "analyzeContract": "Analyze Contract",
+    "recentAnalyses": "Recent Analyses"
+  },
+  "traffic": {
+    "actions": "Traffic Actions",
+    "uploadInvoice": "Upload Invoice",
+    "viewRecords": "View Records",
+    "dmceDeclaration": "DMCE Declaration",
+    "sentDaysAgo": "Sent {{days}} days ago",
+    "invoiceConsolidation": "Invoice Consolidation",
+    "completedWeeksAgo": "Completed {{weeks}} week ago"
   }
 }

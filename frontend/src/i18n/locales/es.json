@@ -1,28 +1,51 @@
 {
   "common": {
+    "enterpriseManagement": "Gestión Empresarial",
     "navigation": {
       "dashboard": "Panel de Control",
       "contracts": "Contratos",
       "clients": "Clientes",
       "legal": "Legal",
       "compliance": "Cumplimiento",
+      "accounting": "Contabilidad",
+      "userAccess": "Acceso de Usuarios",
+      "account": "Cuenta",
+      "settings": "Configuración",
       "allClients": "Todos los Clientes",
       "uploadContract": "Subir Contrato",
       "allContracts": "Todos los Contratos",
       "workflow": "Flujo de Trabajo",
       "tasks": "Tareas",
       "audit": "Auditoría",
+      "auditLogs": "Registros de Auditoría",
       "uafReports": "Informes UAF",
       "pepScreening": "Verificación PEP",
       "sanctionsScreening": "Verificación de Sanciones",
-      "customerVerification": "Verificación de Cliente"
+      "customerVerification": "Verificación de Cliente",
+      "uafReport": "Generar Informe UAF",
+      "traffic": "Tráfico",
+      "panel": "Panel",
+      "uploadInvoice": "Subir Factura",
+      "records": "Registros",
+      "history": "Historial",
+      "aiCenter": "Centro de IA",
+      "documents": "Documentos",
+      "notifications": "Notificaciones",
+      "emailDrafts": "Borradores de Correo",
+      "workflows": "Flujos de Trabajo"
     },
     "searchPlaceholder": "Buscar...",
     "labels": {
       "english": "Inglés",
       "spanish": "Español"
     },
-    "logout": "Cerrar Sesión"
+    "logout": "Cerrar Sesión",
+    "openMenu": "Abrir menú",
+    "recentActivity": "Actividad Reciente",
+    "allRightsReserved": "Todos los Derechos Reservados",
+    "searching": "Buscando...",
+    "noResultsFound": "No se encontraron resultados",
+    "pressEnterForAllResults": "Presione Enter para todos los resultados"
   },
   "dashboard": {
     "welcomeMessage": "Bienvenido a Cortana",
@@ -33,7 +56,29 @@
     "complianceDashboard": "Panel de Cumplimiento",
     "reminders": "Recordatorios",
     "systemStatus": "Estado del Sistema",
-    "allSystemsOperational": "Todos los Sistemas Operativos"
+    "allSystemsOperational": "Todos los Sistemas Operativos",
+    "lastUpdated": "Última actualización",
+    "contractsExpiringMessage": "Tienes {{count}} contratos que vencen en los próximos 30 días.",
+    "overdueContractsMessage": "Tienes {{count}} contratos vencidos que requieren atención.",
+    "viewExpiringContracts": "Ver contratos por vencer",
+    "viewOverdueContracts": "Ver contratos vencidos",
+    "noContractsExpiringSoon": "No hay contratos por vencer próximamente",
+    "activeContracts": "Contratos Activos",
+    "expiringSoon": "Por Vencer Pronto",
+    "overdue": "Vencidos",
+    "totalContracts": "Total de Contratos"
+  },
+  "contracts": {
+    "actions": "Acciones de Contratos",
+    "browseAll": "Explorar Todos los Contratos",
+    "aiAnalysis": "Análisis de Contratos con IA",
+    "expiringSoon": "Próximos a Vencer"
+  },
+  "legal": {
+    "department": "Departamento Legal",
+    "addNewClient": "Añadir Nuevo Cliente",
+    "createWorkflow": "Crear Flujo de Trabajo",
+    "createTask": "Crear Tarea"
   },
   "compliance": {
     "customerVerification": "Verificación de Cliente",
@@ -60,6 +105,23 @@
     "addUbo": "Añadir Beneficiario Final",
     "remove": "Eliminar",
     "continue": "Continuar",
-    "back": "Volver"
+    "back": "Volver",
+    "actions": "Acciones de Cumplimiento",
+    "pendingReports": "Informes Pendientes"
+  },
+  "ai": {
+    "tools": "Herramientas de IA",
+    "commandCenter": "Centro de Comando IA",
+    "analyzeContract": "Analizar Contrato",
+    "recentAnalyses": "Análisis Recientes"
+  },
+  "traffic": {
+    "actions": "Acciones de Tráfico",
+    "uploadInvoice": "Cargar Factura",
+    "viewRecords": "Ver Registros",
+    "dmceDeclaration": "Declaración DMCE",
+    "sentDaysAgo": "Enviada hace {{days}} días",
+    "invoiceConsolidation": "Consolidación de Facturas",
+    "completedWeeksAgo": "Completada hace {{weeks}} semana"
   }
 }
