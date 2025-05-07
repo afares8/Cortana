@@ -552,16 +552,28 @@ Integration with OpenSanctions for comprehensive screening:
 
 ## Recent Updates
 
-- Implemented comprehensive compliance automation with Mistral 7B integration
-- Added document embeddings for compliance manual integration
-- Integrated OpenSanctions for PEP and sanctions screening
-- Implemented contextual AI generation with RAG capabilities
-- Enhanced Spanish language support pipeline for legal document preprocessing
-- Refactored architecture into microservices for better scalability
-- Added compliance dashboard with comprehensive metrics
-- Implemented UAF report generation for regulatory compliance
-- Added document retention policy enforcement
-- Enhanced security with encryption capabilities
+- **May 2025**:
+  - Fixed Mistral AI integration unexpectedly falling back to CPU mode
+  - Improved health-check logic to better handle DNS resolution errors
+  - Enhanced error handling in Spanish language pipeline
+  - Added comprehensive test script (`app.scripts.test_mistral_integration`) for validating Mistral AI endpoints
+  - Implemented CI configuration with GitHub Actions for automated testing
+  - Updated AI_SETUP.md with improved troubleshooting information
+  - Added detailed logging for connection attempts and failures
+  - Made fallback mode logic more selective to only trigger on persistent server errors
+  - Explicitly set `AI_FALLBACK_MODE=false` in docker-compose.yml for GPU profile
+
+- **Previous Updates**:
+  - Implemented comprehensive compliance automation with Mistral 7B integration
+  - Added document embeddings for compliance manual integration
+  - Integrated OpenSanctions for PEP and sanctions screening
+  - Implemented contextual AI generation with RAG capabilities
+  - Enhanced Spanish language support pipeline for legal document preprocessing
+  - Refactored architecture into microservices for better scalability
+  - Added compliance dashboard with comprehensive metrics
+  - Implemented UAF report generation for regulatory compliance
+  - Added document retention policy enforcement
+  - Enhanced security with encryption capabilities
 
 ## Future Enhancements
 
