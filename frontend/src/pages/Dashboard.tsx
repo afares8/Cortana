@@ -54,22 +54,22 @@ export default function Dashboard() {
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold text-gray-700">Active Contracts</h3>
+            <h3 className="text-lg font-semibold text-gray-700">{t('dashboard.activeContracts')}</h3>
             <p className="text-3xl font-bold text-blue-600">{stats.total_active_contracts}</p>
           </div>
           
           <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold text-gray-700">Expiring Soon</h3>
+            <h3 className="text-lg font-semibold text-gray-700">{t('dashboard.expiringSoon')}</h3>
             <p className="text-3xl font-bold text-yellow-500">{stats.contracts_expiring_soon}</p>
           </div>
           
           <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold text-gray-700">Overdue</h3>
+            <h3 className="text-lg font-semibold text-gray-700">{t('dashboard.overdue')}</h3>
             <p className="text-3xl font-bold text-red-600">{stats.overdue_contracts}</p>
           </div>
           
           <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold text-gray-700">Total Contracts</h3>
+            <h3 className="text-lg font-semibold text-gray-700">{t('dashboard.totalContracts')}</h3>
             <p className="text-3xl font-bold text-gray-600">{stats.total_contracts}</p>
           </div>
         </div>
@@ -98,7 +98,7 @@ export default function Dashboard() {
           <h2 className="text-xl font-semibold mb-4">{t('dashboard.reminders')}</h2>
           {stats && stats.contracts_expiring_soon > 0 ? (
             <div className="text-yellow-600">
-              <p>You have {stats.contracts_expiring_soon} contracts expiring in the next 30 days.</p>
+              <p>{t('dashboard.contractsExpiringMessage', { count: stats.contracts_expiring_soon })}</p>
               <Link to="/contracts" className="text-blue-500 hover:underline">
                 {t('dashboard.viewExpiringContracts')}
               </Link>
@@ -109,7 +109,7 @@ export default function Dashboard() {
           
           {stats && stats.overdue_contracts > 0 && (
             <div className="mt-4 text-red-600">
-              <p>You have {stats.overdue_contracts} overdue contracts that need attention.</p>
+              <p>{t('dashboard.overdueContractsMessage', { count: stats.overdue_contracts })}</p>
               <Link to="/contracts" className="text-blue-500 hover:underline">
                 {t('dashboard.viewOverdueContracts')}
               </Link>

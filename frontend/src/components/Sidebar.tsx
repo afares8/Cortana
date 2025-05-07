@@ -1,5 +1,5 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { 
   Home, 
   FileText, 
@@ -13,111 +13,128 @@ import {
 } from 'lucide-react';
 
 const Sidebar = () => {
+  const { t } = useTranslation();
   const isAdmin = true;
 
   return (
     <div className="w-64 bg-gray-800 text-white h-full flex flex-col">
       <div className="p-5 border-b border-gray-700">
         <h1 className="text-2xl font-bold">Cortana</h1>
-        <p className="text-gray-400 text-sm">Enterprise Management</p>
+        <p className="text-gray-400 text-sm">{t('common.enterpriseManagement')}</p>
       </div>
       
       <nav className="flex-1 p-4">
         <ul className="space-y-2">
+          {/* Dashboard */}
           <li>
             <Link to="/" className="flex items-center p-2 rounded hover:bg-gray-700">
               <Home className="h-5 w-5 mr-3" />
-              Dashboard
+              {t('common.navigation.dashboard')}
             </Link>
           </li>
           
+          {/* Legal */}
           <li className="pt-4">
-            <div className="text-gray-400 text-xs uppercase font-semibold mb-2 pl-2">Legal</div>
+            <div className="text-gray-400 text-xs uppercase font-semibold mb-2 pl-2">
+              {t('common.navigation.legal')}
+            </div>
             <ul className="space-y-1">
               <li>
                 <Link to="/legal/clients" className="flex items-center p-2 rounded hover:bg-gray-700">
                   <Users className="h-5 w-5 mr-3" />
-                  Clients
+                  {t('common.navigation.clients')}
                 </Link>
               </li>
               <li>
                 <Link to="/legal/contracts" className="flex items-center p-2 rounded hover:bg-gray-700">
                   <FileText className="h-5 w-5 mr-3" />
-                  Contracts
+                  {t('common.navigation.contracts')}
                 </Link>
               </li>
             </ul>
           </li>
           
+          {/* Compliance */}
           <li className="pt-4">
-            <div className="text-gray-400 text-xs uppercase font-semibold mb-2 pl-2">Compliance</div>
+            <div className="text-gray-400 text-xs uppercase font-semibold mb-2 pl-2">
+              {t('common.navigation.compliance')}
+            </div>
             <ul className="space-y-1">
               <li>
                 <Link to="/compliance/dashboard" className="flex items-center p-2 rounded hover:bg-gray-700">
                   <Shield className="h-5 w-5 mr-3" />
-                  Dashboard
+                  {t('common.navigation.dashboard')}
                 </Link>
               </li>
               <li>
                 <Link to="/compliance/verify-customer" className="flex items-center p-2 rounded hover:bg-gray-700">
                   <UserCheck className="h-5 w-5 mr-3" />
-                  Customer Verification
+                  {t('common.navigation.customerVerification')}
                 </Link>
               </li>
             </ul>
           </li>
           
+          {/* Accounting */}
           <li className="pt-4">
-            <div className="text-gray-400 text-xs uppercase font-semibold mb-2 pl-2">Accounting</div>
+            <div className="text-gray-400 text-xs uppercase font-semibold mb-2 pl-2">
+              {t('common.navigation.accounting')}
+            </div>
             <ul className="space-y-1">
               <li>
                 <Link to="/accounting/dashboard" className="flex items-center p-2 rounded hover:bg-gray-700">
                   <DollarSign className="h-5 w-5 mr-3" />
-                  Dashboard
+                  {t('common.navigation.dashboard')}
                 </Link>
               </li>
               {isAdmin && (
                 <li>
                   <Link to="/accounting/admin/users" className="flex items-center p-2 rounded hover:bg-gray-700">
                     <UserCog className="h-5 w-5 mr-3" />
-                    User Access
+                    {t('common.navigation.userAccess')}
                   </Link>
                 </li>
               )}
             </ul>
           </li>
           
+          {/* User Management */}
           <li className="pt-4">
-            <div className="text-gray-400 text-xs uppercase font-semibold mb-2 pl-2">User Management</div>
+            <div className="text-gray-400 text-xs uppercase font-semibold mb-2 pl-2">
+              {t('common.navigation.userManagement')}
+            </div>
             <ul className="space-y-1">
               <li>
                 <Link to="/users" className="flex items-center p-2 rounded hover:bg-gray-700">
                   <Users className="h-5 w-5 mr-3" />
-                  Users
+                  {t('common.navigation.users')}
                 </Link>
               </li>
               <li>
                 <Link to="/users/new" className="flex items-center p-2 rounded hover:bg-gray-700">
                   <UserCog className="h-5 w-5 mr-3" />
-                  New User
+                  {t('common.navigation.newUser')}
                 </Link>
               </li>
             </ul>
           </li>
           
+          {/* Account */}
           <li className="pt-4">
-            <div className="text-gray-400 text-xs uppercase font-semibold mb-2 pl-2">Account</div>
+            <div className="text-gray-400 text-xs uppercase font-semibold mb-2 pl-2">
+              {t('common.navigation.account')}
+            </div>
             <ul className="space-y-1">
               <li>
                 <Link to="/settings" className="flex items-center p-2 rounded hover:bg-gray-700">
                   <Settings className="h-5 w-5 mr-3" />
-                  Settings
+                  {t('common.navigation.settings')}
                 </Link>
               </li>
               <li>
                 <Link to="/login" className="flex items-center p-2 rounded hover:bg-gray-700">
                   <LogOut className="h-5 w-5 mr-3" />
-                  Logout
+                  {t('common.logout')}
                 </Link>
               </li>
             </ul>
