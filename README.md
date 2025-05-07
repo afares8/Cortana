@@ -10,6 +10,7 @@ A specialized internal tool for the Legal Department of the Zona Libre de Colón
 - Search and filter contracts by various criteria
 - Dashboard overview showing contract statistics
 - Secure user authentication system
+- DMCE portal automation for invoice processing
 
 ### AI-Powered Features
 - Contract risk analysis using Mistral 7B LLM
@@ -34,6 +35,7 @@ A specialized internal tool for the Legal Department of the Zona Libre de Colón
 - Legal Department module with client and contract management
 - Workflow and task management system
 - Audit and compliance tracking
+- DMCE automation module for invoice processing
 - Designed for future integration with Accounting, HR, and Procurement
 - Microservice-based design with clear service boundaries
 

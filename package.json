@@ -1,0 +1,19 @@
+{
+  "name": "cortana-dmce-automation",
+  "version": "1.0.0",
+  "description": "DMCE automation for Cortana",
+  "main": "stealth_traffic_login.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node stealth_traffic_login.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.5.0",
+    "playwright": "^1.40.0",
+    "playwright-extra": "^4.3.6",
+    "playwright-extra-plugin-stealth": "^4.3.6"
+  }
+}

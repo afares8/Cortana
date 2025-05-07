@@ -1,0 +1,72 @@
+# DMCE Portal Invoice URL Analysis
+
+## Attempted URLs
+- https://dmce2.zonalibredecolon.gob.pa/TFBFTZ/facturas/automate.cl (404 Error)
+
+## Dashboard URL
+- https://dmce2.zonalibredecolon.gob.pa/TFBFTZ/TFB.jsp?language=es (200 OK)
+
+## Dashboard Loading Behavior
+- Dashboard uses SmartClient framework (ISC modules)
+- Body element remains hidden during loading process
+- Multiple IDACall AJAX requests to load dashboard components
+- Timeout occurs when waiting for body element to become visible
+
+## Potential Invoice URLs to Try
+Based on common URL patterns and the portal structure, the following URLs are likely candidates:
+
+1. **Invoice List URLs:**
+   - https://dmce2.zonalibredecolon.gob.pa/TFBFTZ/factura/list.cl?language=es
+   - https://dmce2.zonalibredecolon.gob.pa/TFBFTZ/invoice/list.cl?language=es
+   - https://dmce2.zonalibredecolon.gob.pa/TFBFTZ/facturas/list.cl?language=es
+   - https://dmce2.zonalibredecolon.gob.pa/TFBFTZ/invoices/list.cl?language=es
+   - https://dmce2.zonalibredecolon.gob.pa/TFBFTZ/tfbftz/factura/list.cl?language=es
+
+2. **Invoice Management URLs:**
+   - https://dmce2.zonalibredecolon.gob.pa/TFBFTZ/factura/manage.cl?language=es
+   - https://dmce2.zonalibredecolon.gob.pa/TFBFTZ/invoice/manage.cl?language=es
+   - https://dmce2.zonalibredecolon.gob.pa/TFBFTZ/facturas/manage.cl?language=es
+
+3. **DMCE Module URLs:**
+   - https://dmce2.zonalibredecolon.gob.pa/TFBFTZ/dmce/list.cl?language=es
+   - https://dmce2.zonalibredecolon.gob.pa/TFBFTZ/dmce/manage.cl?language=es
+   - https://dmce2.zonalibredecolon.gob.pa/TFBFTZ/dmce/factura.cl?language=es
+
+4. **Dashboard Menu Navigation:**
+   - The invoice functionality is likely accessible through the dashboard menu
+   - Need to modify script to wait for dashboard to fully load
+   - Then identify and click on invoice-related menu items
+
+## Recommended Approach
+1. Modify script to better handle dashboard loading:
+   ```javascript
+   // Instead of waiting for body to be visible
+   await popup.waitForFunction(() => {
+     return document.readyState === 'complete' && 
+            !document.querySelector('body[style*="display: none"]');
+   }, { timeout: 30000 });
+   ```
+
+2. After dashboard loads, extract all menu items and links:
+   ```javascript
+   const menuItems = await popup.$$eval('a, button, .menu-item', items => 
+     items.map(item => ({
+       text: item.innerText.trim(),
+       href: item.href || '',
+       id: item.id,
+       class: item.className
+     }))
+   );
+   
+   const invoiceMenuItems = menuItems.filter(item => 
+     item.text.toLowerCase().includes('factura') || 
+     item.text.toLowerCase().includes('invoice') ||
+     item.href.toLowerCase().includes('factura') ||
+     item.href.toLowerCase().includes('invoice')
+   );
+   
+   console.log('Potential invoice menu items:', invoiceMenuItems);
+   ```
+
+3. Try clicking on invoice-related menu items to navigate to invoice functionality
+4. If menu navigation fails, try direct URL access with the potential URLs listed above
