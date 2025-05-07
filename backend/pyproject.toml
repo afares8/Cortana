@@ -21,6 +21,7 @@ pydantic-settings = "^2.9.1"
 mangum = "^0.17.0"
 python-docx = "^1.1.2"
 playwright = "^1.43.0"
+httpx = "^0.27.0"
 
 # AI y NLP
 spacy = "^3.7.2"
