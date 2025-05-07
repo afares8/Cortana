@@ -155,6 +155,23 @@ async def test_mistral():
         original_fallback_mode = mistral_client.fallback_mode
         mistral_client.fallback_mode = False
         
+        dns_resolution = None
+        try:
+            api_url = mistral_client.base_url
+            if "://" in api_url:
+                _, host_port = api_url.split("://", 1)
+                host = host_port.split(":", 1)[0].split("/", 1)[0]
+            else:
+                host = api_url.split(":", 1)[0].split("/", 1)[0]
+                
+            import socket
+            ip_address = socket.gethostbyname(host)
+            dns_resolution = {"success": True, "host": host, "ip": ip_address}
+            logger.info(f"DNS resolution successful for {host}: {ip_address}")
+        except socket.gaierror as e:
+            dns_resolution = {"success": False, "host": host, "error": str(e)}
+            logger.error(f"DNS resolution failed for {host}: {e}")
+            
         try:
             response = await mistral_client.generate("What is a contract?")
             
@@ -217,6 +234,7 @@ async def test_mistral():
             "model_url": mistral_client.base_url,
             "connection_successful": not is_fallback,
             "connection_error": connection_error,
+            "dns_resolution": dns_resolution,
             "system_info": system_info,
             "hardware_requirements": hardware_requirements,
             "environment_suitable": environment_suitable,

@@ -59,9 +59,23 @@ async def test_mistral_health():
                 logger.info(f"Connection successful: {connection_successful}")
                 logger.info(f"Environment suitable: {environment_suitable}")
                 
+                dns_resolution = data.get("dns_resolution", {})
+                if dns_resolution:
+                    if dns_resolution.get("success", False):
+                        logger.info(f"DNS resolution successful: {dns_resolution.get('host', 'unknown')} → {dns_resolution.get('ip', 'unknown')}")
+                    else:
+                        logger.error(f"DNS resolution failed for host {dns_resolution.get('host', 'unknown')}: {dns_resolution.get('error', 'unknown error')}")
+                        logger.error("Please check your network configuration and ensure the AI service hostname is correct")
+                        logger.error("Suggested fixes:")
+                        logger.error("1. Verify MISTRAL_API_URL is set correctly in your environment")
+                        logger.error("2. Check if the ai-service container is running: docker ps | grep ai-service")
+                        logger.error("3. Ensure the backend and ai-service containers are on the same Docker network")
+                        logger.error("4. Try using the IP address instead of hostname if DNS resolution is problematic")
+                
                 env_config = data.get("environment_config", {})
                 logger.info(f"Fallback mode from env: {env_config.get('fallback_mode_setting_from_env')}")
                 logger.info(f"Current fallback mode: {env_config.get('current_fallback_mode')}")
+                logger.info(f"Mistral API URL: {env_config.get('mistral_api_url', 'not set')}")
                 
                 logger.info("Full response:")
                 print(json.dumps(data, indent=2))
@@ -71,27 +85,52 @@ async def test_mistral_health():
                 
                 if not MOCK_MODE and is_fallback and environment_suitable:
                     logger.warning("Environment is suitable but still using fallback mode")
+                    
+                    if not connection_successful:
+                        if dns_resolution and not dns_resolution.get("success", False):
+                            logger.error("DNS resolution failure is likely causing fallback mode")
+                        else:
+                            logger.error("Connection to AI service failed but DNS resolution was successful")
+                            logger.error("This may indicate the AI service is not running or not responding")
+                    else:
+                        logger.error("Connection successful but still in fallback mode - check GPU detection")
                 
                 return data
                 
         except httpx.ConnectError as e:
             logger.warning(f"Connection error on attempt {attempt}/{max_retries}: {e}")
+            
+            if "getaddrinfo failed" in str(e) or "Name or service not known" in str(e):
+                logger.error("DNS resolution error detected")
+                logger.error("Suggested fixes:")
+                logger.error("1. Check if the backend service is running")
+                logger.error("2. Verify the host and port are correct")
+                logger.error("3. Ensure there are no network connectivity issues")
+                logger.error(f"4. Try using 'localhost' instead of '{args.host}' if testing locally")
+            
             if attempt < max_retries:
-                logger.info(f"Retrying in {retry_delay} seconds...")
-                await asyncio.sleep(retry_delay)
+                retry_time = retry_delay * (2 ** (attempt - 1))
+                logger.info(f"Retrying in {retry_time} seconds...")
+                await asyncio.sleep(retry_time)
             else:
                 logger.error("All connection attempts failed")
                 return {
                     "is_fallback": True,
                     "connection_successful": False,
                     "environment_suitable": False,
-                    "connection_error": str(e)
+                    "connection_error": str(e),
+                    "dns_resolution": {
+                        "success": False,
+                        "host": args.host,
+                        "error": str(e)
+                    }
                 }
         except Exception as e:
             logger.error(f"Error testing Mistral health: {e}")
             if attempt < max_retries:
-                logger.info(f"Retrying in {retry_delay} seconds...")
-                await asyncio.sleep(retry_delay)
+                retry_time = retry_delay * (2 ** (attempt - 1))
+                logger.info(f"Retrying in {retry_time} seconds...")
+                await asyncio.sleep(retry_time)
             else:
                 return {
                     "is_fallback": True,
