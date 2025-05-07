@@ -25,24 +25,32 @@ class MistralRequest(BaseModel):
     }
 
 class MistralClient:
-    def __init__(self, base_url: str = None):
+    def __init__(self, base_url: Optional[str] = None):
         self.base_url = base_url or os.environ.get("MISTRAL_API_URL", "http://ai-service:80")
         logger.info(f"Initializing MistralClient with base_url: {self.base_url}")
         self.client = httpx.AsyncClient(timeout=60.0)
         
         env_fallback = os.environ.get("AI_FALLBACK_MODE", "").lower()
         
-        if env_fallback == "":
+        if env_fallback:
+            logger.info(f"AI_FALLBACK_MODE environment variable found: '{env_fallback}'")
+        else:
+            logger.info("AI_FALLBACK_MODE not set, will auto-detect GPU availability")
+        
+        if env_fallback == "true":
+            self.fallback_mode = True
+            logger.info("Fallback mode explicitly enabled via AI_FALLBACK_MODE=true")
+        elif env_fallback == "false":
+            self.fallback_mode = False
+            logger.info("Fallback mode explicitly disabled via AI_FALLBACK_MODE=false")
+        else:
             has_gpu, gpu_info = self._check_gpu_available()
             self.fallback_mode = not has_gpu
             logger.info(f"Auto-detected GPU availability: {'Available' if has_gpu else 'Not available'}")
             if has_gpu:
                 logger.info(f"GPU info: {gpu_info}")
             else:
-                logger.info("No GPU detected, using fallback mode")
-        else:
-            self.fallback_mode = env_fallback == "true"
-            logger.info(f"Fallback mode explicitly set to: {self.fallback_mode}")
+                logger.warning("No GPU detected, using fallback mode")
         
         self.language_mode = os.environ.get("AI_LANGUAGE_MODE", "").lower()
         if self.language_mode == "es":
@@ -63,6 +71,14 @@ class MistralClient:
         max_retries = 3
         retry_delay = 2  # seconds
         
+        # Check if AI_FALLBACK_MODE is set explicitly in the environment
+        env_fallback = os.environ.get("AI_FALLBACK_MODE", "").lower()
+        if env_fallback == "false":
+            logger.info("AI_FALLBACK_MODE=false is set, forcing GPU mode regardless of health check")
+            return True, "Forced GPU mode via AI_FALLBACK_MODE=false"
+        
+        logger.info(f"Attempting to connect to AI service at {self.base_url}/health")
+        
         for attempt in range(1, max_retries + 1):
             try:
                 logger.info(f"Health check attempt {attempt}/{max_retries} to {self.base_url}/health")
@@ -79,6 +95,18 @@ class MistralClient:
                         time.sleep(retry_delay)
                     else:
                         return False, f"Health check failed with status {response.status_code} after {max_retries} attempts"
+            except httpx.ConnectError as e:
+                logger.warning(f"Connection error during health check: {e} (attempt {attempt}/{max_retries})")
+                if "getaddrinfo failed" in str(e) or "Name or service not known" in str(e):
+                    logger.warning("DNS resolution error: AI service hostname could not be resolved")
+                if attempt < max_retries:
+                    logger.info(f"Retrying in {retry_delay} seconds...")
+                    import time
+                    time.sleep(retry_delay)
+                else:
+                    if "getaddrinfo failed" in str(e) or "Name or service not known" in str(e):
+                        logger.error("DNS resolution persistently failing. Check if AI service container is running and network configuration is correct")
+                    return False, f"Connection error after {max_retries} attempts: {e}"
             except Exception as e:
                 logger.warning(f"Health check exception: {e} (attempt {attempt}/{max_retries})")
                 if attempt < max_retries:
@@ -133,7 +161,11 @@ class MistralClient:
                     prompt, preprocessing_info = process_spanish_input(prompt, debug=True)
                     debug_info["spanish_preprocessing"] = preprocessing_info
                 else:
-                    prompt = process_spanish_input(prompt)
+                    result = process_spanish_input(prompt)
+                    if isinstance(result, tuple):
+                        prompt = result[0]
+                    else:
+                        prompt = result
                 
                 if prompt != original_prompt:
                     logger.info("Spanish preprocessing applied successfully")
@@ -198,7 +230,9 @@ class MistralClient:
                 
         except httpx.HTTPStatusError as e:
             logger.error(f"HTTP error when connecting to LLM: {e.response.status_code} - {e.response.text}")
-            self.fallback_mode = True
+            if e.response.status_code >= 500:
+                logger.error("Server error detected, enabling fallback mode")
+                self.fallback_mode = True
             response_text = self._get_fallback_response(prompt)
             if debug:
                 return {
@@ -211,7 +245,11 @@ class MistralClient:
         except httpx.ConnectError as e:
             logger.error(f"Connection error when connecting to LLM: {e} - Is the AI service running?")
             logger.error(f"Attempted to connect to: {self.base_url}")
-            self.fallback_mode = True
+            if "getaddrinfo failed" in str(e) or "Name or service not known" in str(e):
+                logger.error("DNS resolution error detected. Check if AI service container is running")
+                self.fallback_mode = True
+            else:
+                logger.error("Connection error, but not enabling fallback mode permanently. May retry on next request")
             response_text = self._get_fallback_response(prompt)
             if debug:
                 return {
@@ -320,7 +358,11 @@ class MistralClient:
                     contract_text, preprocessing_info = process_spanish_input(contract_text, debug=True)
                     debug_info["contract_preprocessing"] = preprocessing_info
                 else:
-                    contract_text = process_spanish_input(contract_text)
+                    result = process_spanish_input(contract_text)
+                    if isinstance(result, tuple):
+                        contract_text = result[0]
+                    else:
+                        contract_text = result
                 
                 if contract_text != original_contract_text:
                     logger.info("Spanish preprocessing applied successfully to contract text")
@@ -338,7 +380,11 @@ class MistralClient:
                     query, query_preprocessing_info = process_spanish_input(query, debug=True)
                     debug_info["query_preprocessing"] = query_preprocessing_info
                 else:
-                    query = process_spanish_input(query)
+                    result = process_spanish_input(query)
+                    if isinstance(result, tuple):
+                        query = result[0]
+                    else:
+                        query = result
                 
                 if query != original_query:
                     logger.info("Spanish preprocessing applied successfully to query")
@@ -361,11 +407,19 @@ Provide your analysis in JSON format with appropriate fields based on the task.
         try:
             if debug:
                 response = await self.generate(prompt, debug=True, temperature=0.3, max_new_tokens=1024)
-                response_text = response["generated_text"]
-                debug_info.update(response.get("debug_info", {}))
+                if isinstance(response, dict):
+                    response_text = response.get("generated_text", "")
+                    debug_info.update(response.get("debug_info", {}))
+                else:
+                    response_text = response
             else:
                 response_text = await self.generate(prompt, temperature=0.3, max_new_tokens=1024)
+                if isinstance(response_text, dict):
+                    response_text = response_text.get("generated_text", "")
             
+            if not isinstance(response_text, str):
+                response_text = str(response_text)
+                
             json_start = response_text.find("{")
             json_end = response_text.rfind("}") + 1
             
@@ -381,7 +435,7 @@ Provide your analysis in JSON format with appropriate fields based on the task.
             else:
                 result = {"analysis": response_text}
             
-            if debug:
+            if debug and isinstance(result, dict):
                 result["debug_info"] = debug_info
                 
             return result
@@ -389,7 +443,7 @@ Provide your analysis in JSON format with appropriate fields based on the task.
         except Exception as e:
             logger.error(f"Error analyzing contract: {e}")
             result = {"error": str(e)}
-            if debug:
+            if debug and isinstance(result, dict):
                 result["debug_info"] = debug_info
             return result
     
@@ -426,7 +480,11 @@ Provide your analysis in JSON format with appropriate fields based on the task.
                     query, preprocessing_info = process_spanish_input(query, debug=True)
                     debug_info["query_preprocessing"] = preprocessing_info
                 else:
-                    query = process_spanish_input(query)
+                    result = process_spanish_input(query)
+                    if isinstance(result, tuple):
+                        query = result[0]
+                    else:
+                        query = result
                 
                 if query != original_query:
                     logger.info("Spanish preprocessing applied successfully to query")
@@ -445,7 +503,11 @@ Provide your analysis in JSON format with appropriate fields based on the task.
                     context, context_preprocessing_info = process_spanish_input(context, debug=True)
                     debug_info["context_preprocessing"] = context_preprocessing_info
                 else:
-                    context = process_spanish_input(context)
+                    result = process_spanish_input(context)
+                    if isinstance(result, tuple):
+                        context = result[0]
+                    else:
+                        context = result
                 
                 if context != original_context:
                     logger.info("Spanish preprocessing applied successfully to context")
@@ -468,7 +530,7 @@ Provide a helpful, accurate, and concise response based on the information avail
             if debug:
                 response = await self.generate(prompt, debug=True, temperature=0.7, max_new_tokens=512)
                 if isinstance(response, dict):
-                    result = response["generated_text"].strip()
+                    result = response.get("generated_text", "").strip()
                     debug_info.update(response.get("debug_info", {}))
                     return {
                         "response": result,
@@ -476,7 +538,7 @@ Provide a helpful, accurate, and concise response based on the information avail
                         "is_fallback": response.get("is_fallback", False)
                     }
                 else:
-                    result = response.strip()
+                    result = str(response).strip()
                     return {
                         "response": result,
                         "debug_info": debug_info,
@@ -484,7 +546,10 @@ Provide a helpful, accurate, and concise response based on the information avail
                     }
             else:
                 response = await self.generate(prompt, temperature=0.7, max_new_tokens=512)
-                return response.strip()
+                if isinstance(response, dict):
+                    return response.get("generated_text", "").strip()
+                else:
+                    return str(response).strip()
         except Exception as e:
             logger.error(f"Error querying legal assistant: {e}")
             error_msg = f"I apologize, but I encountered an error processing your request: {str(e)}"

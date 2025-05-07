@@ -157,17 +157,25 @@ async def test_mistral():
         
         try:
             response = await mistral_client.generate("What is a contract?")
-            is_fallback = "fallback response" in response.lower()
+            
+            if isinstance(response, dict):
+                response_text = response.get("generated_text", "")
+                is_fallback = response.get("is_fallback", False) or "fallback response" in response_text.lower()
+            else:
+                response_text = str(response)
+                is_fallback = "fallback response" in response_text.lower()
+                
             connection_error = None
         except Exception as e:
             logger.error(f"Connection error: {e}")
-            response = f"Connection error: {str(e)}"
+            response_text = f"Connection error: {str(e)}"
+            response = response_text  # Keep original variable for compatibility
             is_fallback = True
             connection_error = str(e)
         finally:
             mistral_client.fallback_mode = original_fallback_mode
         
-        logger.info(f"Received response from Mistral model: {response[:100]}...")
+        logger.info(f"Received response from Mistral model: {response_text[:100] if isinstance(response_text, str) else 'Non-string response'}...")
         
         hardware_requirements = {
             "gpu": "Required - NVIDIA GPU with CUDA support",
