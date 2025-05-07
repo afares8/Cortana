@@ -153,6 +153,12 @@ const ComplianceDashboardWidget: React.FC<ComplianceDashboardWidgetProps> = ({
           Sanctions Screening
         </Button>
         <Button 
+          variant="outline"
+          onClick={() => handleNavigate('/compliance/verify-customer')}
+        >
+          Customer Verification
+        </Button>
+        <Button 
           onClick={() => handleNavigate('/compliance/dashboard')}
         >
           View Full Dashboard

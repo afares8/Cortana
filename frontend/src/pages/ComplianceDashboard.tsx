@@ -80,6 +80,10 @@ const ComplianceDashboard: React.FC = () => {
     navigate('/compliance/sanctions-screening/new');
   };
 
+  const handleCustomerVerification = () => {
+    navigate('/compliance/verify-customer');
+  };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('es-PA', {
@@ -109,6 +113,7 @@ const ComplianceDashboard: React.FC = () => {
       case 'report': return '📄';
       case 'pep_screening': return '🔍';
       case 'sanctions_screening': return '⚠️';
+      case 'customer_verification': return '👤';
       default: return '📋';
     }
   };
@@ -167,6 +172,12 @@ const ComplianceDashboard: React.FC = () => {
             onClick={handleRunSanctionsScreening}
           >
             {t('compliance.runSanctionsScreening')}
+          </Button>
+          <Button 
+            variant="outline"
+            onClick={handleCustomerVerification}
+          >
+            {t('compliance.verifyCustomer')}
           </Button>
         </div>
       </div>
@@ -280,6 +291,8 @@ const ComplianceDashboard: React.FC = () => {
                             navigate(`/compliance/pep-screenings/${activity.id}`);
                           } else if (activity.type === 'sanctions_screening') {
                             navigate(`/compliance/sanctions-screenings/${activity.id}`);
+                          } else if (activity.type === 'customer_verification') {
+                            navigate(`/compliance/verify-customer`);
                           }
                         }}
                       >
@@ -292,7 +305,11 @@ const ComplianceDashboard: React.FC = () => {
                               ? `${activity.report_type} ${t('compliance.report')}` 
                               : activity.type === 'pep_screening'
                                 ? t('compliance.pepScreening')
-                                : t('compliance.sanctionsScreening')
+                                : activity.type === 'sanctions_screening'
+                                  ? t('compliance.sanctionsScreening')
+                                  : activity.type === 'customer_verification'
+                                    ? t('compliance.verifyCustomer')
+                                    : activity.type
                             }
                           </span>
                           {(activity.status || activity.match_status) && (
