@@ -322,6 +322,19 @@ For the compliance automation features to work properly:
     "is_pep": true
   }
   ```
+- `POST /api/v1/compliance/verify-customer` - Verify customer against PEP and sanctions lists
+  ```json
+  {
+    "customer": { 
+      "name": "John Doe",
+      "dob": "1970-01-01",
+      "country": "US",
+      "type": "natural"
+    },
+    "directors": [], 
+    "ubos": []
+  }
+  ```
 
 ## Deployment
 
@@ -555,6 +568,12 @@ Integration with OpenSanctions for comprehensive screening:
 ## Recent Updates
 
 - **May 2025**:
+  - Implemented comprehensive compliance verification system for customer screening
+  - Added new endpoint for verifying customers against PEP and sanctions lists
+  - Integrated with multiple data sources (UN, OFAC, EU, Wikidata)
+  - Added entity enrichment with aliases, IDs & metadata
+  - Implemented parallel screening against multiple databases
+  - Created end-to-end testing scripts for verification
   - Fixed Mistral AI integration unexpectedly falling back to CPU mode
   - Improved health-check logic to better handle DNS resolution errors
   - Enhanced error handling in Spanish language pipeline
