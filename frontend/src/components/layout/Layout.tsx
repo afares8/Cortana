@@ -1,7 +1,7 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Search, X, Menu, LogOut, ChevronRight, ChevronDown, AlertCircle, Bell, Settings, Shield, FileText, Users, Activity, CheckSquare, Database, Brain, BarChart2, Truck } from 'lucide-react';
+import { Search, X, Menu, LogOut, ChevronRight, ChevronDown, AlertCircle, Bell, Settings, Shield, FileText, Users, Activity, CheckSquare, Database, Brain, BarChart2, Truck, DollarSign, Mail, UserCog } from 'lucide-react';
 import NotificationBadge from '../../modules/accounting/components/NotificationBadge';
 import LanguageToggle from '../LanguageToggle';
 
@@ -118,10 +118,18 @@ export default function Layout({ children, title }: LayoutProps) {
       section: 'ai'
     },
     { 
-      path: 'accounting/notifications', 
-      label: 'common.navigation.notifications', 
-      icon: <Bell className="h-5 w-5" />, 
-      section: 'accounting'
+      path: 'accounting', 
+      label: 'common.navigation.accounting', 
+      icon: <DollarSign className="h-5 w-5" />, 
+      section: 'accounting',
+      children: [
+        { path: 'accounting/dashboard', label: 'common.navigation.dashboard', icon: <BarChart2 className="h-4 w-4" /> },
+        { path: 'accounting/documents', label: 'common.navigation.documents', icon: <FileText className="h-4 w-4" /> },
+        { path: 'accounting/notifications', label: 'common.navigation.notifications', icon: <Bell className="h-4 w-4" /> },
+        { path: 'accounting/audit', label: 'common.navigation.auditLogs', icon: <Database className="h-4 w-4" /> },
+        { path: 'accounting/email-drafts', label: 'common.navigation.emailDrafts', icon: <Mail className="h-4 w-4" /> },
+        { path: 'accounting/admin/users', label: 'common.navigation.userAccess', icon: <UserCog className="h-4 w-4" /> }
+      ]
     }
   ];
 
@@ -131,6 +139,7 @@ export default function Layout({ children, title }: LayoutProps) {
     if (path.startsWith('compliance/')) return 'compliance';
     if (path.startsWith('contracts/')) return 'contracts';
     if (path.startsWith('traffic/')) return 'traffic';
+    if (path.startsWith('accounting/')) return 'accounting';
     if (path.startsWith('ai-')) return 'ai';
     return 'dashboard';
   };

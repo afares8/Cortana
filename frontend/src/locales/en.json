@@ -61,7 +61,11 @@
       "settings": "Settings",
       "profile": "Profile",
       "logout": "Logout",
-      "notifications": "Notifications"
+      "notifications": "Notifications",
+      "documents": "Documents",
+      "emailDrafts": "Email Drafts",
+      "userAccess": "User Access",
+      "auditLogs": "Audit Logs"
     }
   },
   "accounting": {
