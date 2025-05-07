@@ -10,7 +10,9 @@ from app.services.compliance.schemas.compliance import (
     SanctionsScreeningResultCreate, SanctionsScreeningResultUpdate,
     DocumentRetentionPolicyCreate, DocumentRetentionPolicyUpdate
 )
+from app.services.compliance.schemas.verify import CustomerVerifyRequest, CustomerVerificationResponse
 from app.services.compliance.services.compliance_service import compliance_service
+from app.services.compliance.services.verification_service import verification_service
 from app.services.compliance.api.endpoints import router as endpoints_router
 
 router = APIRouter()
@@ -217,3 +219,26 @@ async def delete_retention_policy_endpoint(policy_id: int = Path(..., gt=0)):
     if not result:
         raise HTTPException(status_code=404, detail="Document retention policy not found")
     return {"success": True}
+
+@router.post("/verify-customer", response_model=CustomerVerificationResponse, status_code=201)
+async def verify_customer_endpoint(request: CustomerVerifyRequest = Body(...)):
+    """
+    Verify a customer against PEP and sanctions lists.
+    
+    This endpoint performs comprehensive verification of a customer (natural person or legal entity)
+    against multiple data sources including:
+    - PEP (Politically Exposed Person) databases
+    - Sanctions lists (UN, OFAC, EU)
+    - Other relevant compliance databases
+    
+    For legal entities, it also verifies directors and ultimate beneficial owners (UBOs).
+    
+    The verification process includes:
+    1. Entity enrichment with aliases, IDs & metadata
+    2. Verification against PEP databases
+    3. Screening against all relevant sanctions lists
+    4. Structured results reporting
+    
+    Returns a comprehensive verification response with results from all data sources.
+    """
+    return await verification_service.verify_customer(request)
