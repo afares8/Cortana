@@ -54,7 +54,7 @@ async function retry(fn, retries = 2, delay = 2000, onError = null) {
     timezoneId: 'America/Panama',
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
     viewport: { width: 1280, height: 800 },
-    recordVideo: { dir: './videos/' },
+    recordVideo: { dir: '../videos/' },
     recordTrace: { snapshots: true, screenshots: true },
     permissions: ['notifications'],
     acceptDownloads: true
@@ -110,10 +110,10 @@ async function retry(fn, retries = 2, delay = 2000, onError = null) {
       log('Loaded initial login page');
     }, 2, 3000, async (error) => {
       log(`Error loading login page: ${error.message}`);
-      await page.screenshot({ path: `./screenshots/login_page_error_${Date.now()}.png` });
+      await page.screenshot({ path: `../screenshots/login_page_error_${Date.now()}.png` });
     });
     
-    await page.screenshot({ path: './screenshots/initial_page.png' });
+    await page.screenshot({ path: '../screenshots/initial_page.png' });
 
     log('Step 2: Opening login popup');
     popup = await retry(async () => {
@@ -139,10 +139,10 @@ async function retry(fn, retries = 2, delay = 2000, onError = null) {
       return popupInstance;
     }, 2, 3000, async (error) => {
       log(`Error opening login popup: ${error.message}`);
-      await page.screenshot({ path: `./screenshots/login_popup_error_${Date.now()}.png` });
+      await page.screenshot({ path: `../screenshots/login_popup_error_${Date.now()}.png` });
     });
     
-    await popup.screenshot({ path: './screenshots/login_popup.png' });
+    await popup.screenshot({ path: '../screenshots/login_popup.png' });
 
     log('Step 3: Extracting form fields and submitting credentials');
     await retry(async () => {
@@ -184,10 +184,10 @@ async function retry(fn, retries = 2, delay = 2000, onError = null) {
       }
     }, 2, 3000, async (error) => {
       log(`Error during login: ${error.message}`);
-      await popup.screenshot({ path: `./screenshots/login_error_${Date.now()}.png` });
+      await popup.screenshot({ path: `../screenshots/login_error_${Date.now()}.png` });
     });
     
-    await popup.screenshot({ path: './screenshots/post_login.png' });
+    await popup.screenshot({ path: '../screenshots/post_login.png' });
     
     log('Step 4: Handling dashboard popups and waiting for dashboard to load');
     
@@ -197,7 +197,7 @@ async function retry(fn, retries = 2, delay = 2000, onError = null) {
         const p = pages[i];
         if (p !== page && p !== popup) {
           log(`Found additional popup: ${p.url()}`);
-          await p.screenshot({ path: `./screenshots/additional_popup_${i}_${Date.now()}.png` });
+          await p.screenshot({ path: `../screenshots/additional_popup_${i}_${Date.now()}.png` });
           
           try {
             const closeButtons = await p.$$('button, .close, .btn-close, [aria-label="Close"], [title="Close"]');
@@ -238,7 +238,7 @@ async function retry(fn, retries = 2, delay = 2000, onError = null) {
       log('Dashboard loaded using one of the waiting strategies');
     }, 2, 5000, async (error) => {
       log(`Error waiting for dashboard: ${error.message}`);
-      await popup.screenshot({ path: `./screenshots/dashboard_error_${Date.now()}.png` });
+      await popup.screenshot({ path: `../screenshots/dashboard_error_${Date.now()}.png` });
       
       const html = await popup.content();
       fs.writeFileSync(`./logs/dashboard_error_${Date.now()}.html`, html);
@@ -246,7 +246,7 @@ async function retry(fn, retries = 2, delay = 2000, onError = null) {
     
     clearInterval(popupCheckInterval);
     
-    await popup.screenshot({ path: './screenshots/dashboard_loaded.png' });
+    await popup.screenshot({ path: '../screenshots/dashboard_loaded.png' });
     
     const dashboardHtml = await popup.content();
     fs.writeFileSync('./logs/dashboard.html', dashboardHtml);
@@ -264,7 +264,7 @@ async function retry(fn, retries = 2, delay = 2000, onError = null) {
         const frame = await iframes[i].contentFrame();
         if (frame) {
           log(`Exploring iframe ${i}`);
-          await frame.screenshot({ path: `./screenshots/iframe_${i}.png` }).catch(() => {});
+          await frame.screenshot({ path: `../screenshots/iframe_${i}.png` }).catch(() => {});
           
           const frameElements = await frame.$$eval(
             'a, button, div, span, li, table',
@@ -325,7 +325,7 @@ async function retry(fn, retries = 2, delay = 2000, onError = null) {
           
           await invoiceFrame.click(elementSelector).catch(() => {});
           await popup.waitForTimeout(3000);
-          await popup.screenshot({ path: `./screenshots/after_click_${i}.png` });
+          await popup.screenshot({ path: `../screenshots/after_click_${i}.png` });
           
           log(`Current URL after click: ${popup.url()}`);
         } catch (error) {
@@ -380,7 +380,7 @@ async function retry(fn, retries = 2, delay = 2000, onError = null) {
             
             await popup.click(elementSelector).catch(() => {});
             await popup.waitForTimeout(3000);
-            await popup.screenshot({ path: `./screenshots/after_main_click_${i}.png` });
+            await popup.screenshot({ path: `../screenshots/after_main_click_${i}.png` });
             
             log(`Current URL after click: ${popup.url()}`);
           } catch (error) {
@@ -413,7 +413,7 @@ async function retry(fn, retries = 2, delay = 2000, onError = null) {
         
         if (response.status() === 200) {
           log(`SUCCESS: URL returned 200 OK`);
-          await popup.screenshot({ path: `./screenshots/url_success_${urlPath.replace(/\//g, '_').replace(/\?/g, '_')}.png` });
+          await popup.screenshot({ path: `../screenshots/url_success_${urlPath.replace(/\//g, '_').replace(/\?/g, '_')}.png` });
           
           const tables = await popup.$$eval('table', tables => 
             tables.map((table, i) => ({
@@ -439,7 +439,7 @@ async function retry(fn, retries = 2, delay = 2000, onError = null) {
     }
     
     log('Step 8: Capturing final dashboard state');
-    await popup.screenshot({ path: './screenshots/final_dashboard_state.png' });
+    await popup.screenshot({ path: '../screenshots/final_dashboard_state.png' });
     
     const finalHtml = await popup.content();
     fs.writeFileSync('./logs/final_page.html', finalHtml);
@@ -451,13 +451,13 @@ async function retry(fn, retries = 2, delay = 2000, onError = null) {
     log(error.stack);
     
     if (popup) {
-      await popup.screenshot({ path: './screenshots/error_state.png' });
+      await popup.screenshot({ path: '../screenshots/error_state.png' });
       log('Current URL at error: ' + popup.url());
       
       const html = await popup.content();
       fs.writeFileSync('./logs/error_page.html', html);
     } else if (page) {
-      await page.screenshot({ path: './screenshots/error_state.png' });
+      await page.screenshot({ path: '../screenshots/error_state.png' });
     }
   } finally {
     await context.tracing.stop({ path: 'trace.zip' });

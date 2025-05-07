@@ -16,7 +16,7 @@ const fs = require('fs');
     timezoneId: 'America/Panama',
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
     viewport: { width: 1280, height: 800 },
-    recordVideo: { dir: './videos/' }
+    recordVideo: { dir: '../videos/' }
   });
   
   const page = await context.newPage();
@@ -76,7 +76,7 @@ const fs = require('fs');
              document.querySelectorAll('iframe').length > 0;
     }, { timeout: 30000 });
     
-    await popup.screenshot({ path: './screenshots/dashboard_loaded.png' });
+    await popup.screenshot({ path: '../screenshots/dashboard_loaded.png' });
     console.log('Dashboard loaded');
     
     console.log('Step 3: Exploring dashboard elements');
@@ -123,7 +123,7 @@ const fs = require('fs');
       const frame = await iframes[i].contentFrame();
       
       if (frame) {
-        await frame.screenshot({ path: `./screenshots/iframe_${i}.png` });
+        await frame.screenshot({ path: `../screenshots/iframe_${i}.png` });
         
         // Look for menu items in the iframe
         const frameMenuItems = await frame.$$eval(
@@ -162,7 +162,7 @@ const fs = require('fs');
         const menuElements = await frame.$$('[class*="menu"], [class*="nav"], [class*="sidebar"], [role="menu"], [role="navigation"]');
         
         for (const menuElement of menuElements) {
-          await menuElement.screenshot({ path: `./screenshots/menu_element_${i}.png` });
+          await menuElement.screenshot({ path: `../screenshots/menu_element_${i}.png` });
         }
       }
     }
@@ -177,7 +177,7 @@ const fs = require('fs');
       console.log(`Menu item ${i}: ${menuText}`);
       
       if (menuText) {
-        await mainMenuItems[i].screenshot({ path: `./screenshots/menu_item_${i}.png` });
+        await mainMenuItems[i].screenshot({ path: `../screenshots/menu_item_${i}.png` });
       }
     }
     
@@ -206,7 +206,7 @@ const fs = require('fs');
     fs.writeFileSync('./screenshots/network_requests.json', JSON.stringify(requests, null, 2));
     
     console.log('Step 5: Final dashboard state');
-    await popup.screenshot({ path: './screenshots/final_dashboard_state.png' });
+    await popup.screenshot({ path: '../screenshots/final_dashboard_state.png' });
     
     // Save the final page HTML for analysis
     const html = await popup.content();
@@ -218,7 +218,7 @@ const fs = require('fs');
     console.error('Error during navigation exploration:', error);
     
     if (popup) {
-      await popup.screenshot({ path: './screenshots/error_state.png' });
+      await popup.screenshot({ path: '../screenshots/error_state.png' });
       const html = await popup.content();
       fs.writeFileSync('./screenshots/error_page.html', html);
     }

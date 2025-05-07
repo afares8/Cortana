@@ -27,7 +27,7 @@ const { getDMCECredentials } = require('./credential_handler');
     timezoneId: 'America/Panama',
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
     viewport: { width: 1280, height: 800 },
-    recordVideo: { dir: './videos/' },
+    recordVideo: { dir: '../videos/' },
     recordTrace: { snapshots: true, screenshots: true }
   });
   
@@ -58,7 +58,7 @@ const { getDMCECredentials } = require('./credential_handler');
     
     try {
       await page.screenshot({ 
-        path: './screenshots/initial_page.png',
+        path: '../screenshots/initial_page.png',
         timeout: 5000 
       });
     } catch (error) {
@@ -88,7 +88,7 @@ const { getDMCECredentials } = require('./credential_handler');
     
     try {
       await popup.screenshot({ 
-        path: './screenshots/login_popup.png',
+        path: '../screenshots/login_popup.png',
         timeout: 5000 
       });
     } catch (error) {
@@ -132,7 +132,7 @@ const { getDMCECredentials } = require('./credential_handler');
     
     try {
       await popup.screenshot({ 
-        path: './screenshots/post_login.png',
+        path: '../screenshots/post_login.png',
         timeout: 5000 
       });
     } catch (error) {
@@ -155,7 +155,7 @@ const { getDMCECredentials } = require('./credential_handler');
     
     try {
       await popup.screenshot({ 
-        path: './screenshots/dashboard_loaded.png',
+        path: '../screenshots/dashboard_loaded.png',
         timeout: 5000 
       });
     } catch (error) {
@@ -173,7 +173,7 @@ const { getDMCECredentials } = require('./credential_handler');
     if (popup) {
       try {
         await popup.screenshot({ 
-          path: './screenshots/error_state.png',
+          path: '../screenshots/error_state.png',
           timeout: 5000 
         });
       } catch (screenshotError) {
@@ -191,7 +191,7 @@ const { getDMCECredentials } = require('./credential_handler');
     } else if (page) {
       try {
         await page.screenshot({ 
-          path: './screenshots/error_state.png',
+          path: '../screenshots/error_state.png',
           timeout: 5000 
         });
       } catch (screenshotError) {

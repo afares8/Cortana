@@ -41,7 +41,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
     timezoneId: 'America/Panama',
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
     viewport: { width: 1280, height: 800 },
-    recordVideo: { dir: './videos/' },
+    recordVideo: { dir: '../videos/' },
     recordTrace: { snapshots: true, screenshots: true },
     acceptDownloads: true
   });
@@ -73,7 +73,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
     
     try {
       await page.screenshot({ 
-        path: './screenshots/initial_page.png',
+        path: '../screenshots/initial_page.png',
         timeout: 5000 
       });
     } catch (error) {
@@ -103,7 +103,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
     
     try {
       await popup.screenshot({ 
-        path: './screenshots/login_popup.png',
+        path: '../screenshots/login_popup.png',
         timeout: 5000 
       });
     } catch (error) {
@@ -147,7 +147,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
     
     try {
       await popup.screenshot({ 
-        path: './screenshots/post_login.png',
+        path: '../screenshots/post_login.png',
         timeout: 5000 
       });
     } catch (error) {
@@ -198,7 +198,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
           await popup.waitForTimeout(5000);
           
           await popup.screenshot({ 
-            path: `./screenshots/dashboard_loading_retry_${retryCount}.png`,
+            path: `../screenshots/dashboard_loading_retry_${retryCount}.png`,
             fullPage: true
           });
         } else {
@@ -211,7 +211,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
     
     try {
       await popup.screenshot({ 
-        path: './screenshots/dashboard_loaded.png',
+        path: '../screenshots/dashboard_loaded.png',
         timeout: 5000 
       });
     } catch (error) {
@@ -244,7 +244,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
             
             try {
               await frame.screenshot({ 
-                path: `./screenshots/iframe_${i + 1}_content.png`,
+                path: `../screenshots/iframe_${i + 1}_content.png`,
                 fullPage: true 
               });
             } catch (screenshotError) {
@@ -280,7 +280,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
                     console.log('Clicked on "Declaración" menu in iframe');
                     await popup.waitForTimeout(2000);
                     await popup.screenshot({ 
-                      path: './screenshots/after_declaration_menu_click_iframe.png',
+                      path: '../screenshots/after_declaration_menu_click_iframe.png',
                       fullPage: true 
                     });
                     
@@ -302,7 +302,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
                           console.log('Clicked on "Crear Declaración" link in iframe');
                           await popup.waitForTimeout(2000);
                           await popup.screenshot({ 
-                            path: './screenshots/after_crear_declaration_click_iframe.png',
+                            path: '../screenshots/after_crear_declaration_click_iframe.png',
                             fullPage: true 
                           });
                           
@@ -356,7 +356,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
                     console.log('Clicked on potential Declaración menu item');
                     await popup.waitForTimeout(2000);
                     await popup.screenshot({ 
-                      path: './screenshots/after_potential_menu_click.png',
+                      path: '../screenshots/after_potential_menu_click.png',
                       fullPage: true 
                     });
                   }
@@ -379,7 +379,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
     console.log('Step 2: Navigating to "Crear Declaración"');
     
     await popup.screenshot({ 
-      path: './screenshots/pre_navigation_dashboard.png',
+      path: '../screenshots/pre_navigation_dashboard.png',
       fullPage: true 
     });
     
@@ -435,7 +435,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
       if (clickedDeclaracion) {
         console.log('Successfully clicked on Declaración menu using JavaScript evaluation');
         await popup.waitForTimeout(2000);
-        await popup.screenshot({ path: './screenshots/after_declaration_menu_click_js.png', fullPage: true });
+        await popup.screenshot({ path: '../screenshots/after_declaration_menu_click_js.png', fullPage: true });
       } else {
         console.log('Could not find Declaración menu using JavaScript evaluation');
       }
@@ -498,7 +498,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
       if (clickedCrearDeclaracion) {
         console.log('Successfully clicked on Crear Declaración link using JavaScript evaluation');
         await popup.waitForTimeout(2000);
-        await popup.screenshot({ path: './screenshots/after_crear_declaration_click_js.png', fullPage: true });
+        await popup.screenshot({ path: '../screenshots/after_crear_declaration_click_js.png', fullPage: true });
       } else {
         console.log('Could not find Crear Declaración link using JavaScript evaluation');
       }
@@ -512,13 +512,13 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
       await popup.mouse.click(150, 70); // Adjust these coordinates based on the screenshot
       console.log('Clicked on approximate Declaración menu coordinates');
       await popup.waitForTimeout(3000);
-      await popup.screenshot({ path: './screenshots/after_declaration_menu_coordinate_click.png', fullPage: true });
+      await popup.screenshot({ path: '../screenshots/after_declaration_menu_coordinate_click.png', fullPage: true });
       
       console.log('Attempting to click on Crear Declaración submenu');
       await popup.mouse.click(150, 108); // Adjusted coordinates based on the screenshot
       console.log('Clicked on approximate Crear Declaración coordinates');
       await popup.waitForTimeout(5000); // Increased timeout to allow page to load
-      await popup.screenshot({ path: './screenshots/after_crear_declaration_coordinate_click.png', fullPage: true });
+      await popup.screenshot({ path: '../screenshots/after_crear_declaration_coordinate_click.png', fullPage: true });
       
       const pageTitle = await popup.evaluate(() => {
         const breadcrumbElements = document.querySelectorAll('a, span, div');
@@ -565,7 +565,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
           if (form) {
             console.log(`Found form with selector: ${selector}`);
             formFound = true;
-            await popup.screenshot({ path: './screenshots/declaration_form.png' });
+            await popup.screenshot({ path: '../screenshots/declaration_form.png' });
             break;
           }
         } catch (selectorError) {
@@ -594,7 +594,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
             if (input) {
               console.log(`Found input field with selector: ${selector}`);
               formFound = true;
-              await popup.screenshot({ path: './screenshots/form_input_found.png' });
+              await popup.screenshot({ path: '../screenshots/form_input_found.png' });
               break;
             }
           } catch (inputError) {
@@ -607,7 +607,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
         console.log('Form or input fields found, ready to proceed with form filling');
       } else {
         console.log('Could not find form or input fields, but continuing with best effort');
-        await popup.screenshot({ path: './screenshots/form_not_found.png', fullPage: true });
+        await popup.screenshot({ path: '../screenshots/form_not_found.png', fullPage: true });
         
         const html = await popup.content();
         fs.writeFileSync('./logs/form_page_content.html', html);
@@ -630,7 +630,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
       }
     } catch (error) {
       console.error('Error during form detection:', error);
-      await popup.screenshot({ path: './screenshots/form_detection_error.png', fullPage: true });
+      await popup.screenshot({ path: '../screenshots/form_detection_error.png', fullPage: true });
       console.log('Continuing with process despite form detection error');
     }
     
@@ -641,7 +641,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
       console.log('Filled Invoice ID');
     } catch (error) {
       console.error('Error filling Invoice ID:', error);
-      await popup.screenshot({ path: './screenshots/invoice_id_error.png' });
+      await popup.screenshot({ path: '../screenshots/invoice_id_error.png' });
     }
     
     try {
@@ -649,7 +649,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
       console.log('Filled Declaration Date');
     } catch (error) {
       console.error('Error filling Declaration Date:', error);
-      await popup.screenshot({ path: './screenshots/date_error.png' });
+      await popup.screenshot({ path: '../screenshots/date_error.png' });
     }
     
     try {
@@ -657,7 +657,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
       console.log('Filled Customer Code');
     } catch (error) {
       console.error('Error filling Customer Code:', error);
-      await popup.screenshot({ path: './screenshots/customer_code_error.png' });
+      await popup.screenshot({ path: '../screenshots/customer_code_error.png' });
     }
     
     console.log('Step 4: Filling Section B - Datos de la Mercancía');
@@ -667,7 +667,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
       console.log('Filled Goods Description');
     } catch (error) {
       console.error('Error filling Goods Description:', error);
-      await popup.screenshot({ path: './screenshots/description_error.png' });
+      await popup.screenshot({ path: '../screenshots/description_error.png' });
     }
     
     try {
@@ -675,7 +675,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
       console.log('Filled Quantity');
     } catch (error) {
       console.error('Error filling Quantity:', error);
-      await popup.screenshot({ path: './screenshots/quantity_error.png' });
+      await popup.screenshot({ path: '../screenshots/quantity_error.png' });
     }
     
     try {
@@ -683,7 +683,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
       console.log('Filled Weight');
     } catch (error) {
       console.error('Error filling Weight:', error);
-      await popup.screenshot({ path: './screenshots/weight_error.png' });
+      await popup.screenshot({ path: '../screenshots/weight_error.png' });
     }
     
     try {
@@ -691,7 +691,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
       console.log('Filled Volume');
     } catch (error) {
       console.error('Error filling Volume:', error);
-      await popup.screenshot({ path: './screenshots/volume_error.png' });
+      await popup.screenshot({ path: '../screenshots/volume_error.png' });
     }
     
     console.log('Step 5: Filling Section C - Transporte');
@@ -701,7 +701,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
       console.log('Selected Transport Type');
     } catch (error) {
       console.error('Error selecting Transport Type:', error);
-      await popup.screenshot({ path: './screenshots/transport_type_error.png' });
+      await popup.screenshot({ path: '../screenshots/transport_type_error.png' });
     }
     
     if (declarationData.transportType === 'AIR') {
@@ -710,7 +710,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
         console.log('Filled Flight Number');
       } catch (error) {
         console.error('Error filling Flight Number:', error);
-        await popup.screenshot({ path: './screenshots/flight_number_error.png' });
+        await popup.screenshot({ path: '../screenshots/flight_number_error.png' });
       }
       
       try {
@@ -718,7 +718,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
         console.log('Filled Carrier Name');
       } catch (error) {
         console.error('Error filling Carrier Name:', error);
-        await popup.screenshot({ path: './screenshots/carrier_name_error.png' });
+        await popup.screenshot({ path: '../screenshots/carrier_name_error.png' });
       }
     }
     
@@ -729,7 +729,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
       console.log('Filled HS Code');
     } catch (error) {
       console.error('Error filling HS Code:', error);
-      await popup.screenshot({ path: './screenshots/hs_code_error.png' });
+      await popup.screenshot({ path: '../screenshots/hs_code_error.png' });
     }
     
     try {
@@ -737,7 +737,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
       console.log('Filled Origin Country');
     } catch (error) {
       console.error('Error filling Origin Country:', error);
-      await popup.screenshot({ path: './screenshots/origin_country_error.png' });
+      await popup.screenshot({ path: '../screenshots/origin_country_error.png' });
     }
     
     try {
@@ -745,7 +745,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
       console.log('Filled Destination Country');
     } catch (error) {
       console.error('Error filling Destination Country:', error);
-      await popup.screenshot({ path: './screenshots/destination_country_error.png' });
+      await popup.screenshot({ path: '../screenshots/destination_country_error.png' });
     }
     
     try {
@@ -753,7 +753,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
       console.log('Filled Declared Value');
     } catch (error) {
       console.error('Error filling Declared Value:', error);
-      await popup.screenshot({ path: './screenshots/declared_value_error.png' });
+      await popup.screenshot({ path: '../screenshots/declared_value_error.png' });
     }
     
     try {
@@ -761,7 +761,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
       console.log('Selected Currency');
     } catch (error) {
       console.error('Error selecting Currency:', error);
-      await popup.screenshot({ path: './screenshots/currency_error.png' });
+      await popup.screenshot({ path: '../screenshots/currency_error.png' });
     }
     
     console.log('Step 7: Filling Section E - Documentos Adjuntos');
@@ -772,7 +772,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
         console.log('Uploaded Commercial Invoice');
       } catch (error) {
         console.error('Error uploading Commercial Invoice:', error);
-        await popup.screenshot({ path: './screenshots/invoice_upload_error.png' });
+        await popup.screenshot({ path: '../screenshots/invoice_upload_error.png' });
       }
     }
     
@@ -782,7 +782,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
         console.log('Uploaded Packing List');
       } catch (error) {
         console.error('Error uploading Packing List:', error);
-        await popup.screenshot({ path: './screenshots/packing_list_upload_error.png' });
+        await popup.screenshot({ path: '../screenshots/packing_list_upload_error.png' });
       }
     }
     
@@ -794,17 +794,17 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
       console.log('Clicked submit button');
     } catch (error) {
       console.error('Error finding submit button:', error);
-      await popup.screenshot({ path: './screenshots/submit_button_error.png', fullPage: true });
+      await popup.screenshot({ path: '../screenshots/submit_button_error.png', fullPage: true });
       throw new Error('Could not find submit button');
     }
     
     try {
       await popup.waitForSelector('#lblTransactionId', { timeout: 30000 });
       console.log('Declaration submitted successfully');
-      await popup.screenshot({ path: './screenshots/declaration_submitted.png' });
+      await popup.screenshot({ path: '../screenshots/declaration_submitted.png' });
     } catch (error) {
       console.error('Error finding transaction ID:', error);
-      await popup.screenshot({ path: './screenshots/transaction_id_error.png', fullPage: true });
+      await popup.screenshot({ path: '../screenshots/transaction_id_error.png', fullPage: true });
       throw new Error('Could not find transaction ID');
     }
     
@@ -816,7 +816,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
       fs.writeFileSync('./logs/transaction_id.txt', transactionId);
     } catch (error) {
       console.error('Error capturing transaction ID:', error);
-      await popup.screenshot({ path: './screenshots/transaction_id_capture_error.png' });
+      await popup.screenshot({ path: '../screenshots/transaction_id_capture_error.png' });
     }
     
     try {
@@ -831,7 +831,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
       console.log(`PDF downloaded to: ${downloadPath}`);
     } catch (error) {
       console.error('Error downloading PDF:', error);
-      await popup.screenshot({ path: './screenshots/pdf_download_error.png', fullPage: true });
+      await popup.screenshot({ path: '../screenshots/pdf_download_error.png', fullPage: true });
     }
     
     try {
@@ -851,10 +851,10 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
       
       await popup.waitForURL(url => url.includes('/signin.cl'), { timeout: 10000 });
       console.log('Logged out successfully');
-      await popup.screenshot({ path: './screenshots/logout_success.png' });
+      await popup.screenshot({ path: '../screenshots/logout_success.png' });
     } catch (error) {
       console.error('Error during logout:', error);
-      await popup.screenshot({ path: './screenshots/logout_error.png', fullPage: true });
+      await popup.screenshot({ path: '../screenshots/logout_error.png', fullPage: true });
     }
     
     console.log('DMCE full process automation completed successfully');
@@ -865,7 +865,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
     if (popup) {
       try {
         await popup.screenshot({ 
-          path: './screenshots/error_state.png',
+          path: '../screenshots/error_state.png',
           timeout: 5000,
           fullPage: true
         });
@@ -884,7 +884,7 @@ const { getDMCECredentials, getDMCEDeclarationData, validateDMCEEnvironment } = 
     } else if (page) {
       try {
         await page.screenshot({ 
-          path: './screenshots/error_state.png',
+          path: '../screenshots/error_state.png',
           timeout: 5000,
           fullPage: true
         });
