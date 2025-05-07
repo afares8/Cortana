@@ -187,6 +187,9 @@ class MistralClient:
         Returns:
             The generated text response, or a dict with response and debug info if debug=True
         """
+        if not self.initialized:
+            await self.initialize()
+            
         parameters = {
             "max_new_tokens": 512,
             "temperature": 0.7,
@@ -199,6 +202,8 @@ class MistralClient:
         
         original_prompt = prompt
         debug_info = {}
+        
+        transient_fallback = False
         
         should_process_spanish = (self.language_mode == "es")
         
@@ -238,6 +243,7 @@ class MistralClient:
             parameters=parameters
         )
         
+        # Check if we're in permanent fallback mode
         if self.fallback_mode:
             response_text = self._get_fallback_response(prompt)
             if debug:
@@ -248,86 +254,137 @@ class MistralClient:
                 }
             return response_text
         
-        try:
-            logger.info(f"Attempting to connect to LLM at {self.base_url}/generate with prompt: {prompt[:50]}...")
-            logger.info(f"Request parameters: {parameters}")
-            
-            response = await self.client.post(
-                f"{self.base_url}/generate",
-                json=request.model_dump(),  # Use model_dump() instead of dict() for Pydantic v2
-                headers={"Content-Type": "application/json"}
-            )
-            
-            logger.info(f"Response status code: {response.status_code}")
-            response.raise_for_status()
-            
-            result = response.json()
-            logger.info(f"Response received: {str(result)[:200]}...")
-            
-            if isinstance(result, list) and len(result) > 0 and "generated_text" in result[0]:
-                logger.info("Successfully extracted generated_text from response (list format)")
-                response_text = result[0]["generated_text"]
-            elif isinstance(result, dict) and "generated_text" in result:
-                logger.info("Successfully extracted generated_text from response (dict format)")
-                response_text = result["generated_text"]
-            else:
-                logger.error(f"Unexpected response format: {result}")
-                if isinstance(result, dict):
-                    logger.error("Response keys: " + ", ".join(result.keys()))
-                self.fallback_mode = True
+        max_retries = 2
+        retry_delay = 1  # seconds
+        
+        for attempt in range(1, max_retries + 1):
+            try:
+                logger.info(f"Attempt {attempt}/{max_retries} to connect to LLM at {self.base_url}/generate")
+                logger.debug(f"Request prompt: {prompt[:50]}...")
+                logger.debug(f"Request parameters: {parameters}")
+                
+                response = await self.client.post(
+                    f"{self.base_url}/generate",
+                    json=request.model_dump(),  # Use model_dump() instead of dict() for Pydantic v2
+                    headers={"Content-Type": "application/json"}
+                )
+                
+                logger.info(f"Response status code: {response.status_code}")
+                response.raise_for_status()
+                
+                result = response.json()
+                logger.info(f"Response received: {str(result)[:200]}...")
+                
+                if isinstance(result, list) and len(result) > 0 and "generated_text" in result[0]:
+                    logger.info("Successfully extracted generated_text from response (list format)")
+                    response_text = result[0]["generated_text"]
+                elif isinstance(result, dict) and "generated_text" in result:
+                    logger.info("Successfully extracted generated_text from response (dict format)")
+                    response_text = result["generated_text"]
+                else:
+                    logger.error(f"Unexpected response format: {result}")
+                    if isinstance(result, dict):
+                        logger.error("Response keys: " + ", ".join(result.keys()))
+                    
+                    if attempt < max_retries:
+                        logger.warning(f"Retrying due to unexpected response format (attempt {attempt}/{max_retries})")
+                        import asyncio
+                        await asyncio.sleep(retry_delay)
+                        continue
+                    
+                    transient_fallback = True
+                    response_text = self._get_fallback_response(prompt)
+                    break
+                    
+                if debug:
+                    return {
+                        "generated_text": response_text,
+                        "is_fallback": False,
+                        "debug_info": debug_info
+                    }
+                return response_text
+                    
+            except httpx.HTTPStatusError as e:
+                logger.error(f"HTTP error when connecting to LLM: {e.response.status_code} - {e.response.text}")
+                
+                if e.response.status_code >= 500:
+                    logger.error(f"Server error detected (attempt {attempt}/{max_retries})")
+                    
+                    if attempt < max_retries:
+                        retry_time = retry_delay * (2 ** (attempt - 1))
+                        logger.warning(f"Retrying in {retry_time} seconds...")
+                        import asyncio
+                        await asyncio.sleep(retry_time)
+                        continue
+                    
+                    if os.environ.get("AI_FALLBACK_MODE", "").lower() != "false":
+                        logger.error("All server error retries failed, enabling permanent fallback mode")
+                        self.fallback_mode = True
+                else:
+                    logger.error(f"Client error: {e.response.status_code} - {e.response.text}")
+                
+                transient_fallback = True
                 response_text = self._get_fallback_response(prompt)
+                break
                 
-            if debug:
-                return {
-                    "generated_text": response_text,
-                    "is_fallback": False,
-                    "debug_info": debug_info
-                }
-            return response_text
+            except httpx.ConnectError as e:
+                logger.error(f"Connection error when connecting to LLM: {e}")
+                logger.error(f"Attempted to connect to: {self.base_url}")
                 
-        except httpx.HTTPStatusError as e:
-            logger.error(f"HTTP error when connecting to LLM: {e.response.status_code} - {e.response.text}")
-            if e.response.status_code >= 500:
-                logger.error("Server error detected, enabling fallback mode")
-                self.fallback_mode = True
-            response_text = self._get_fallback_response(prompt)
-            if debug:
-                return {
-                    "generated_text": response_text,
-                    "is_fallback": True,
-                    "debug_info": debug_info,
-                    "error": str(e)
-                }
-            return response_text
-        except httpx.ConnectError as e:
-            logger.error(f"Connection error when connecting to LLM: {e} - Is the AI service running?")
-            logger.error(f"Attempted to connect to: {self.base_url}")
-            if "getaddrinfo failed" in str(e) or "Name or service not known" in str(e):
-                logger.error("DNS resolution error detected. Check if AI service container is running")
-                self.fallback_mode = True
-            else:
-                logger.error("Connection error, but not enabling fallback mode permanently. May retry on next request")
-            response_text = self._get_fallback_response(prompt)
-            if debug:
-                return {
-                    "generated_text": response_text,
-                    "is_fallback": True,
-                    "debug_info": debug_info,
-                    "error": str(e)
-                }
-            return response_text
-        except Exception as e:
-            logger.error(f"Error generating text with LLM: {type(e).__name__} - {e}")
-            self.fallback_mode = True
-            response_text = self._get_fallback_response(prompt)
-            if debug:
-                return {
-                    "generated_text": response_text,
-                    "is_fallback": True,
-                    "debug_info": debug_info,
-                    "error": str(e)
-                }
-            return response_text
+                if "getaddrinfo failed" in str(e) or "Name or service not known" in str(e):
+                    logger.error("DNS resolution error detected. Check if AI service container is running")
+                    
+                    if attempt < max_retries:
+                        retry_time = retry_delay * (2 ** (attempt - 1))
+                        logger.warning(f"Retrying DNS resolution in {retry_time} seconds...")
+                        import asyncio
+                        await asyncio.sleep(retry_time)
+                        continue
+                    
+                    if os.environ.get("AI_FALLBACK_MODE", "").lower() != "false":
+                        logger.error("Persistent DNS resolution errors, enabling fallback mode")
+                        self.fallback_mode = True
+                else:
+                    if attempt < max_retries:
+                        retry_time = retry_delay * (2 ** (attempt - 1))
+                        logger.warning(f"Retrying connection in {retry_time} seconds...")
+                        import asyncio
+                        await asyncio.sleep(retry_time)
+                        continue
+                    
+                    logger.error("Connection error persists, using fallback for this request only")
+                
+                transient_fallback = True
+                response_text = self._get_fallback_response(prompt)
+                break
+                
+            except Exception as e:
+                logger.error(f"Error generating text with LLM: {type(e).__name__} - {e}")
+                
+                if attempt < max_retries:
+                    retry_time = retry_delay * (2 ** (attempt - 1))
+                    logger.warning(f"Retrying after error in {retry_time} seconds...")
+                    import asyncio
+                    await asyncio.sleep(retry_time)
+                    continue
+                
+                if os.environ.get("AI_FALLBACK_MODE", "").lower() != "false":
+                    logger.error("Persistent errors, enabling fallback mode")
+                    self.fallback_mode = True
+                
+                transient_fallback = True
+                response_text = self._get_fallback_response(prompt)
+                break
+        
+        if debug:
+            return {
+                "generated_text": response_text,
+                "is_fallback": True,
+                "debug_info": debug_info,
+                "permanent_fallback": self.fallback_mode,
+                "transient_fallback": transient_fallback
+            }
+        return response_text
             
     def _get_fallback_response(self, prompt: str) -> str:
         """Generate a fallback response when the AI service is unavailable."""
