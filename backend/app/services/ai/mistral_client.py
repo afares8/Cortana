@@ -563,3 +563,25 @@ Provide a helpful, accurate, and concise response based on the information avail
             return error_msg
 
 mistral_client = MistralClient()
+
+def check_ai_service_status() -> str:
+    """
+    Check the status of the AI service for health checks.
+    Returns a string indicating the status of the AI service.
+    """
+    try:
+        has_gpu, status_message = mistral_client._check_gpu_available()
+        
+        if mistral_client.fallback_mode:
+            if os.environ.get("AI_FALLBACK_MODE", "").lower() == "true":
+                return "fallback (forced via environment)"
+            else:
+                return f"fallback ({status_message})"
+        else:
+            if os.environ.get("AI_FALLBACK_MODE", "").lower() == "false":
+                return "active (forced via environment)"
+            else:
+                return "active"
+    except Exception as e:
+        logger.error(f"Error checking AI service status: {e}")
+        return f"error: {str(e)}"

@@ -79,3 +79,5 @@ class GenerateResponse(BaseModel):
     model: str = "teknium/OpenHermes-2.5-Mistral-7B"
     original_input: Optional[str] = None
     processed_input: Optional[str] = None
+    spanish_processing: Optional[Dict[str, Any]] = None
+    debug_info: Optional[Dict[str, Any]] = None

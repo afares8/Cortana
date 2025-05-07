@@ -134,3 +134,12 @@ If the system is unexpectedly falling back to CPU mode:
    ```bash
    pip install -r requirements.txt
    ```
+
+## Recent Updates
+
+### May 2025
+- Improved health-check logic to better handle DNS resolution errors and prevent unnecessary fallback to CPU mode
+- Added detailed logging for connection attempts and failures to aid in troubleshooting
+- Enhanced error handling in Spanish language pipeline to avoid triggering fallback mode unnecessarily
+- Added test script (`app.scripts.test_mistral_integration`) to validate Mistral AI integration
+- Updated CI configuration to include smoke tests for Mistral endpoints

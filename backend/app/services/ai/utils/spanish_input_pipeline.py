@@ -1,25 +1,41 @@
 import re
 import logging
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional, Set, Tuple, Union
 import unicodedata
 from langdetect import detect, LangDetectException
 
 logger = logging.getLogger(__name__)
 
-def process_spanish_input(text: str) -> str:
+def process_spanish_input(text: str, debug: bool = False) -> Union[str, Tuple[str, Dict]]:
     """
     Process Spanish text input before sending to AI models.
     
     Args:
         text: Input text to process
+        debug: Whether to return debug information
         
     Returns:
-        Processed text with standardized terminology and formatting
+        Processed text with standardized terminology and formatting,
+        or a tuple of (processed_text, debug_info) if debug=True
     """
     pipeline = SpanishInputPipeline()
-    if pipeline.is_spanish(text):
-        return pipeline.preprocess(text)
-    return text
+    is_spanish = pipeline.is_spanish(text)
+    
+    if is_spanish:
+        processed_text = pipeline.preprocess(text)
+    else:
+        processed_text = text
+        
+    if debug:
+        debug_info = {
+            "original_text": text,
+            "processed_text": processed_text,
+            "is_spanish": is_spanish,
+            "changes_made": text != processed_text
+        }
+        return processed_text, debug_info
+        
+    return processed_text
 
 class SpanishInputPipeline:
     """
