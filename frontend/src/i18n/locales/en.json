@@ -1,0 +1,28 @@
+{
+  "compliance": {
+    "customerVerification": "Customer Verification",
+    "runComplianceCheck": "Run Compliance Check",
+    "naturalPerson": "Natural Person",
+    "legalEntity": "Legal Entity",
+    "directors": "Directors",
+    "ubos": "Ultimate Beneficial Owners",
+    "module": "Module",
+    "status": "Status",
+    "source": "Source",
+    "matchType": "Match Type",
+    "score": "Score",
+    "details": "Details",
+    "noMatches": "No matches found",
+    "customerInformation": "Customer Information",
+    "customerType": "Customer Type",
+    "selectCustomerType": "Select customer type",
+    "name": "Name",
+    "country": "Country",
+    "dateOfBirth": "Date of Birth",
+    "addDirector": "Add Director",
+    "addUbo": "Add UBO",
+    "remove": "Remove",
+    "continue": "Continue",
+    "back": "Back"
+  }
+}
