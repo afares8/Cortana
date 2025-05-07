@@ -1,6 +1,6 @@
-# Legal Contract Tracker
+# Cortana
 
-A specialized internal tool for the Legal Department of the Zona Libre de Colón perfumery business to manage, track, and monitor legal contracts and documents with AI-powered analysis and compliance automation.
+A specialized internal tool for a company in the Zona Libre de Colón perfumery business to manage, track, and monitor legal contracts and documents with AI-powered analysis and compliance automation.
 
 ## Features
 
