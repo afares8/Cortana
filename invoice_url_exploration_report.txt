@@ -1,0 +1,59 @@
+# DMCE Portal Invoice URL Exploration Report
+
+## Summary of Findings
+After extensive exploration of the DMCE portal, we have determined that:
+
+1. The invoice functionality is not accessible through direct URL patterns we tested
+2. The dashboard contains 2 iframes which likely host the application content
+3. The SmartClient framework used by the portal makes automated exploration challenging
+4. The dashboard has a complex loading mechanism that requires special handling
+
+## Exploration Methods Attempted
+1. **Direct URL Testing**: All tested URL patterns returned 404 errors
+2. **Dashboard UI Exploration**: Found 2 iframes but encountered technical limitations
+3. **Menu Item Analysis**: No obvious invoice-related menu items were found
+
+## Technical Insights
+1. The dashboard URL is: https://dmce2.zonalibredecolon.gob.pa/TFBFTZ/TFB.jsp?language=es
+2. The dashboard uses SmartClient framework (ISC) which:
+   - Loads content dynamically through AJAX calls
+   - Uses iframes to isolate application components
+   - Makes extensive use of IDACall endpoints for data retrieval
+
+## Recommended Manual Approach
+Since automated exploration has limitations, we recommend the following manual approach:
+
+1. **Manual Browser Exploration**:
+   - Log in to the DMCE portal with the provided credentials
+   - Open browser DevTools (F12) and go to the Network tab
+   - Clear the network log and enable "Preserve log"
+   - Explore the dashboard UI manually, clicking on menu items and navigation elements
+   - Look for any menu items related to "Factura", "Invoice", or "DMCE"
+   - When you find and navigate to the invoice section, note the URL and network requests
+
+2. **Network Request Analysis**:
+   - In the Network tab, filter for XHR/Fetch requests
+   - Look for requests to endpoints containing "factura", "invoice", or "dmce"
+   - Pay attention to IDACall requests which might contain invoice data
+   - Identify the specific request that loads invoice data
+
+3. **UI Element Inspection**:
+   - Use the Elements tab to inspect the invoice list container
+   - Note the HTML structure, particularly table elements and their selectors
+   - Identify selectors for invoice rows, automation buttons, and status indicators
+
+## Implementation Strategy
+Once the correct URL and selectors are identified manually, update the automation script with:
+
+1. The exact URL for the invoice functionality
+2. The correct selectors for the invoice list container and rows
+3. The appropriate waiting strategy for the dashboard and invoice page
+4. The correct method to trigger invoice automation
+
+## Next Steps
+1. Perform manual exploration as described above
+2. Document the correct URL and selectors
+3. Update the automation script with the findings
+4. Test the updated script to verify it can access the invoice functionality
+
+This approach will ensure we have the correct information needed to successfully automate the invoice process in the DMCE portal.
