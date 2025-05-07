@@ -86,6 +86,9 @@ class SubmissionResponse(BaseModel):
 
 class InvoiceDataUpload(BaseModel):
     data: Dict[str, Any] = Field(..., description="JSON data containing invoice information")
+    
+    class Config:
+        extra = "allow"  # Allow extra fields for flexibility
 
 class InvoiceDataUploadResponse(BaseModel):
     records: List[InvoiceRecordResponse]

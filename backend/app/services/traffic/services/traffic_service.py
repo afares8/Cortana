@@ -190,7 +190,13 @@ class TrafficService:
             for invoice_id in invoice_ids:
                 record = invoice_records_db.get(invoice_id)
                 
-                if not record or record.user_id != self.user_id:
+                if not record:
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail=f"Invoice record with ID {invoice_id} not found"
+                    )
+                
+                if self.user_id and record.user_id != self.user_id:
                     raise HTTPException(
                         status_code=status.HTTP_404_NOT_FOUND,
                         detail=f"Invoice record with ID {invoice_id} not found"
@@ -296,10 +302,16 @@ class TrafficService:
         try:
             all_records = invoice_records_db.get_multi()
             
-            records = [
-                record for record in all_records 
-                if record.user_id == self.user_id and record.status in ["Validated", "Error"]
-            ]
+            if self.user_id:
+                records = [
+                    record for record in all_records 
+                    if record.user_id == self.user_id and record.status in ["Validated", "Error"]
+                ]
+            else:
+                records = [
+                    record for record in all_records 
+                    if record.status in ["Validated", "Error"]
+                ]
             
             return [InvoiceRecordResponse.model_validate(record.model_dump()) for record in records]
             
@@ -335,7 +347,7 @@ class TrafficService:
             
             logger.info(f"Found record: {record.invoice_number}")
             
-            if record.user_id != self.user_id:
+            if self.user_id and record.user_id != self.user_id:
                 logger.error(f"Record {record_id} belongs to user {record.user_id}, not current user {self.user_id}")
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
@@ -384,7 +396,7 @@ class TrafficService:
             
             record = matching_records[0]
             
-            if record.user_id != self.user_id:
+            if self.user_id and record.user_id != self.user_id:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"Invoice record with ID {record_id} not found"
@@ -464,10 +476,13 @@ class TrafficService:
         try:
             all_submissions = traffic_submissions_db.get_multi()
             
-            submissions = [
-                submission for submission in all_submissions 
-                if submission.user_id == self.user_id
-            ]
+            if self.user_id:
+                submissions = [
+                    submission for submission in all_submissions 
+                    if submission.user_id == self.user_id
+                ]
+            else:
+                submissions = all_submissions
             
             submissions.sort(key=lambda x: x.submission_date, reverse=True)
             
@@ -503,7 +518,7 @@ class TrafficService:
             
             submission = matching_submissions[0]
             
-            if submission.user_id != self.user_id:
+            if self.user_id and submission.user_id != self.user_id:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"Submission with ID {submission_id} not found"

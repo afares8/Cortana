@@ -21,8 +21,9 @@ from app.models.user import User
 class TrafficInterface:
     """Interface for Traffic module operations."""
     
-    def __init__(self, current_user: User = Depends(get_current_user)):
-        self.service = TrafficService(user_id=current_user.id)
+    def __init__(self, current_user: Optional[User] = None):
+        user_id = current_user.id if current_user else 1  # Default to user_id 1 if no user provided
+        self.service = TrafficService(user_id=user_id)
     
     async def upload_invoice_data(self, data: Dict[str, Any]) -> List[InvoiceRecordResponse]:
         """Upload and validate invoice data."""

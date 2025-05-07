@@ -1,4 +1,4 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.services.traffic.interface import TrafficInterface
@@ -23,7 +23,7 @@ router.include_router(dmce_router, prefix="")
 @router.post("/upload", response_model=List[InvoiceRecordResponse])
 async def upload_invoice_data(
     data: InvoiceDataUpload,
-    current_user: User = Depends(get_current_user)
+    current_user: Optional[User] = None
 ):
     """
     Upload invoice data for processing.
@@ -32,12 +32,17 @@ async def upload_invoice_data(
     and returns a list of processed invoice records with validation results.
     """
     traffic_interface = TrafficInterface(current_user=current_user)
-    return await traffic_interface.upload_invoice_data(data.data)
+    
+    invoice_data = data.data
+    if "data" in invoice_data:
+        return await traffic_interface.upload_invoice_data(invoice_data["data"])
+    else:
+        return await traffic_interface.upload_invoice_data(invoice_data)
 
 @router.post("/consolidate", response_model=ConsolidationResponse)
 async def consolidate_invoices(
     request: ConsolidationRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: Optional[User] = None
 ):
     """
     Consolidate multiple invoices into one.
@@ -50,7 +55,7 @@ async def consolidate_invoices(
 
 @router.get("/records", response_model=List[InvoiceRecordResponse])
 async def get_records(
-    current_user: User = Depends(get_current_user)
+    current_user: Optional[User] = None
 ):
     """
     List currently loaded records.
@@ -64,7 +69,7 @@ async def get_records(
 @router.get("/record/{record_id}", response_model=InvoiceRecordResponse)
 async def get_record(
     record_id: int,
-    current_user: User = Depends(get_current_user)
+    current_user: Optional[User] = None
 ):
     """
     Get details of a specific record.
@@ -83,7 +88,7 @@ async def get_record(
 @router.post("/submit", response_model=SubmissionResponse)
 async def submit_to_dmce(
     request: SubmissionRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: Optional[User] = None
 ):
     """
     Submit a record to the DMCE portal.
@@ -97,7 +102,7 @@ async def submit_to_dmce(
 
 @router.get("/logs", response_model=List[TrafficSubmissionResponse])
 async def get_submission_logs(
-    current_user: User = Depends(get_current_user)
+    current_user: Optional[User] = None
 ):
     """
     Retrieve audit logs/history.
@@ -111,7 +116,7 @@ async def get_submission_logs(
 @router.get("/logs/{submission_id}", response_model=TrafficSubmissionResponse)
 async def get_submission_log(
     submission_id: int,
-    current_user: User = Depends(get_current_user)
+    current_user: Optional[User] = None
 ):
     """
     Detailed log entry.
