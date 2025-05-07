@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.12'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install poetry
+        cd backend
+        poetry install
+    - name: Run smoke test
+      run: |
+        cd backend
+        # Start the backend service in the background
+        poetry run uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+        # Wait for the service to start
+        sleep 10
+        # Run a simple curl test to verify the service is running
+        curl -f http://localhost:8000/health || exit 1
+        # Run the test-mistral endpoint smoke test
+        curl -f http://localhost:8000/api/v1/test-mistral || exit 1
+    - name: Run Mistral integration tests
+      run: |
+        cd backend
+        # Run the test script in mock mode since we don't have GPU in CI
+        export TEST_MOCK_MODE=true
+        poetry run python -m app.scripts.test_mistral_integration --mock
