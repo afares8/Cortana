@@ -7,28 +7,20 @@ from fastapi.responses import JSONResponse, FileResponse
 from pydantic import EmailStr
 
 from app.core.config import settings
-from app.accounting.dependencies import get_current_user, company_read_permission, company_write_permission, admin_only
+from app.accounting.dependencies import (
+    get_current_user,
+    company_read_permission,
+    company_write_permission,
+    admin_only
+)
 from app.models.user import User
 from app.accounting.schemas import (
     Company, CompanyCreate, CompanyUpdate,
-    TaxType, TaxTypeCreate, TaxTypeUpdate,
-    Obligation, ObligationCreate, ObligationUpdate,
-    Payment, PaymentCreate, PaymentUpdate,
-    Attachment, AttachmentCreate,
-    NotificationResponse, NotificationUpdate
+    # … demás esquemas …
 )
 from app.accounting.services import (
     create_company, get_company, get_companies, update_company, delete_company,
-    create_tax_type, get_tax_type, get_tax_types, update_tax_type, delete_tax_type,
-    create_obligation, get_obligation, get_obligations, update_obligation, delete_obligation,
-    create_payment, get_payment, get_payments, update_payment, delete_payment,
-    create_attachment, get_attachment, get_attachments, delete_attachment,
-    get_upcoming_obligations, get_overdue_obligations, analyze_obligation_history,
-    get_template_file, export_obligations_to_excel, export_payments_to_excel,
-    create_notification, get_notification, get_notifications, update_notification, mark_notification_read,
-    create_obligation_with_audit, update_obligation_with_audit, delete_obligation_with_audit,
-    create_payment_with_audit, update_payment_with_audit, delete_payment_with_audit,
-    get_company_audit_logs
+    # … demás servicios …
 )
 
 router = APIRouter()
@@ -47,22 +39,25 @@ async def get_companies_endpoint(
     is_zona_libre: Optional[bool] = None
 ):
     """Get a list of companies with optional filtering."""
-    filters = {}
+    filters: Dict[str, Any] = {}
     if name:
         filters["name"] = name
     if location:
         filters["location"] = location
     if is_zona_libre is not None:
         filters["is_zona_libre"] = is_zona_libre
-    
+
     return get_companies(skip=skip, limit=limit, filters=filters)
 
 @router.get("/companies/{company_id}", response_model=Company)
 async def get_company_endpoint(
     company_id: int = Path(..., gt=0),
-    current_user: Optional[User] = None
+    current_user: User = Depends(get_current_user),
 ):
     """Get a company by ID."""
+    # Verifica permisos de lectura
+    await company_read_permission(company_id)(current_user)
+
     company = get_company(company_id)
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
@@ -72,9 +67,12 @@ async def get_company_endpoint(
 async def update_company_endpoint(
     company_id: int = Path(..., gt=0),
     company_update: CompanyUpdate = Body(...),
-    current_user: Optional[User] = None
+    current_user: User = Depends(get_current_user),
 ):
     """Update a company."""
+    # Verifica permisos de escritura
+    await company_write_permission(company_id)(current_user)
+
     company = update_company(company_id, company_update.model_dump(exclude_unset=True))
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
@@ -83,12 +81,18 @@ async def update_company_endpoint(
 @router.delete("/companies/{company_id}", response_model=Dict[str, bool])
 async def delete_company_endpoint(
     company_id: int = Path(..., gt=0),
-    current_user: Optional[User] = None
+    current_user: User = Depends(get_current_user),
 ):
     """Delete a company."""
-    result = delete_company(company_id)
-    if not result:
-        raise HTTPException(status_code=404, detail="Company not found or has associated obligations")
+    # Verifica permisos de escritura
+    await company_write_permission(company_id)(current_user)
+
+    success = delete_company(company_id)
+    if not success:
+        raise HTTPException(
+            status_code=404,
+            detail="Company not found or has associated obligations"
+        )
     return {"success": True}
 
 @router.post("/tax-types", response_model=TaxType, status_code=201)

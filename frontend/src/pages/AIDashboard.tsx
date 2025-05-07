@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +32,7 @@ interface EnhancedAIDashboardStats extends AIDashboardStats {
 const API_URL = import.meta.env.VITE_API_URL || 'https://prueba-pouw.onrender.com';
 
 export default function AIDashboard() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [isQuerying, setIsQuerying] = useState(false);
@@ -139,20 +141,20 @@ export default function AIDashboard() {
   };
   
   return (
-    <Layout title="AI Legal Command Center">
+    <Layout title={t('ai.commandCenter')}>
       <div className="container mx-auto">
         <div className="flex justify-between items-center mb-6">
           <Button onClick={() => navigate('/contracts')}>
-            View All Contracts
+            {t('dashboard.viewAllContracts')}
           </Button>
         </div>
         
         {/* Natural Language Query */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Legal AI Assistant</CardTitle>
+            <CardTitle>{t('ai.assistant')}</CardTitle>
             <CardDescription>
-              Ask questions about your contracts using the Mistral 7B model
+              {t('ai.askQuestions')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -165,13 +167,13 @@ export default function AIDashboard() {
                   className="flex-1"
                 />
                 <Button type="submit" disabled={isQuerying}>
-                  {isQuerying ? 'Processing...' : 'Ask'}
+                  {isQuerying ? t('common.messages.loading') : t('common.buttons.search')}
                 </Button>
               </div>
               
               {isQuerying && (
                 <div className="text-center py-8">
-                  <div className="mb-2">Analyzing contracts and generating response with Mistral 7B...</div>
+                  <div className="mb-2">{t('ai.analyzingContracts')}</div>
                   <Progress value={65} className="w-[80%] mx-auto" />
                 </div>
               )}
@@ -199,9 +201,9 @@ export default function AIDashboard() {
         </Card>
         <Card className="mb-8">
          <CardHeader>
-          <CardTitle>Contextual Legal AI Assistant (Beta)</CardTitle>
+          <CardTitle>{t('ai.contextualAssistant')}</CardTitle>
            <CardDescription>
-             This assistant uses real-time contract, client, and task data for contextual answers.
+             {t('ai.contextualDescription')}
            </CardDescription>
          </CardHeader>
         <CardContent>
@@ -212,14 +214,14 @@ export default function AIDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Contract Analysis</CardTitle>
+              <CardTitle className="text-lg">{t('ai.contractAnalysis')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold mb-2">
                 {stats.analyzed_contracts}/{stats.total_contracts}
               </div>
               <p className="text-muted-foreground text-sm">
-                Contracts analyzed by AI
+                {t('ai.contractsAnalyzed')}
               </p>
               <Progress 
                 value={(stats.analyzed_contracts / stats.total_contracts) * 100 || 0} 
@@ -230,22 +232,22 @@ export default function AIDashboard() {
           
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Risk Distribution</CardTitle>
+              <CardTitle className="text-lg">{t('ai.riskDistribution')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex justify-between items-center mb-4">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                    <span className="text-sm">High Risk</span>
+                    <span className="text-sm">{t('ai.highRisk')}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                    <span className="text-sm">Medium Risk</span>
+                    <span className="text-sm">{t('ai.mediumRisk')}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                    <span className="text-sm">Low Risk</span>
+                    <span className="text-sm">{t('ai.lowRisk')}</span>
                   </div>
                 </div>
                 <div className="text-right">
@@ -259,16 +261,16 @@ export default function AIDashboard() {
           
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Anomalies Detected</CardTitle>
+              <CardTitle className="text-lg">{t('ai.anomaliesDetected')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold mb-2">
                 {stats.anomalies.total}
               </div>
               <div className="flex gap-2 mt-2">
-                <Badge variant="destructive">{stats.anomalies.high_severity} High</Badge>
-                <Badge variant="outline" className="bg-yellow-100">{stats.anomalies.medium_severity} Medium</Badge>
-                <Badge variant="outline" className="bg-green-100">{stats.anomalies.low_severity} Low</Badge>
+                <Badge variant="destructive">{stats.anomalies.high_severity} {t('ai.high')}</Badge>
+                <Badge variant="outline" className="bg-yellow-100">{stats.anomalies.medium_severity} {t('ai.medium')}</Badge>
+                <Badge variant="outline" className="bg-green-100">{stats.anomalies.low_severity} {t('ai.low')}</Badge>
               </div>
               {stats.anomalies.by_source && (
                 <div className="mt-3 text-xs text-muted-foreground">

@@ -88,7 +88,9 @@ class DMCEAutomator:
     
     async def _login_to_dmce(self, page: Page) -> bool:
         """
-        Log in to the DMCE portal.
+        Log in to the DMCE portal using a simplified approach with expect_navigation.
+        This approach recognizes that clicking the login button simply navigates the current tab
+        to signin.cl, rather than opening a popup or iframe.
         
         Args:
             page: Playwright page object
@@ -97,30 +99,104 @@ class DMCEAutomator:
             True if login successful, False otherwise
         """
         try:
+            import re
+            
             # Navigate to the DMCE portal URL
             logger.info(f"Navigating to DMCE portal: {self.dmce_url}")
             await page.goto(self.dmce_url, wait_until="networkidle")
+            await page.screenshot(path="/tmp/dmce_01_portal.png")
             
-            logger.info("Clicking login button to access login page")
-            login_button = await page.wait_for_selector("button:has-text('Ingresar')", timeout=10000)
-            if login_button:
-                await login_button.click()
+            logger.info("Clicking login button with expect_navigation")
+            try:
+                async with page.expect_navigation(
+                    url=re.compile(r'.*/signin\.cl\?language=.*'),
+                    wait_until='networkidle',
+                    timeout=15000
+                ):
+                    await page.click("button:has-text('LOGIN'), text=LOGIN, text=Iniciar Sesión")
+                
+                logger.info(f"✅ Arrived at signin page: {page.url}")
+                await page.screenshot(path="/tmp/dmce_02_signin.png")
+            except Exception as e:
+                logger.error(f"Failed to navigate to signin page: {str(e)}")
+                
+                login_selectors = [
+                    "text=Login",
+                    "text=INICIAR SESIÓN",
+                    "text=Iniciar Sesión",
+                    "a.login-button",
+                    ".login-link",
+                    ".header-login",
+                    "a:has-text('LOGIN')",
+                    "a:has-text('Login')",
+                    "a:has-text('INICIAR')",
+                    "a:has-text('Iniciar')",
+                    "button:has-text('Login')",
+                    "button:has-text('INICIAR')",
+                    "button:has-text('Iniciar')"
+                ]
+                
+                for selector in login_selectors:
+                    try:
+                        logger.info(f"Trying alternative selector: {selector}")
+                        async with page.expect_navigation(
+                            url=re.compile(r'.*/signin\.cl\?language=.*'),
+                            wait_until='networkidle',
+                            timeout=10000
+                        ):
+                            await page.click(selector)
+                        
+                        logger.info(f"✅ Arrived at signin page using alternative selector: {page.url}")
+                        await page.screenshot(path="/tmp/dmce_02_signin_alternative.png")
+                        break
+                    except Exception:
+                        continue
             
             logger.info(f"Entering username: {self.username}")
-            await page.fill("input[name='username']", self.username)
+            await page.fill("input[name='username'], input#username", self.username)
             
             logger.info("Entering password")
-            await page.fill("input[name='password']", self.password)
+            await page.fill("input[name='password'], input#password", self.password)
+            
+            await page.screenshot(path="/tmp/dmce_03_before_submit.png")
             
             logger.info("Submitting login form")
-            await page.click("button[type='submit']")
+            try:
+                async with page.expect_navigation(wait_until='networkidle', timeout=15000):
+                    await page.click("button:has-text('Sign In'), button[type='submit']")
+                
+                logger.info(f"✅ Logged in: now at {page.url}")
+                await page.screenshot(path="/tmp/dmce_04_dashboard.png")
+            except Exception as e:
+                logger.error(f"Failed to navigate after login submission: {str(e)}")
+                return False
             
-            await page.wait_for_load_state("networkidle")
-            
-            dashboard_element = await page.wait_for_selector(".dashboard-container", timeout=5000)
-            
-            logger.info("Successfully logged in to DMCE portal")
-            return True
+            try:
+                dashboard_indicators = [
+                    "text=Crear Nueva DMCE",
+                    "text=Cerrar Sesión",
+                    ".dashboard-container", 
+                    ".main-container", 
+                    ".user-info",
+                    "text=Dashboard",
+                    "text=Logout",
+                    "text=Create New DMCE"
+                ]
+                
+                for indicator in dashboard_indicators:
+                    try:
+                        element = await page.wait_for_selector(indicator, timeout=2000)
+                        if element:
+                            logger.info(f"Successfully logged in to DMCE portal (found {indicator})")
+                            return True
+                    except Exception:
+                        continue
+                
+                logger.error("Could not verify successful login")
+                return False
+            except Exception as e:
+                logger.error(f"Error verifying login: {str(e)}")
+                return False
             
         except Exception as e:
             logger.error(f"Error logging in to DMCE: {str(e)}")
