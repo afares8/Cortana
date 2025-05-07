@@ -1,13 +1,15 @@
 # DMCE Portal Automation for Cortana
 
-This component of the Cortana application automates the DMCE (Declaración de Movimiento Comercial Electrónico) portal login and invoice automation process using Playwright with Firefox in private browsing mode.
+This component of the Cortana application automates the DMCE (Declaración de Movimiento Comercial Electrónico) portal processes using Playwright with Firefox in private browsing mode.
 
 ## Overview
 
-The DMCE automation module provides a headless browser solution for:
+The DMCE automation module provides a comprehensive browser automation solution for:
 - Logging into the DMCE portal
-- Navigating to invoice functionality
-- Automating invoice processing
+- Creating new declarations
+- Filling all required form fields
+- Uploading supporting documents
+- Downloading declaration PDFs
 
 ## Prerequisites
 
@@ -25,61 +27,82 @@ npx playwright install firefox
 
 ## Configuration
 
-Set your DMCE credentials as environment variables:
+Set your DMCE credentials and declaration data as environment variables:
 
 ```bash
-export DMCE_USER="your_username"
-export DMCE_PASS="your_password"
+# Copy the example environment file
+cp dmce_env_example.js config/.env
+
+# Edit the .env file with your specific values
 ```
 
 ## Usage
 
 ```bash
-# Run the automation script
-node popup_handling_stealth_login.js
+# Run the login automation script
+node stealth_traffic_login.js
+
+# Run the full process automation script
+node dmce_full_process_automation.js
 ```
 
 ## Implementation Details
 
-The automation script:
-1. Launches Firefox in private browsing mode
-2. Navigates to the DMCE login page
-3. Handles popup windows and login form
-4. Extracts hidden form fields for proper authentication
-5. Submits credentials programmatically
-6. Navigates the dashboard to find invoice functionality
-7. Records video, screenshots, and trace data for debugging
+The automation scripts:
+1. Launch Firefox in private browsing mode
+2. Navigate to the DMCE login page
+3. Handle popup windows and login form
+4. Extract hidden form fields for proper authentication
+5. Submit credentials programmatically
+6. Navigate to "Crear Declaración"
+7. Fill all form sections (A-E)
+8. Upload required documents
+9. Submit the declaration
+10. Download the PDF
+11. Record video, screenshots, and trace data for debugging
 
 ## Evidence Collection
 
-The script collects comprehensive evidence:
+The scripts collect comprehensive evidence:
 - Videos: Recorded in the `./videos/` directory
 - Screenshots: Captured at key steps in the `./screenshots/` directory
 - Logs: Console output and HTML content in the `./logs/` directory
 - Trace: Playwright trace file for detailed debugging
+- Downloads: Declaration PDFs in the `./downloads/` directory
 
-## Current Status
+## Environment Variables
 
-The automation successfully:
-- Sets up the environment with required dependencies
-- Logs in to the DMCE portal with provided credentials
-- Handles popup windows and dashboard loading
+The full process automation requires the following environment variables:
 
-Further manual exploration is required to:
-- Identify the correct navigation path to invoice functionality
-- Determine the exact URL and selectors for invoice list
-- Implement the invoice automation process
+### Credentials
+- `DMCE_USER`: Your DMCE username
+- `DMCE_PASS`: Your DMCE password
 
-## Next Steps
-
-1. Perform manual exploration to map the exact navigation path
-2. Update the script with the correct navigation sequence
-3. Implement robust error handling for each navigation step
-4. Test the updated script with real invoice data
+### Declaration Data
+- `DMCE_INVOICE_ID`: Invoice ID
+- `DMCE_DATE`: Declaration date
+- `DMCE_CUSTOMER_CODE`: Customer code
+- `DMCE_GOODS_DESCRIPTION`: Description of goods
+- `DMCE_QUANTITY`: Quantity
+- `DMCE_WEIGHT_KG`: Weight in kilograms
+- `DMCE_VOLUME_M3`: Volume in cubic meters
+- `DMCE_TRANSPORT_TYPE`: Transport type (AIR, SEA, LAND)
+- `DMCE_FLIGHT_NUMBER`: Flight number (for AIR transport)
+- `DMCE_CARRIER_NAME`: Carrier name (for AIR transport)
+- `DMCE_HS_CODE`: HS code
+- `DMCE_ORIGIN_COUNTRY`: Origin country
+- `DMCE_DESTINATION_COUNTRY`: Destination country
+- `DMCE_DECLARED_VALUE`: Declared value
+- `DMCE_VALUE_CURRENCY`: Currency for declared value
+- `DMCE_COMMERCIAL_INVOICE_PATH`: Path to commercial invoice file
+- `DMCE_PACKING_LIST_PATH`: Path to packing list file
+- `DMCE_DOWNLOAD_DIR`: Directory to save downloaded files
 
 ## Files
 
-- `popup_handling_stealth_login.js`: Main automation script with popup handling
-- `hardened_stealth_login.js`: Alternative script with retry mechanisms
+- `stealth_traffic_login.js`: Basic login automation script
+- `dmce_full_process_automation.js`: Complete declaration process automation
+- `credential_handler.js`: Secure credential management
+- `dmce_env_example.js`: Example environment variables
 - `dmce_automation_evidence.tar.gz`: Package containing all evidence files
 - `final_dmce_report.md`: Comprehensive report of automation results
