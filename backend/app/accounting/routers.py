@@ -16,11 +16,21 @@ from app.accounting.dependencies import (
 from app.models.user import User
 from app.accounting.schemas import (
     Company, CompanyCreate, CompanyUpdate,
-    # … demás esquemas …
+    TaxType, TaxTypeCreate, TaxTypeUpdate,
+    Obligation, ObligationCreate, ObligationUpdate,
+    Payment, PaymentCreate, PaymentUpdate,
+    Attachment, AttachmentCreate,
+    NotificationResponse, NotificationUpdate
 )
 from app.accounting.services import (
     create_company, get_company, get_companies, update_company, delete_company,
-    # … demás servicios …
+    create_tax_type, get_tax_type, get_tax_types, update_tax_type, delete_tax_type,
+    create_obligation_with_audit, get_obligation, get_obligations, update_obligation_with_audit, delete_obligation_with_audit,
+    create_payment_with_audit, get_payment, get_payments, update_payment_with_audit, delete_payment_with_audit,
+    create_attachment, get_attachment, get_attachments, delete_attachment,
+    get_upcoming_obligations, get_overdue_obligations, get_template_file, analyze_obligation_history,
+    export_obligations_to_excel, export_payments_to_excel,
+    get_notifications, get_notification, mark_notification_read
 )
 
 router = APIRouter()

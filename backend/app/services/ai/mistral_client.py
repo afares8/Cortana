@@ -29,6 +29,7 @@ class MistralClient:
         self.base_url = base_url or os.environ.get("MISTRAL_API_URL", "http://ai-service:80")
         logger.info(f"Initializing MistralClient with base_url: {self.base_url}")
         self.client = httpx.AsyncClient(timeout=60.0)
+        self.initialized = False
         
         env_fallback = os.environ.get("AI_FALLBACK_MODE", "").lower()
         
@@ -44,13 +45,8 @@ class MistralClient:
             self.fallback_mode = False
             logger.info("Fallback mode explicitly disabled via AI_FALLBACK_MODE=false")
         else:
-            has_gpu, gpu_info = self._check_gpu_available()
-            self.fallback_mode = not has_gpu
-            logger.info(f"Auto-detected GPU availability: {'Available' if has_gpu else 'Not available'}")
-            if has_gpu:
-                logger.info(f"GPU info: {gpu_info}")
-            else:
-                logger.warning("No GPU detected, using fallback mode")
+            self.fallback_mode = True
+            logger.info("Will check GPU availability during first request")
         
         self.language_mode = os.environ.get("AI_LANGUAGE_MODE", "").lower()
         if self.language_mode == "es":
@@ -58,65 +54,126 @@ class MistralClient:
         else:
             logger.info("Using auto-detection for language processing")
         
-        logger.info(f"Fallback mode is {'enabled' if self.fallback_mode else 'disabled'}")
+        logger.info(f"Initial fallback mode is {'enabled' if self.fallback_mode else 'disabled'}")
+        
+    async def initialize(self):
+        """Initialize the client by checking GPU availability."""
+        if not self.initialized:
+            logger.info("Initializing MistralClient and checking GPU availability")
+            env_fallback = os.environ.get("AI_FALLBACK_MODE", "").lower()
+            if env_fallback not in ["true", "false"]:
+                gpu_available = await self._check_gpu_available()
+                self.fallback_mode = not gpu_available
+                logger.info(f"Auto-detected GPU availability: {'Available' if gpu_available else 'Not available'}")
+            self.initialized = True
     
-    def _check_gpu_available(self) -> Tuple[bool, str]:
+    async def _check_nvidia_smi(self) -> bool:
         """
-        Check if AI service is healthy and reachable.
-        Includes retry logic for more reliable health checks.
+        Check if NVIDIA GPU is available using nvidia-smi command.
         
         Returns:
-            Tuple[bool, str]: (is_healthy, status_message)
+            bool: True if GPU is available, False otherwise
         """
+        try:
+            import asyncio
+            process = await asyncio.create_subprocess_exec(
+                "nvidia-smi", 
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            stdout, stderr = await process.communicate()
+            
+            if process.returncode != 0:
+                logger.warning(f"nvidia-smi exited with code {process.returncode}: {stderr.decode()}")
+                return False
+                
+            logger.info("nvidia-smi executed successfully, GPU is available")
+            return True
+        except Exception as e:
+            logger.warning(f"Error checking nvidia-smi: {e}")
+            return False
+            
+    async def _check_gpu_available(self) -> bool:
+        """
+        Check if GPU is available by pinging the AI service and checking for NVIDIA GPU.
+        Also sets self.fallback_mode if necessary.
+        """
+        if os.environ.get("AI_FALLBACK_MODE", "").lower() == "true":
+            logger.warning("AI_FALLBACK_MODE=true found in environment, using fallback mode")
+            self.fallback_mode = True
+            return False
+
+        force_gpu_mode = os.environ.get("AI_FALLBACK_MODE", "").lower() == "false"
+        if force_gpu_mode:
+            logger.info("AI_FALLBACK_MODE=false found in environment, attempting to force GPU mode")
+
         max_retries = 3
         retry_delay = 2  # seconds
         
-        # Check if AI_FALLBACK_MODE is set explicitly in the environment
-        env_fallback = os.environ.get("AI_FALLBACK_MODE", "").lower()
-        if env_fallback == "false":
-            logger.info("AI_FALLBACK_MODE=false is set, forcing GPU mode regardless of health check")
-            return True, "Forced GPU mode via AI_FALLBACK_MODE=false"
-        
-        logger.info(f"Attempting to connect to AI service at {self.base_url}/health")
-        
         for attempt in range(1, max_retries + 1):
             try:
-                logger.info(f"Health check attempt {attempt}/{max_retries} to {self.base_url}/health")
-                response = httpx.get(f"{self.base_url}/health", timeout=5.0)
-                
-                if response.status_code == 200:
-                    logger.info(f"AI service is healthy and reachable at {self.base_url}")
-                    return True, "AI service is healthy and reachable"
-                else:
-                    logger.warning(f"Health check failed with status {response.status_code} (attempt {attempt}/{max_retries})")
-                    if attempt < max_retries:
-                        logger.info(f"Retrying in {retry_delay} seconds...")
-                        import time
-                        time.sleep(retry_delay)
-                    else:
-                        return False, f"Health check failed with status {response.status_code} after {max_retries} attempts"
+                async with httpx.AsyncClient(timeout=10.0) as client:
+                    logger.info(f"Attempt {attempt}/{max_retries} to connect to {self.base_url}/health")
+                    response = await client.get(f"{self.base_url}/health")
+                    response.raise_for_status()
+                    logger.info(f"AI service status: healthy (attempt {attempt})")
+                    
+                    if force_gpu_mode:
+                        logger.info("GPU mode forced by environment, using real model")
+                        self.fallback_mode = False
+                        return True
+                        
+                    # Check if GPU is available via nvidia-smi
+                    gpu_available = await self._check_nvidia_smi()
+                    logger.info(f"GPU detected: {gpu_available}")
+                    
+                    if not gpu_available:
+                        logger.warning("No GPU detected, using fallback mode")
+                        self.fallback_mode = True
+                        return False
+                        
+                    logger.info("AI service is healthy and GPU is available, using real model")
+                    self.fallback_mode = False
+                    return True
+                    
             except httpx.ConnectError as e:
-                logger.warning(f"Connection error during health check: {e} (attempt {attempt}/{max_retries})")
+                logger.warning(f"Connection error on attempt {attempt}/{max_retries}: {e}")
                 if "getaddrinfo failed" in str(e) or "Name or service not known" in str(e):
-                    logger.warning("DNS resolution error: AI service hostname could not be resolved")
+                    logger.warning("DNS resolution error detected - this may be a temporary network issue")
+                    logger.warning(f"Check if AI service container is running at {self.base_url} and network configuration is correct")
+                
                 if attempt < max_retries:
-                    logger.info(f"Retrying in {retry_delay} seconds...")
-                    import time
-                    time.sleep(retry_delay)
+                    retry_time = retry_delay * (2 ** (attempt - 1))
+                    logger.info(f"Retrying in {retry_time} seconds...")
+                    import asyncio
+                    await asyncio.sleep(retry_time)
                 else:
-                    if "getaddrinfo failed" in str(e) or "Name or service not known" in str(e):
-                        logger.error("DNS resolution persistently failing. Check if AI service container is running and network configuration is correct")
-                    return False, f"Connection error after {max_retries} attempts: {e}"
+                    logger.error(f"All connection attempts failed after {max_retries} retries")
+                    if not force_gpu_mode:
+                        logger.warning("Setting fallback mode due to persistent connection issues")
+                        self.fallback_mode = True
+                    else:
+                        logger.info("Not setting fallback mode despite connection issues due to AI_FALLBACK_MODE=false")
+                        self.fallback_mode = False
+                    return not self.fallback_mode
             except Exception as e:
-                logger.warning(f"Health check exception: {e} (attempt {attempt}/{max_retries})")
+                logger.error(f"Error checking AI service: {e}")
                 if attempt < max_retries:
-                    logger.info(f"Retrying in {retry_delay} seconds...")
-                    import time
-                    time.sleep(retry_delay)
+                    retry_time = retry_delay * (2 ** (attempt - 1))
+                    logger.info(f"Retrying in {retry_time} seconds...")
+                    import asyncio
+                    await asyncio.sleep(retry_time)
                 else:
-                    return False, f"Health check exception after {max_retries} attempts: {e}"
+                    logger.error(f"All health check attempts failed after {max_retries} retries: {e}")
+                    if not force_gpu_mode:
+                        logger.warning("Setting fallback mode due to persistent health check issues")
+                        self.fallback_mode = True
+                    else:
+                        logger.info("Not setting fallback mode despite health check issues due to AI_FALLBACK_MODE=false")
+                        self.fallback_mode = False
+                    return not self.fallback_mode
         
-        return False, f"Health check failed after {max_retries} attempts"
+        return not self.fallback_mode
         
     async def generate(self, prompt: str, debug: bool = False, **kwargs) -> Union[str, Dict[str, Any]]:
         """
@@ -130,6 +187,9 @@ class MistralClient:
         Returns:
             The generated text response, or a dict with response and debug info if debug=True
         """
+        if not self.initialized:
+            await self.initialize()
+            
         parameters = {
             "max_new_tokens": 512,
             "temperature": 0.7,
@@ -142,6 +202,8 @@ class MistralClient:
         
         original_prompt = prompt
         debug_info = {}
+        
+        transient_fallback = False
         
         should_process_spanish = (self.language_mode == "es")
         
@@ -181,6 +243,7 @@ class MistralClient:
             parameters=parameters
         )
         
+        # Check if we're in permanent fallback mode
         if self.fallback_mode:
             response_text = self._get_fallback_response(prompt)
             if debug:
@@ -191,86 +254,137 @@ class MistralClient:
                 }
             return response_text
         
-        try:
-            logger.info(f"Attempting to connect to LLM at {self.base_url}/generate with prompt: {prompt[:50]}...")
-            logger.info(f"Request parameters: {parameters}")
-            
-            response = await self.client.post(
-                f"{self.base_url}/generate",
-                json=request.model_dump(),  # Use model_dump() instead of dict() for Pydantic v2
-                headers={"Content-Type": "application/json"}
-            )
-            
-            logger.info(f"Response status code: {response.status_code}")
-            response.raise_for_status()
-            
-            result = response.json()
-            logger.info(f"Response received: {str(result)[:200]}...")
-            
-            if isinstance(result, list) and len(result) > 0 and "generated_text" in result[0]:
-                logger.info("Successfully extracted generated_text from response (list format)")
-                response_text = result[0]["generated_text"]
-            elif isinstance(result, dict) and "generated_text" in result:
-                logger.info("Successfully extracted generated_text from response (dict format)")
-                response_text = result["generated_text"]
-            else:
-                logger.error(f"Unexpected response format: {result}")
-                if isinstance(result, dict):
-                    logger.error("Response keys: " + ", ".join(result.keys()))
-                self.fallback_mode = True
+        max_retries = 2
+        retry_delay = 1  # seconds
+        
+        for attempt in range(1, max_retries + 1):
+            try:
+                logger.info(f"Attempt {attempt}/{max_retries} to connect to LLM at {self.base_url}/generate")
+                logger.debug(f"Request prompt: {prompt[:50]}...")
+                logger.debug(f"Request parameters: {parameters}")
+                
+                response = await self.client.post(
+                    f"{self.base_url}/generate",
+                    json=request.model_dump(),  # Use model_dump() instead of dict() for Pydantic v2
+                    headers={"Content-Type": "application/json"}
+                )
+                
+                logger.info(f"Response status code: {response.status_code}")
+                response.raise_for_status()
+                
+                result = response.json()
+                logger.info(f"Response received: {str(result)[:200]}...")
+                
+                if isinstance(result, list) and len(result) > 0 and "generated_text" in result[0]:
+                    logger.info("Successfully extracted generated_text from response (list format)")
+                    response_text = result[0]["generated_text"]
+                elif isinstance(result, dict) and "generated_text" in result:
+                    logger.info("Successfully extracted generated_text from response (dict format)")
+                    response_text = result["generated_text"]
+                else:
+                    logger.error(f"Unexpected response format: {result}")
+                    if isinstance(result, dict):
+                        logger.error("Response keys: " + ", ".join(result.keys()))
+                    
+                    if attempt < max_retries:
+                        logger.warning(f"Retrying due to unexpected response format (attempt {attempt}/{max_retries})")
+                        import asyncio
+                        await asyncio.sleep(retry_delay)
+                        continue
+                    
+                    transient_fallback = True
+                    response_text = self._get_fallback_response(prompt)
+                    break
+                    
+                if debug:
+                    return {
+                        "generated_text": response_text,
+                        "is_fallback": False,
+                        "debug_info": debug_info
+                    }
+                return response_text
+                    
+            except httpx.HTTPStatusError as e:
+                logger.error(f"HTTP error when connecting to LLM: {e.response.status_code} - {e.response.text}")
+                
+                if e.response.status_code >= 500:
+                    logger.error(f"Server error detected (attempt {attempt}/{max_retries})")
+                    
+                    if attempt < max_retries:
+                        retry_time = retry_delay * (2 ** (attempt - 1))
+                        logger.warning(f"Retrying in {retry_time} seconds...")
+                        import asyncio
+                        await asyncio.sleep(retry_time)
+                        continue
+                    
+                    if os.environ.get("AI_FALLBACK_MODE", "").lower() != "false":
+                        logger.error("All server error retries failed, enabling permanent fallback mode")
+                        self.fallback_mode = True
+                else:
+                    logger.error(f"Client error: {e.response.status_code} - {e.response.text}")
+                
+                transient_fallback = True
                 response_text = self._get_fallback_response(prompt)
+                break
                 
-            if debug:
-                return {
-                    "generated_text": response_text,
-                    "is_fallback": False,
-                    "debug_info": debug_info
-                }
-            return response_text
+            except httpx.ConnectError as e:
+                logger.error(f"Connection error when connecting to LLM: {e}")
+                logger.error(f"Attempted to connect to: {self.base_url}")
                 
-        except httpx.HTTPStatusError as e:
-            logger.error(f"HTTP error when connecting to LLM: {e.response.status_code} - {e.response.text}")
-            if e.response.status_code >= 500:
-                logger.error("Server error detected, enabling fallback mode")
-                self.fallback_mode = True
-            response_text = self._get_fallback_response(prompt)
-            if debug:
-                return {
-                    "generated_text": response_text,
-                    "is_fallback": True,
-                    "debug_info": debug_info,
-                    "error": str(e)
-                }
-            return response_text
-        except httpx.ConnectError as e:
-            logger.error(f"Connection error when connecting to LLM: {e} - Is the AI service running?")
-            logger.error(f"Attempted to connect to: {self.base_url}")
-            if "getaddrinfo failed" in str(e) or "Name or service not known" in str(e):
-                logger.error("DNS resolution error detected. Check if AI service container is running")
-                self.fallback_mode = True
-            else:
-                logger.error("Connection error, but not enabling fallback mode permanently. May retry on next request")
-            response_text = self._get_fallback_response(prompt)
-            if debug:
-                return {
-                    "generated_text": response_text,
-                    "is_fallback": True,
-                    "debug_info": debug_info,
-                    "error": str(e)
-                }
-            return response_text
-        except Exception as e:
-            logger.error(f"Error generating text with LLM: {type(e).__name__} - {e}")
-            self.fallback_mode = True
-            response_text = self._get_fallback_response(prompt)
-            if debug:
-                return {
-                    "generated_text": response_text,
-                    "is_fallback": True,
-                    "debug_info": debug_info,
-                    "error": str(e)
-                }
-            return response_text
+                if "getaddrinfo failed" in str(e) or "Name or service not known" in str(e):
+                    logger.error("DNS resolution error detected. Check if AI service container is running")
+                    
+                    if attempt < max_retries:
+                        retry_time = retry_delay * (2 ** (attempt - 1))
+                        logger.warning(f"Retrying DNS resolution in {retry_time} seconds...")
+                        import asyncio
+                        await asyncio.sleep(retry_time)
+                        continue
+                    
+                    if os.environ.get("AI_FALLBACK_MODE", "").lower() != "false":
+                        logger.error("Persistent DNS resolution errors, enabling fallback mode")
+                        self.fallback_mode = True
+                else:
+                    if attempt < max_retries:
+                        retry_time = retry_delay * (2 ** (attempt - 1))
+                        logger.warning(f"Retrying connection in {retry_time} seconds...")
+                        import asyncio
+                        await asyncio.sleep(retry_time)
+                        continue
+                    
+                    logger.error("Connection error persists, using fallback for this request only")
+                
+                transient_fallback = True
+                response_text = self._get_fallback_response(prompt)
+                break
+                
+            except Exception as e:
+                logger.error(f"Error generating text with LLM: {type(e).__name__} - {e}")
+                
+                if attempt < max_retries:
+                    retry_time = retry_delay * (2 ** (attempt - 1))
+                    logger.warning(f"Retrying after error in {retry_time} seconds...")
+                    import asyncio
+                    await asyncio.sleep(retry_time)
+                    continue
+                
+                if os.environ.get("AI_FALLBACK_MODE", "").lower() != "false":
+                    logger.error("Persistent errors, enabling fallback mode")
+                    self.fallback_mode = True
+                
+                transient_fallback = True
+                response_text = self._get_fallback_response(prompt)
+                break
+        
+        if debug:
+            return {
+                "generated_text": response_text,
+                "is_fallback": True,
+                "debug_info": debug_info,
+                "permanent_fallback": self.fallback_mode,
+                "transient_fallback": transient_fallback
+            }
+        return response_text
             
     def _get_fallback_response(self, prompt: str) -> str:
         """Generate a fallback response when the AI service is unavailable."""
@@ -564,22 +678,29 @@ Provide a helpful, accurate, and concise response based on the information avail
 
 mistral_client = MistralClient()
 
-def check_ai_service_status() -> str:
+async def check_ai_service_status() -> str:
     """
     Check the status of the AI service for health checks.
     Returns a string indicating the status of the AI service.
     """
     try:
-        has_gpu, status_message = mistral_client._check_gpu_available()
+        if not mistral_client.initialized:
+            await mistral_client.initialize()
+        
+        gpu_available = await mistral_client._check_gpu_available()
         
         if mistral_client.fallback_mode:
             if os.environ.get("AI_FALLBACK_MODE", "").lower() == "true":
                 return "fallback (forced via environment)"
+            elif not gpu_available:
+                return "fallback (no GPU detected)"
             else:
-                return f"fallback ({status_message})"
+                return "fallback (service connection issues)"
         else:
             if os.environ.get("AI_FALLBACK_MODE", "").lower() == "false":
                 return "active (forced via environment)"
+            elif gpu_available:
+                return "active (GPU detected)"
             else:
                 return "active"
     except Exception as e:
