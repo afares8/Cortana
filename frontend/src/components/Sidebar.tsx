@@ -7,7 +7,9 @@ import {
   Settings, 
   LogOut,
   DollarSign,
-  UserCog
+  UserCog,
+  Shield,
+  UserCheck
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -42,6 +44,24 @@ const Sidebar = () => {
                 <Link to="/legal/contracts" className="flex items-center p-2 rounded hover:bg-gray-700">
                   <FileText className="h-5 w-5 mr-3" />
                   Contracts
+                </Link>
+              </li>
+            </ul>
+          </li>
+          
+          <li className="pt-4">
+            <div className="text-gray-400 text-xs uppercase font-semibold mb-2 pl-2">Compliance</div>
+            <ul className="space-y-1">
+              <li>
+                <Link to="/compliance/dashboard" className="flex items-center p-2 rounded hover:bg-gray-700">
+                  <Shield className="h-5 w-5 mr-3" />
+                  Dashboard
+                </Link>
+              </li>
+              <li>
+                <Link to="/compliance/verify-customer" className="flex items-center p-2 rounded hover:bg-gray-700">
+                  <UserCheck className="h-5 w-5 mr-3" />
+                  Customer Verification
                 </Link>
               </li>
             </ul>

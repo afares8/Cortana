@@ -13,6 +13,7 @@ import ComplianceDashboard from './pages/ComplianceDashboard';
 import UAFReportForm from './pages/UAFReportForm';
 import PEPScreeningForm from './pages/PEPScreeningForm';
 import SanctionsScreeningForm from './pages/SanctionsScreeningForm';
+import ComplianceCheckPage from './pages/ComplianceCheckPage';
 
 import ClientList from './modules/legal/pages/ClientList';
 import ClientDetail from './modules/legal/pages/ClientDetail';
@@ -76,6 +77,7 @@ function App() {
           <Route path="compliance/pep-screenings/:id" element={<ComplianceDashboard />} />
           <Route path="compliance/sanctions-screening/new" element={<SanctionsScreeningForm />} />
           <Route path="compliance/sanctions-screenings/:id" element={<ComplianceDashboard />} />
+          <Route path="compliance/verify-customer" element={<ComplianceCheckPage />} />
           
           {/* Legal Module Routes */}
           <Route path="legal/clients" element={<ClientList />} />
