@@ -64,7 +64,7 @@ const PermissionMatrix: React.FC<PermissionMatrixProps> = ({
       };
     });
     setDates(initialDates);
-  }, [permissions]);
+  }, [permissions, selectedPermissions]);
   
   const isSelected = (permissionId: number) => {
     return selectedPermissions.some(p => p.id === permissionId);

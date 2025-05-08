@@ -8,7 +8,7 @@ from logging.handlers import RotatingFileHandler
 
 from app.core.config import settings
 from app.db.init_db import init_db
-from app.routers import auth, test_mistral
+from app.routers import auth, test_mistral, system_settings
 from app.services.email import setup_scheduler
 
 from app.services.contracts import contracts_router
@@ -68,6 +68,7 @@ app.include_router(audit_router, prefix=f"{settings.API_V1_STR}/audit", tags=["a
 app.include_router(ai_router, prefix=f"{settings.API_V1_STR}/ai", tags=["ai"])
 app.include_router(traffic_router, prefix=f"{settings.API_V1_STR}/traffic", tags=["traffic"])
 app.include_router(accounting_router, prefix=f"{settings.API_V1_STR}/accounting", tags=["accounting"])
+app.include_router(system_settings.router, prefix=f"{settings.API_V1_STR}/system/settings", tags=["system"])
 
 os.makedirs("uploads", exist_ok=True)
 
