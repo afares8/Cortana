@@ -10,6 +10,7 @@ A specialized internal tool for the Legal Department of the Zona Libre de Colón
 - Search and filter contracts by various criteria
 - Dashboard overview showing contract statistics
 - Secure user authentication system
+- Comprehensive user management with role-based access control
 - DMCE portal automation for invoice processing
 
 ### AI-Powered Features
@@ -33,6 +34,7 @@ A specialized internal tool for the Legal Department of the Zona Libre de Colón
 
 ### Modular Architecture
 - Legal Department module with client and contract management
+- User Management module with role-based access control
 - Workflow and task management system
 - Audit and compliance tracking
 - DMCE automation module for invoice processing and declaration creation
@@ -93,6 +95,12 @@ A specialized internal tool for the Legal Department of the Zona Libre de Colón
 │   │   │   │       └── open_sanctions.py       # Sanctions screening client
 │   │   │   ├── contracts/        # Contract management services
 │   │   │   ├── tasks/            # Task management services
+│   │   │   ├── users/            # User management services
+│   │   │   │   ├── api/          # User management API endpoints
+│   │   │   │   ├── models/       # User data models
+│   │   │   │   ├── schemas/      # User Pydantic schemas
+│   │   │   │   ├── services/     # User management business logic
+│   │   │   │   └── utils/        # User management utilities
 │   │   │   └── workflows/        # Workflow management services
 │   │   └── main.py               # Application entry point
 │   ├── Dockerfile                # Backend container definition
@@ -111,10 +119,20 @@ A specialized internal tool for the Legal Department of the Zona Libre de Colón
 │   │   │   └── ui/               # UI components
 │   │   ├── lib/                  # Utility functions and API client
 │   │   ├── modules/              # Module-specific code
-│   │   │   └── legal/            # Legal department module
-│   │   │       ├── api/          # Legal API client
-│   │   │       ├── pages/        # Legal-specific pages
-│   │   │       └── types/        # Legal-specific types
+│   │   │   ├── legal/            # Legal department module
+│   │   │   │   ├── api/          # Legal API client
+│   │   │   │   ├── pages/        # Legal-specific pages
+│   │   │   │   └── types/        # Legal-specific types
+│   │   │   └── users/            # User management module
+│   │   │       ├── api/          # User management API client
+│   │   │       ├── components/   # User-specific components
+│   │   │       │   ├── PermissionMatrix.tsx  # Permission management component
+│   │   │       │   ├── DateRangePicker.tsx   # Date range selection component
+│   │   │       │   └── AuditLogView.tsx      # User audit log component
+│   │   │       ├── pages/        # User management pages
+│   │   │       │   ├── UserList.tsx          # User listing page
+│   │   │       │   └── UserForm.tsx          # User creation/editing form
+│   │   │       └── types/        # User-specific types
 │   │   ├── pages/                # Page components
 │   │   │   ├── ComplianceDashboard.tsx  # Compliance dashboard
 │   │   │   ├── UAFReportForm.tsx        # UAF report generation
@@ -236,6 +254,27 @@ For the compliance automation features to work properly:
 
 - `POST /api/v1/auth/register` - Register a new user
 - `POST /api/v1/auth/login` - Login and get access token
+
+### User Management Endpoints
+
+- `GET /api/v1/users` - List all users
+- `POST /api/v1/users` - Create a new user
+- `GET /api/v1/users/{user_id}` - Get user details
+- `PUT /api/v1/users/{user_id}` - Update user
+- `DELETE /api/v1/users/{user_id}` - Delete user
+- `POST /api/v1/users/{user_id}/reset-password` - Reset user password
+- `PUT /api/v1/users/{user_id}/lock` - Lock user account
+- `PUT /api/v1/users/{user_id}/unlock` - Unlock user account
+- `GET /api/v1/roles` - List all roles
+- `POST /api/v1/roles` - Create a new role
+- `GET /api/v1/roles/{role_id}` - Get role details
+- `PUT /api/v1/roles/{role_id}` - Update role
+- `DELETE /api/v1/roles/{role_id}` - Delete role
+- `GET /api/v1/permissions` - List all permissions
+- `POST /api/v1/permissions` - Create a new permission
+- `GET /api/v1/permissions/{permission_id}` - Get permission details
+- `PUT /api/v1/permissions/{permission_id}` - Update permission
+- `DELETE /api/v1/permissions/{permission_id}` - Delete permission
 
 ### Contract Management Endpoints
 
@@ -437,6 +476,16 @@ The application follows a modular microservice architecture designed for future 
 - **Risk Ratings**: Calculate and track client risk levels
 - **Relationship Management**: Track client interactions and history
 
+### User Management Service
+
+- **User Registry**: Manage user accounts with roles and permissions
+- **Role-Based Access Control**: Define granular permissions for system features
+- **Permission Matrix**: Configure feature-level access with time-bound constraints
+- **Audit Trail**: Track user actions and permission changes
+- **Account Settings**: Handle password resets, account locking/unlocking
+- **Time-Bound Permissions**: Set start/end dates for temporary access
+- **Notifications**: Send emails for account creation and permission changes
+
 ### Compliance Service
 
 - **Manual Integration**: Process compliance manuals with document embeddings
@@ -551,6 +600,12 @@ Cortana supports multiple languages using i18next and react-i18next. The default
 - `accounting`: Accounting module content
 - `traffic`: Traffic module content
 - `ai`: AI module content
+- `users`: User management module content
+  - `roles`: Role-related labels and messages
+  - `permissions`: Permission-related labels and messages
+  - `audit`: Audit log labels and messages
+  - `account`: Account settings labels and messages
+  - `notifications`: User notification messages
 
 #### Best Practices
 1. **Never hardcode text** directly in components. Always use the translation function:
@@ -615,6 +670,12 @@ Integration with OpenSanctions and local databases for comprehensive screening:
 ## Recent Updates
 
 - **May 2025**:
+  - Implemented comprehensive User Management module with role-based access control
+  - Added granular permission system with time-bound constraints
+  - Created user audit trail for tracking permission changes
+  - Implemented account management features (creation, password reset, lock/unlock)
+  - Fixed navigation issues for User Management module in sidebar
+  - Resolved environment variable compatibility issues with Vite
   - Implemented comprehensive compliance verification system for customer screening
   - Added new endpoint for verifying customers against PEP and sanctions lists
   - Integrated with multiple data sources (UN, OFAC, EU, Wikidata)
