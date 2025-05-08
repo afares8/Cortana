@@ -10,33 +10,30 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert } from "@/components/ui/alert";
 import { AlertCircle, AlertTriangle, Loader2 } from "lucide-react";
 
+interface RecentVerification {
+  id: string;
+  client_name: string;
+  verification_date: string;
+  result: string;
+  risk_level: string;
+  report_path?: string;
+}
+
+interface ListUpdate {
+  list_name: string;
+  update_date: string;
+  status: string;
+}
+
 interface DashboardData {
-  reports: {
-    total: number;
-    pending: number;
-    submitted: number;
-    approved: number;
-    rejected: number;
-    by_type: Record<string, number>;
-  };
-  screenings: {
-    pep: {
-      total: number;
-      matches: number;
-      match_percentage: number;
-    };
-    sanctions: {
-      total: number;
-      matches: number;
-      match_percentage: number;
-    };
-  };
-  recent_activity: Array<{
-    type: string;
-    id: number;
-    created_at: string;
-    [key: string]: any;
-  }>;
+  active_contracts: number;
+  expiring_contracts: number;
+  pep_matches: number;
+  sanctions_matches: number;
+  pending_reports: number;
+  high_risk_clients: number;
+  recent_verifications: RecentVerification[];
+  recent_list_updates: ListUpdate[];
 }
 
 const ComplianceDashboard: React.FC = () => {
@@ -179,11 +176,17 @@ const ComplianceDashboard: React.FC = () => {
           >
             {t('compliance.verifyCustomer')}
           </Button>
+          <Button 
+            variant="outline"
+            onClick={() => navigate('/compliance/country-risk-map')}
+          >
+            {t('compliance.viewRiskMap')}
+          </Button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Reports Summary */}
+        {/* Metrics Summary */}
         <div>
           <Card>
             <CardHeader>
@@ -192,32 +195,17 @@ const ComplianceDashboard: React.FC = () => {
             <CardContent>
               <div className="grid grid-cols-3 gap-4">
                 <div className="text-center p-2">
-                  <div className="text-2xl font-bold">{dashboardData.reports.total}</div>
-                  <div className="text-sm text-muted-foreground">{t('compliance.totalReports')}</div>
+                  <div className="text-2xl font-bold">{dashboardData.active_contracts}</div>
+                  <div className="text-sm text-muted-foreground">{t('compliance.activeContracts')}</div>
                 </div>
                 <div className="text-center p-2">
-                  <div className="text-2xl font-bold">{dashboardData.reports.pending}</div>
+                  <div className="text-2xl font-bold">{dashboardData.pending_reports}</div>
                   <div className="text-sm text-muted-foreground">{t('compliance.pending')}</div>
                 </div>
                 <div className="text-center p-2">
-                  <div className="text-2xl font-bold">{dashboardData.reports.submitted}</div>
-                  <div className="text-sm text-muted-foreground">{t('compliance.submitted')}</div>
+                  <div className="text-2xl font-bold">{dashboardData.expiring_contracts}</div>
+                  <div className="text-sm text-muted-foreground">{t('compliance.expiring')}</div>
                 </div>
-              </div>
-              <Separator className="my-4" />
-              <div className="text-sm font-medium mb-2">
-                {t('compliance.reportsByType')}
-              </div>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {Object.entries(dashboardData.reports.by_type).map(([type, count]) => (
-                  <Badge 
-                    key={type} 
-                    variant="outline"
-                    className="px-2 py-1"
-                  >
-                    {`${type}: ${count}`}
-                  </Badge>
-                ))}
               </div>
             </CardContent>
           </Card>
@@ -230,108 +218,102 @@ const ComplianceDashboard: React.FC = () => {
               <CardTitle>{t('compliance.screeningResults')}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-2">
-                  <div className="text-sm font-medium">{t('compliance.pepScreenings')}</div>
-                  <div className="flex items-center mt-2">
-                    <div className="relative inline-flex mr-2">
-                      <div className="h-12 w-12 rounded-full flex items-center justify-center border-4 border-primary">
-                        <span className="text-sm font-medium">
-                          {`${Math.round(dashboardData.screenings.pep.match_percentage)}%`}
-                        </span>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-sm">
-                        {dashboardData.screenings.pep.matches} {t('compliance.matchesOutOf')} {dashboardData.screenings.pep.total} {t('compliance.screenings')}
-                      </div>
-                    </div>
-                  </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="text-center p-2">
+                  <div className="text-2xl font-bold">{dashboardData.pep_matches}</div>
+                  <div className="text-sm text-muted-foreground">{t('compliance.pepMatches')}</div>
                 </div>
-                <div className="p-2">
-                  <div className="text-sm font-medium">{t('compliance.sanctionsScreenings')}</div>
-                  <div className="flex items-center mt-2">
-                    <div className="relative inline-flex mr-2">
-                      <div className="h-12 w-12 rounded-full flex items-center justify-center border-4 border-destructive">
-                        <span className="text-sm font-medium">
-                          {`${Math.round(dashboardData.screenings.sanctions.match_percentage)}%`}
-                        </span>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-sm">
-                        {dashboardData.screenings.sanctions.matches} {t('compliance.matchesOutOf')} {dashboardData.screenings.sanctions.total} {t('compliance.screenings')}
-                      </div>
-                    </div>
-                  </div>
+                <div className="text-center p-2">
+                  <div className="text-2xl font-bold">{dashboardData.sanctions_matches}</div>
+                  <div className="text-sm text-muted-foreground">{t('compliance.sanctionsMatches')}</div>
+                </div>
+                <div className="text-center p-2">
+                  <div className="text-2xl font-bold">{dashboardData.high_risk_clients}</div>
+                  <div className="text-sm text-muted-foreground">{t('compliance.highRiskClients')}</div>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Recent Activity */}
+        {/* Recent Verifications */}
         <div className="col-span-1 md:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle>{t('compliance.recentActivity')}</CardTitle>
+              <CardTitle>{t('compliance.recentVerifications')}</CardTitle>
             </CardHeader>
             <CardContent>
-              <ScrollArea className="h-[400px]">
+              <ScrollArea className="h-[200px]">
                 <div className="space-y-2">
-                  {dashboardData.recent_activity.map((activity, index) => (
-                    <div key={`${activity.type}-${activity.id}`}>
+                  {dashboardData.recent_verifications.map((verification, index) => (
+                    <div key={`verification-${verification.id}`}>
                       {index > 0 && <Separator className="my-2" />}
                       <div 
                         className="p-2 hover:bg-accent rounded-md cursor-pointer"
                         onClick={() => {
-                          if (activity.type === 'report') {
-                            navigate(`/compliance/reports/${activity.id}`);
-                          } else if (activity.type === 'pep_screening') {
-                            navigate(`/compliance/pep-screenings/${activity.id}`);
-                          } else if (activity.type === 'sanctions_screening') {
-                            navigate(`/compliance/sanctions-screenings/${activity.id}`);
-                          } else if (activity.type === 'customer_verification') {
-                            navigate(`/compliance/verify-customer`);
-                          }
+                          navigate(`/compliance/verify-customer`);
                         }}
                       >
                         <div className="flex items-center">
                           <span className="mr-2">
-                            {getActivityIcon(activity.type)}
+                            {verification.result.includes('Match') ? '⚠️' : '✅'}
                           </span>
                           <span className="font-medium">
-                            {activity.type === 'report' 
-                              ? `${activity.report_type} ${t('compliance.report')}` 
-                              : activity.type === 'pep_screening'
-                                ? t('compliance.pepScreening')
-                                : activity.type === 'sanctions_screening'
-                                  ? t('compliance.sanctionsScreening')
-                                  : activity.type === 'customer_verification'
-                                    ? t('compliance.verifyCustomer')
-                                    : activity.type
-                            }
+                            {verification.client_name}
                           </span>
-                          {(activity.status || activity.match_status) && (
-                            <Badge 
-                              variant={getStatusColor(activity.status || activity.match_status) === 'success' ? 'default' : 
-                                     getStatusColor(activity.status || activity.match_status) === 'error' ? 'destructive' : 
-                                     getStatusColor(activity.status || activity.match_status) === 'warning' ? 'secondary' : 'outline'}
-                              className="ml-2"
-                            >
-                              {activity.status || activity.match_status}
-                            </Badge>
-                          )}
+                          <Badge 
+                            variant={verification.risk_level.toLowerCase() === 'high' ? 'destructive' : 
+                                   verification.risk_level.toLowerCase() === 'medium' ? 'secondary' : 'default'}
+                            className="ml-2"
+                          >
+                            {verification.risk_level}
+                          </Badge>
                         </div>
                         <div className="text-sm text-muted-foreground mt-1">
                           <span className="font-medium">
-                            {activity.type === 'report' 
-                              ? `Entity: ${activity.entity_type} #${activity.entity_id}` 
-                              : `Client #${activity.client_id}`
-                            }
+                            {verification.result}
                           </span>
                           {" — "}
-                          {formatDate(activity.created_at)}
+                          {formatDate(verification.verification_date)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        </div>
+        
+        {/* List Updates */}
+        <div className="col-span-1 md:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('compliance.sanctionsListUpdates')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-[200px]">
+                <div className="space-y-2">
+                  {dashboardData.recent_list_updates.map((update, index) => (
+                    <div key={`update-${index}`}>
+                      {index > 0 && <Separator className="my-2" />}
+                      <div className="p-2 rounded-md">
+                        <div className="flex items-center">
+                          <span className="mr-2">
+                            {update.status === 'Success' ? '✅' : '❌'}
+                          </span>
+                          <span className="font-medium">
+                            {update.list_name}
+                          </span>
+                          <Badge 
+                            variant={update.status === 'Success' ? 'default' : 'destructive'}
+                            className="ml-2"
+                          >
+                            {update.status}
+                          </Badge>
+                        </div>
+                        <div className="text-sm text-muted-foreground mt-1">
+                          {formatDate(update.update_date)}
                         </div>
                       </div>
                     </div>

@@ -2,13 +2,31 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { DownloadIcon } from "lucide-react";
+import { getComplianceDashboard, downloadUafReport } from "@/lib/api/compliance";
 
 interface ComplianceMetric {
   label: string;
   value: number;
   status: 'success' | 'warning' | 'danger';
   icon?: string;
+}
+
+interface RecentVerification {
+  id: string;
+  client_name: string;
+  verification_date: string;
+  result: string;
+  risk_level: string;
+  report_path?: string;
+}
+
+interface ListUpdate {
+  list_name: string;
+  update_date: string;
+  status: string;
 }
 
 interface ComplianceDashboardWidgetProps {
@@ -25,54 +43,58 @@ const ComplianceDashboardWidget: React.FC<ComplianceDashboardWidgetProps> = ({
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
+  const [recentVerifications, setRecentVerifications] = useState<RecentVerification[]>([]);
+  const [listUpdates, setListUpdates] = useState<ListUpdate[]>([]);
+
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        const apiUrl = import.meta.env.VITE_API_URL || '';
-        const response = await axios.get(`${apiUrl}/api/v1/compliance/dashboard`);
+        const response = await getComplianceDashboard();
         
-        if (response.data) {
+        if (response) {
           const transformedMetrics: ComplianceMetric[] = [
             {
               label: 'Active Contracts',
-              value: response.data.active_contracts || 0,
+              value: response.active_contracts || 0,
               status: 'success',
               icon: '📄'
             },
             {
               label: 'Expiring Soon',
-              value: response.data.expiring_contracts || 0,
-              status: response.data.expiring_contracts > 5 ? 'warning' : 'success',
+              value: response.expiring_contracts || 0,
+              status: response.expiring_contracts > 5 ? 'warning' : 'success',
               icon: '⏱️'
             },
             {
               label: 'PEP Matches',
-              value: response.data.pep_matches || 0,
-              status: response.data.pep_matches > 0 ? 'danger' : 'success',
+              value: response.pep_matches || 0,
+              status: response.pep_matches > 0 ? 'danger' : 'success',
               icon: '👤'
             },
             {
               label: 'Sanctions Matches',
-              value: response.data.sanctions_matches || 0,
-              status: response.data.sanctions_matches > 0 ? 'danger' : 'success',
+              value: response.sanctions_matches || 0,
+              status: response.sanctions_matches > 0 ? 'danger' : 'success',
               icon: '🚫'
             },
             {
               label: 'Pending Reports',
-              value: response.data.pending_reports || 0,
-              status: response.data.pending_reports > 3 ? 'warning' : 'success',
+              value: response.pending_reports || 0,
+              status: response.pending_reports > 3 ? 'warning' : 'success',
               icon: '📊'
             },
             {
               label: 'High Risk Clients',
-              value: response.data.high_risk_clients || 0,
-              status: response.data.high_risk_clients > 10 ? 'danger' : 'warning',
+              value: response.high_risk_clients || 0,
+              status: response.high_risk_clients > 10 ? 'danger' : 'warning',
               icon: '⚠️'
             }
           ];
           
           setMetrics(transformedMetrics);
+          setRecentVerifications(response.recent_verifications || []);
+          setListUpdates(response.recent_list_updates || []);
         }
       } catch (err) {
         console.error('Error fetching compliance dashboard data:', err);
@@ -85,6 +107,19 @@ const ComplianceDashboardWidget: React.FC<ComplianceDashboardWidgetProps> = ({
           { label: 'Sanctions Matches', value: 1, status: 'danger', icon: '🚫' },
           { label: 'Pending Reports', value: 5, status: 'warning', icon: '📊' },
           { label: 'High Risk Clients', value: 12, status: 'danger', icon: '⚠️' }
+        ]);
+        
+        setRecentVerifications([
+          { id: '1', client_name: 'Acme Corp', verification_date: '2025-05-01T10:30:00Z', result: 'No Match', risk_level: 'LOW', report_path: '/reports/1.pdf' },
+          { id: '2', client_name: 'TechStart Inc', verification_date: '2025-05-02T14:15:00Z', result: 'Match Found', risk_level: 'HIGH', report_path: '/reports/2.pdf' },
+          { id: '3', client_name: 'Global Trading LLC', verification_date: '2025-05-03T09:45:00Z', result: 'No Match', risk_level: 'MEDIUM', report_path: '/reports/3.pdf' }
+        ]);
+        
+        setListUpdates([
+          { list_name: 'OFAC', update_date: '2025-05-01T00:00:00Z', status: 'Success' },
+          { list_name: 'EU Sanctions', update_date: '2025-05-01T00:00:00Z', status: 'Success' },
+          { list_name: 'UN Sanctions', update_date: '2025-05-01T00:00:00Z', status: 'Success' },
+          { list_name: 'OpenSanctions', update_date: '2025-05-01T00:00:00Z', status: 'Success' }
         ]);
       } finally {
         setLoading(false);
@@ -111,6 +146,30 @@ const ComplianceDashboardWidget: React.FC<ComplianceDashboardWidgetProps> = ({
     navigate(path);
   };
 
+  const handleDownloadReport = async (reportId: string) => {
+    try {
+      const blob = await downloadUafReport(reportId);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `uaf-report-${reportId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error('Error downloading report:', err);
+      setError('Failed to download report');
+    }
+  };
+
+  const getRiskLevelBadge = (level: string) => {
+    const lowerLevel = level.toLowerCase();
+    if (lowerLevel === 'high') return <Badge className="bg-red-100 text-red-800">HIGH</Badge>;
+    if (lowerLevel === 'medium') return <Badge className="bg-yellow-100 text-yellow-800">MEDIUM</Badge>;
+    return <Badge className="bg-green-100 text-green-800">LOW</Badge>;
+  };
+
   return (
     <Card className="w-full shadow-md">
       <CardHeader>
@@ -125,17 +184,91 @@ const ComplianceDashboardWidget: React.FC<ComplianceDashboardWidgetProps> = ({
         ) : error ? (
           <div className="text-center text-red-500 p-4">{error}</div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {metrics.map((metric, index) => (
-              <div 
-                key={index} 
-                className={`p-4 rounded-lg ${getStatusColor(metric.status)} flex flex-col items-center justify-center`}
-              >
-                <div className="text-2xl mb-1">{metric.icon}</div>
-                <div className="text-2xl font-bold">{metric.value}</div>
-                <div className="text-sm">{metric.label}</div>
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {metrics.map((metric, index) => (
+                <div 
+                  key={index} 
+                  className={`p-4 rounded-lg ${getStatusColor(metric.status)} flex flex-col items-center justify-center`}
+                >
+                  <div className="text-2xl mb-1">{metric.icon}</div>
+                  <div className="text-2xl font-bold">{metric.value}</div>
+                  <div className="text-sm">{metric.label}</div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="mt-6">
+              <h3 className="text-lg font-medium mb-2">Recent Verifications</h3>
+              <div className="border rounded-md overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Client</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Result</TableHead>
+                      <TableHead>Risk Level</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {recentVerifications.map((verification) => (
+                      <TableRow key={verification.id}>
+                        <TableCell>{verification.client_name}</TableCell>
+                        <TableCell>{new Date(verification.verification_date).toLocaleDateString()}</TableCell>
+                        <TableCell>
+                          <Badge className={verification.result.includes('Match') ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}>
+                            {verification.result}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{getRiskLevelBadge(verification.risk_level)}</TableCell>
+                        <TableCell>
+                          {verification.report_path && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleDownloadReport(verification.id)}
+                              className="flex items-center gap-1"
+                            >
+                              <DownloadIcon className="h-4 w-4" />
+                              <span>UAF</span>
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
-            ))}
+            </div>
+            
+            <div className="mt-6">
+              <h3 className="text-lg font-medium mb-2">Sanctions List Updates</h3>
+              <div className="border rounded-md overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>List</TableHead>
+                      <TableHead>Last Updated</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {listUpdates.map((update, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{update.list_name}</TableCell>
+                        <TableCell>{new Date(update.update_date).toLocaleDateString()}</TableCell>
+                        <TableCell>
+                          <Badge className={update.status === 'Success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                            {update.status}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
           </div>
         )}
       </CardContent>

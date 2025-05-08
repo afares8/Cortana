@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Informe UAF de Verificación de Cliente</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+            @bottom-right {
+                content: "Página " counter(page) " de " counter(pages);
+                font-size: 10pt;
+            }
+        }
+        body {
+            font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+            color: #333;
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .header img {
+            max-height: 60px;
+            margin-bottom: 10px;
+        }
+        .header h1 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 24px;
+        }
+        .header .timestamp {
+            color: #7f8c8d;
+            font-size: 12px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section h2 {
+            color: #2c3e50;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+            font-size: 18px;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .data-table th, .data-table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        .data-table th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+        }
+        .risk-high {
+            color: #c0392b;
+            font-weight: bold;
+        }
+        .risk-medium {
+            color: #e67e22;
+            font-weight: bold;
+        }
+        .risk-low {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+            font-size: 10px;
+            color: #7f8c8d;
+        }
+        .matches {
+            margin-top: 10px;
+        }
+        .match-item {
+            margin-bottom: 10px;
+            padding-left: 20px;
+        }
+        .signature {
+            margin-top: 40px;
+            text-align: center;
+        }
+        .signature hr {
+            width: 250px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Informe UAF de Verificación de Cliente</h1>
+        <p class="timestamp">{{ timestamp }}</p>
+    </div>
+
+    <div class="section">
+        <h2>Información del Cliente</h2>
+        <table class="data-table">
+            <tr>
+                <th>Nombre</th>
+                <td>{{ client.name }}</td>
+                <th>ID/RUC</th>
+                <td>{{ client.id_number }}</td>
+            </tr>
+            <tr>
+                <th>Tipo</th>
+                <td>{{ client.type }}</td>
+                <th>País</th>
+                <td>{{ client.country }}</td>
+            </tr>
+            {% if client.type == "legal" %}
+            <tr>
+                <th>Actividad</th>
+                <td>{{ client.activity }}</td>
+                <th>Fecha de Constitución</th>
+                <td>{{ client.incorporation_date }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <th>Fecha de Nacimiento</th>
+                <td>{{ client.dob }}</td>
+                <th>Nacionalidad</th>
+                <td>{{ client.nationality }}</td>
+            </tr>
+            {% endif %}
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Resultados de la Verificación PEP y Sanciones</h2>
+        <p><strong>Resultado General:</strong> {{ screening_result }}</p>
+        
+        {% if matches %}
+        <div class="matches">
+            <p><strong>Coincidencias Encontradas:</strong></p>
+            {% for match in matches %}
+            <div class="match-item">
+                <p><strong>Fuente:</strong> {{ match.source }}</p>
+                <p><strong>Nombre:</strong> {{ match.name }}</p>
+                <p><strong>Detalles:</strong> {{ match.details }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="section">
+        <h2>Evaluación de Riesgo por País</h2>
+        <table class="data-table">
+            <tr>
+                <th>País</th>
+                <td>{{ country_risk.name }} ({{ country_risk.country_code }})</td>
+            </tr>
+            <tr>
+                <th>Nivel de Riesgo</th>
+                <td class="risk-{{ country_risk.risk_level }}">{{ country_risk.risk_level }}</td>
+            </tr>
+            <tr>
+                <th>Estado FATF</th>
+                <td>{% if country_risk.fatf_status %}{{ country_risk.fatf_status }}{% else %}No Listado{% endif %}</td>
+            </tr>
+            <tr>
+                <th>Status UE Alto Riesgo</th>
+                <td>{% if country_risk.eu_high_risk %}Listado{% else %}No Listado{% endif %}</td>
+            </tr>
+            {% if country_risk.basel_score %}
+            <tr>
+                <th>Índice Basel AML</th>
+                <td>{{ country_risk.basel_score }} (Rank: {{ country_risk.basel_rank }})</td>
+            </tr>
+            {% endif %}
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Fuentes de Datos Consultadas</h2>
+        <ul>
+            {% for source in sources %}
+            <li>{{ source }}</li>
+            {% endfor %}
+        </ul>
+        <p><strong>Fecha de Actualización de Datos:</strong> {{ data_updated }}</p>
+    </div>
+
+    <div class="signature">
+        <hr>
+        <p>Generado automáticamente por Cortana AI</p>
+    </div>
+
+    <div class="footer">
+        <p>UUID del Reporte: {{ report_uuid }}</p>
+        <p>Fecha de Generación: {{ timestamp }}</p>
+        <p>Este documento fue generado automáticamente por Cortana AI</p>
+    </div>
+</body>
+</html>
