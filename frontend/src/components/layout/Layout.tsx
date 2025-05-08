@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Search, X, Menu, LogOut, ChevronRight, ChevronDown, AlertCircle, Bell, Settings, Shield, FileText, Users, Activity, CheckSquare, Database, Brain, BarChart2, Truck, DollarSign, Mail, UserCog } from 'lucide-react';
 import NotificationBadge from '../../modules/accounting/components/NotificationBadge';
 import LanguageToggle from '../LanguageToggle';
+import SettingsPanel from '../settings/SettingsPanel';
 
 interface LayoutProps {
   children: ReactNode;
@@ -35,6 +36,7 @@ export default function Layout({ children, title }: LayoutProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [settingsPanelOpen, setSettingsPanelOpen] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     dashboard: true,
     contracts: true,
@@ -560,7 +562,10 @@ export default function Layout({ children, title }: LayoutProps) {
           <div className="hidden md:flex items-center space-x-4">
             <NotificationBadge />
             <LanguageToggle />
-            <button className="text-gray-500 hover:text-gray-700">
+            <button 
+              onClick={() => setSettingsPanelOpen(true)}
+              className="text-gray-500 hover:text-gray-700"
+            >
               <Settings className="h-5 w-5" />
             </button>
             <button 
@@ -752,6 +757,8 @@ export default function Layout({ children, title }: LayoutProps) {
           </p>
         </div>
       </footer>
+      
+      <SettingsPanel isOpen={settingsPanelOpen} onClose={() => setSettingsPanelOpen(false)} />
     </div>
   );
 }

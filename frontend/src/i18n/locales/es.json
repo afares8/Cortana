@@ -48,7 +48,11 @@
     "allRightsReserved": "Todos los Derechos Reservados",
     "searching": "Buscando...",
     "noResultsFound": "No se encontraron resultados",
-    "pressEnterForAllResults": "Presione Enter para todos los resultados"
+    "pressEnterForAllResults": "Presione Enter para todos los resultados",
+    "loading": "Cargando...",
+    "saving": "Guardando...",
+    "saveChanges": "Guardar Cambios",
+    "cancel": "Cancelar"
   },
   "dashboard": {
     "welcomeMessage": "Bienvenido a Cortana",
@@ -173,5 +177,147 @@
     "sentDaysAgo": "Enviada hace {{days}} días",
     "invoiceConsolidation": "Consolidación de Facturas",
     "completedWeeksAgo": "Completada hace {{weeks}} semana"
+  },
+  "settings": {
+    "title": "Configuración del Sistema",
+    "description": "Configure las opciones del sistema para personalizar la aplicación",
+    "saveSuccess": "Configuración guardada",
+    "saveSuccessDescription": "Los cambios se han guardado correctamente",
+    "tabs": {
+      "general": "General",
+      "menuLayout": "Menú y Diseño",
+      "ai": "IA",
+      "compliance": "Cumplimiento",
+      "security": "Seguridad",
+      "dmce": "Automatización DMCE",
+      "integrations": "Integraciones"
+    },
+    "generalDescription": "Configure las opciones generales del sistema",
+    "menuLayoutDescription": "Personalice el menú y el diseño de la aplicación",
+    "aiDescription": "Configure las opciones de inteligencia artificial",
+    "complianceDescription": "Configure las opciones de cumplimiento y riesgo",
+    "securityDescription": "Configure las opciones de seguridad y acceso",
+    "dmceDescription": "Configure las opciones de automatización DMCE",
+    "integrationsDescription": "Configure las integraciones con sistemas externos",
+    "systemName": "Nombre del Sistema",
+    "systemNamePlaceholder": "Ingrese el nombre del sistema",
+    "logo": "Logo",
+    "currentLogo": "Logo actual",
+    "uploadLogo": "Subir Logo",
+    "defaultLanguage": "Idioma Predeterminado",
+    "selectLanguage": "Seleccionar idioma",
+    "languages": {
+      "english": "Inglés",
+      "spanish": "Español"
+    },
+    "timezone": "Zona Horaria",
+    "selectTimezone": "Seleccionar zona horaria",
+    "timezones": {
+      "panama": "Panamá (UTC-5)",
+      "bogota": "Bogotá (UTC-5)",
+      "mexicoCity": "Ciudad de México (UTC-6)",
+      "newYork": "Nueva York (UTC-5)",
+      "madrid": "Madrid (UTC+1)"
+    },
+    "enableModules": "Habilitar Módulos",
+    "appearance": "Apariencia",
+    "darkMode": "Modo Oscuro",
+    "moduleOrder": "Orden de Módulos",
+    "dragToReorder": "Arrastre para reordenar los módulos",
+    "modules": {
+      "legal": "Legal",
+      "compliance": "Cumplimiento",
+      "accounting": "Contabilidad",
+      "traffic": "Tráfico",
+      "ai": "IA",
+      "users": "Gestión de Usuarios"
+    },
+    "aiLanguageSettings": "Configuración de Idioma IA",
+    "languageMode": "Modo de Idioma",
+    "selectLanguageMode": "Seleccionar modo de idioma",
+    "languageModes": {
+      "autoDetect": "Detección Automática",
+      "forceSpanish": "Forzar Español"
+    },
+    "aiModelSettings": "Configuración de Modelo IA",
+    "aiModel": "Modelo IA",
+    "selectAIModel": "Seleccionar modelo IA",
+    "aiModels": {
+      "mistral7b": "Mistral 7B",
+      "openHermes": "OpenHermes"
+    },
+    "maxTokens": "Tokens Máximos",
+    "aiAdvancedSettings": "Configuración Avanzada IA",
+    "fallbackMode": "Modo de Respaldo",
+    "debugMode": "Modo de Depuración",
+    "healthCheckSchedule": "Programación de Verificación de Salud",
+    "cronFormatHelp": "Formato cron: minuto hora día-del-mes mes día-de-la-semana",
+    "sanctionsSettings": "Configuración de Sanciones",
+    "sanctionsSources": {
+      "ofac": "OFAC",
+      "un": "ONU",
+      "eu": "UE",
+      "openSanctions": "OpenSanctions"
+    },
+    "uafReportSettings": "Configuración de Informes UAF",
+    "uafReportAutomation": "Automatización de Informes UAF",
+    "dueDiligenceSettings": "Configuración de Debida Diligencia",
+    "defaultDueDiligence": "Nivel de Debida Diligencia Predeterminado",
+    "selectDueDiligenceLevel": "Seleccionar nivel",
+    "dueDiligenceLevels": {
+      "simplified": "Simplificado",
+      "basic": "Básico",
+      "enhanced": "Mejorado"
+    },
+    "documentRetention": "Retención de Documentos",
+    "documentRetentionHelp": "Período en meses para retener documentos",
+    "updateSchedules": "Programación de Actualizaciones",
+    "baselFATFSchedule": "Programación de Actualización Basel/FATF",
+    "authenticationSettings": "Configuración de Autenticación",
+    "enforce2FA": "Exigir 2FA",
+    "sessionTimeout": "Tiempo de Espera de Sesión",
+    "sessionTimeoutHelp": "Minutos antes de cerrar la sesión por inactividad",
+    "maxFailedLogins": "Máximo de Intentos de Inicio de Sesión Fallidos",
+    "maxFailedLoginsHelp": "Bloquear cuenta después de este número de intentos fallidos",
+    "passwordPolicy": "Política de Contraseñas",
+    "passwordMinLength": "Longitud Mínima",
+    "requireSymbols": "Requerir Símbolos",
+    "requireNumbers": "Requerir Números",
+    "dmceGeneralSettings": "Configuración General DMCE",
+    "enableAutomation": "Habilitar Automatización",
+    "defaultCustomsCompany": "Empresa de Aduanas Predeterminada",
+    "defaultCustomsCompanyPlaceholder": "Ingrese el nombre de la empresa",
+    "browserSettings": "Configuración del Navegador",
+    "browserType": "Tipo de Navegador",
+    "selectBrowserType": "Seleccionar navegador",
+    "browserTypes": {
+      "firefox": "Firefox",
+      "chromium": "Chromium"
+    },
+    "browserMode": "Modo del Navegador",
+    "selectBrowserMode": "Seleccionar modo",
+    "browserModes": {
+      "headless": "Sin Interfaz",
+      "manualFallback": "Respaldo Manual"
+    },
+    "loginTimeout": "Tiempo de Espera de Inicio de Sesión",
+    "loginTimeoutHelp": "Segundos antes de cancelar el intento de inicio de sesión",
+    "sapIntegration": "Integración SAP",
+    "sapEndpoint": "Endpoint SAP",
+    "sapAPIKey": "Clave API SAP",
+    "risk365Integration": "Integración Risk 365",
+    "risk365Endpoint": "Endpoint Risk 365",
+    "risk365Auth": "Autenticación Risk 365",
+    "enterAPIKey": "Ingrese la clave API",
+    "enterAuthToken": "Ingrese el token de autenticación",
+    "notificationIntegrations": "Integraciones de Notificaciones",
+    "slackWebhook": "Webhook de Slack",
+    "webhooks": "Webhooks",
+    "addWebhook": "Agregar Webhook",
+    "errors": {
+      "loadFailed": "Error al cargar la configuración",
+      "saveFailed": "Error al guardar la configuración",
+      "adminRequired": "Se requieren permisos de administrador para acceder a la configuración"
+    }
   }
 }
