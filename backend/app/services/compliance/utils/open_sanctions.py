@@ -11,10 +11,12 @@ logger = logging.getLogger(__name__)
 
 OPENSANCTIONS_API_URL = "https://api.opensanctions.org"
 OPENSANCTIONS_API_KEY = os.environ.get("OPENSANCTIONS_API_KEY", "")
-CACHE_DIR = "opensanctions_cache"
+from pathlib import Path
+
+CACHE_DIR = Path.home() / "repos" / "Cortana" / "backend" / "data" / "opensanctions_cache"
 CACHE_TTL_HOURS = 24  # Cache results for 24 hours
 
-os.makedirs(CACHE_DIR, exist_ok=True)
+CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 class OpenSanctionsClient:
     """
@@ -78,8 +80,8 @@ class OpenSanctionsClient:
         Returns:
             Cached response or None
         """
-        cache_file = os.path.join(CACHE_DIR, f"{cache_key}.json")
-        if os.path.exists(cache_file):
+        cache_file = CACHE_DIR / f"{cache_key}.json"
+        if cache_file.exists():
             try:
                 with open(cache_file, 'r') as f:
                     cached_data = json.load(f)
@@ -101,7 +103,7 @@ class OpenSanctionsClient:
             cache_key: Cache key
             response: Response to cache
         """
-        cache_file = os.path.join(CACHE_DIR, f"{cache_key}.json")
+        cache_file = CACHE_DIR / f"{cache_key}.json"
         try:
             with open(cache_file, 'w') as f:
                 json.dump({
