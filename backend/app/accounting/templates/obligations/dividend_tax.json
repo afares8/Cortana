@@ -1,0 +1,11 @@
+{
+  "entity": "DGI",
+  "name": "Dividend Reporting",
+  "description": "Biannual dividend tax reporting",
+  "frequency": "biannual",
+  "due_day": 30,
+  "due_months": [6, 12],
+  "reminder_days": 15,
+  "concept": "Impuesto de Dividendos",
+  "authority": "Dirección General de Ingresos"
+}

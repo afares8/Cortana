@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Payment Notification</title>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { width: 80%; margin: 0 auto; padding: 20px; }
+    .header { background-color: #f8f9fa; padding: 10px; border-bottom: 1px solid #ddd; }
+    .content { padding: 20px 0; }
+    .footer { font-size: 12px; color: #777; padding-top: 20px; border-top: 1px solid #ddd; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+    table, th, td { border: 1px solid #ddd; }
+    th, td { padding: 10px; text-align: left; }
+    th { background-color: #f2f2f2; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2>{{ company_name }} - Notificación de Pago</h2>
+    </div>
+    <div class="content">
+      <p>Estimado/a representante de {{ recipient }},</p>
+      
+      <p>{{ greeting }}</p>
+      
+      <p>Por medio de la presente, le notificamos que se ha realizado el pago de la siguiente obligación:</p>
+      
+      <table>
+        <tr>
+          <th>Concepto</th>
+          <td>{{ obligation_name }}</td>
+        </tr>
+        <tr>
+          <th>Monto</th>
+          <td>${{ amount }}</td>
+        </tr>
+        <tr>
+          <th>Fecha de pago</th>
+          <td>{{ payment_date }}</td>
+        </tr>
+        <tr>
+          <th>Número de recibo</th>
+          <td>{{ receipt_number }}</td>
+        </tr>
+        <tr>
+          <th>Fecha de vencimiento</th>
+          <td>{{ due_date }}</td>
+        </tr>
+      </table>
+      
+      <p>{{ message }}</p>
+      
+      <p>Quedamos a su disposición para cualquier consulta adicional.</p>
+      
+      <p>Atentamente,</p>
+      <p>{{ company_name }}</p>
+    </div>
+    <div class="footer">
+      <p>Este es un correo electrónico generado automáticamente. Por favor no responda a este mensaje.</p>
+    </div>
+  </div>
+</body>
+</html>

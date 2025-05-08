@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'react-toastify';
 import { 
   getObligations, 
   getCompanies, 
@@ -80,8 +81,17 @@ const AccountingDashboard: React.FC = () => {
     return dueDate >= today && dueDate <= thirtyDaysFromNow && o.status !== 'completed';
   });
 
+  const queryClient = useQueryClient();
+  
   const handleMakePayment = (obligationId: number) => {
-    console.log(`Make payment for obligation ${obligationId}`);
+    queryClient.invalidateQueries(['obligations']);
+    queryClient.invalidateQueries(['alerts']);
+    queryClient.invalidateQueries(['obligationStats']);
+    
+    refetchObligations();
+    refetchAlerts();
+    
+    console.log(`Payment processed for obligation ${obligationId}`);
   };
 
   return (

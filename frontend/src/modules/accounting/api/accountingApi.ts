@@ -354,3 +354,28 @@ export const getObligationStats = async (params?: {
   const response = await axios.get<ObligationStats>(`${API_BASE}/accounting/stats/obligations`, { params });
   return response.data;
 };
+
+export const payObligation = async (
+  companyId: number,
+  obligationId: number,
+  entity: string,
+  note?: string
+): Promise<any> => {
+  const response = await axios.post(`${API_BASE}/accounting/pay-obligation`, {
+    company_id: companyId,
+    obligation_id: obligationId,
+    entity,
+    note
+  });
+  return response.data;
+};
+
+export const scrapeObligations = async (
+  companyId: number,
+  forceRefresh: boolean = false
+): Promise<any> => {
+  const response = await axios.post(`${API_BASE}/accounting/scrape-obligations/${companyId}`, {
+    force_refresh: forceRefresh
+  });
+  return response.data;
+};

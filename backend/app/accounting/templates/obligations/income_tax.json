@@ -1,0 +1,11 @@
+{
+  "entity": "DGI",
+  "name": "Annual Corporate Tax",
+  "description": "Annual income tax declaration",
+  "frequency": "annual",
+  "due_day": 31,
+  "due_month": 3,
+  "reminder_days": 30,
+  "concept": "Impuesto Sobre la Renta",
+  "authority": "Dirección General de Ingresos"
+}
