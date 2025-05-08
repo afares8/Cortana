@@ -52,3 +52,9 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# DMCE assets
+dmce/videos/
+dmce/logs/
+dmce/*.zip
+dmce/*.tar.gz
