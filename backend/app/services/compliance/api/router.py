@@ -362,6 +362,80 @@ async def force_update_risk_matrix_endpoint():
             detail="Failed to update risk matrix data. Please try again later.")
 
 
+@router.get("/monitoring/tasks", response_model=Dict[str, Any])
+async def get_scheduled_tasks_status_endpoint():
+    """
+    Get status of all scheduled compliance tasks.
+    
+    This endpoint returns the status of all scheduled compliance tasks including:
+    - Last run time
+    - Success/failure status
+    - Next scheduled run time
+    - Error details if applicable
+    
+    The data is used to monitor the health of automated compliance processes.
+    """
+    try:
+        from app.db.in_memory import list_updates_db
+        from datetime import datetime, timedelta
+        
+        list_updates = list_updates_db.get_all()
+        list_updates.sort(key=lambda x: getattr(x, 'update_date', datetime.now()) if not isinstance(getattr(x, 'update_date', None), str) else datetime.now(), reverse=True)
+        
+        tasks_status = {
+            "risk_matrix": {"status": "unknown", "last_run": None, "next_run": None, "error": None},
+            "ofac": {"status": "unknown", "last_run": None, "next_run": None, "error": None},
+            "eu_sanctions": {"status": "unknown", "last_run": None, "next_run": None, "error": None},
+            "un_sanctions": {"status": "unknown", "last_run": None, "next_run": None, "error": None},
+            "opensanctions": {"status": "unknown", "last_run": None, "next_run": None, "error": None}
+        }
+        
+        for update in list_updates:
+            list_name = getattr(update, 'list_name', None)
+            if isinstance(list_name, str):
+                task_key = None
+                if "Risk Matrix" in list_name:
+                    task_key = "risk_matrix"
+                elif "OFAC" in list_name:
+                    task_key = "ofac"
+                elif "EU Sanctions" in list_name:
+                    task_key = "eu_sanctions"
+                elif "UN Sanctions" in list_name:
+                    task_key = "un_sanctions"
+                elif "OpenSanctions" in list_name:
+                    task_key = "opensanctions"
+                
+                if task_key and task_key in tasks_status:
+                    update_date = getattr(update, 'update_date', None)
+                    if not update_date:
+                        continue
+                        
+                    if isinstance(update_date, str):
+                        try:
+                            update_date = datetime.fromisoformat(update_date)
+                        except:
+                            continue
+                            
+                    tasks_status[task_key]["status"] = getattr(update, 'status', "unknown")
+                    tasks_status[task_key]["last_run"] = update_date.isoformat()
+                    tasks_status[task_key]["error"] = getattr(update, 'details', None) if "Error" in getattr(update, 'details', "") else None
+                    
+                    if task_key == "risk_matrix":
+                        tasks_status[task_key]["next_run"] = (update_date + timedelta(days=7)).isoformat()  # Weekly
+                    else:
+                        tasks_status[task_key]["next_run"] = (update_date + timedelta(days=1)).isoformat()  # Daily
+        
+        return {
+            "tasks": tasks_status,
+            "last_updated": datetime.now().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Error retrieving scheduled tasks status: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to retrieve scheduled tasks status. Please try again later.")
+
+
 @router.get("/dashboard", response_model=Dict[str, Any])
 async def get_compliance_dashboard_endpoint():
     """

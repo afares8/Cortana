@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { DownloadIcon } from "lucide-react";
+import { DownloadIcon, AlertTriangleIcon, ExternalLinkIcon } from "lucide-react";
 import { getComplianceDashboard, downloadUafReport } from "@/lib/api/compliance";
+import { useTranslation } from 'react-i18next';
 
 interface ComplianceMetric {
   label: string;
@@ -38,6 +39,7 @@ const ComplianceDashboardWidget: React.FC<ComplianceDashboardWidgetProps> = ({
   title = "Compliance Dashboard", 
   description = "Overview of compliance metrics and pending actions" 
 }) => {
+  const { t } = useTranslation();
   const [metrics, setMetrics] = useState<ComplianceMetric[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -45,6 +47,7 @@ const ComplianceDashboardWidget: React.FC<ComplianceDashboardWidgetProps> = ({
 
   const [recentVerifications, setRecentVerifications] = useState<RecentVerification[]>([]);
   const [listUpdates, setListUpdates] = useState<ListUpdate[]>([]);
+  const [highRiskAlerts, setHighRiskAlerts] = useState<RecentVerification[]>([]);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -93,7 +96,16 @@ const ComplianceDashboardWidget: React.FC<ComplianceDashboardWidgetProps> = ({
           ];
           
           setMetrics(transformedMetrics);
-          setRecentVerifications(response.recent_verifications || []);
+          
+          const verifications = response.recent_verifications || [];
+          setRecentVerifications(verifications);
+          
+          const highRiskItems = verifications.filter(v => 
+            v.risk_level.toLowerCase() === 'high' || 
+            v.result.toLowerCase().includes('match')
+          );
+          setHighRiskAlerts(highRiskItems);
+          
           setListUpdates(response.recent_list_updates || []);
         }
       } catch (err) {
@@ -109,11 +121,20 @@ const ComplianceDashboardWidget: React.FC<ComplianceDashboardWidgetProps> = ({
           { label: 'High Risk Clients', value: 12, status: 'danger', icon: '⚠️' }
         ]);
         
-        setRecentVerifications([
+        const mockVerifications = [
           { id: '1', client_name: 'Acme Corp', verification_date: '2025-05-01T10:30:00Z', result: 'No Match', risk_level: 'LOW', report_path: '/reports/1.pdf' },
           { id: '2', client_name: 'TechStart Inc', verification_date: '2025-05-02T14:15:00Z', result: 'Match Found', risk_level: 'HIGH', report_path: '/reports/2.pdf' },
-          { id: '3', client_name: 'Global Trading LLC', verification_date: '2025-05-03T09:45:00Z', result: 'No Match', risk_level: 'MEDIUM', report_path: '/reports/3.pdf' }
-        ]);
+          { id: '3', client_name: 'Global Trading LLC', verification_date: '2025-05-03T09:45:00Z', result: 'No Match', risk_level: 'MEDIUM', report_path: '/reports/3.pdf' },
+          { id: '4', client_name: 'Nicolás Maduro Moros', verification_date: '2025-05-08T08:30:00Z', result: 'Match Found', risk_level: 'HIGH', report_path: '/reports/4.pdf' }
+        ];
+        
+        setRecentVerifications(mockVerifications);
+        
+        const highRiskItems = mockVerifications.filter(v => 
+          v.risk_level.toLowerCase() === 'high' || 
+          v.result.toLowerCase().includes('match')
+        );
+        setHighRiskAlerts(highRiskItems);
         
         setListUpdates([
           { list_name: 'OFAC', update_date: '2025-05-01T00:00:00Z', status: 'Success' },
@@ -170,6 +191,53 @@ const ComplianceDashboardWidget: React.FC<ComplianceDashboardWidgetProps> = ({
     return <Badge className="bg-green-100 text-green-800">LOW</Badge>;
   };
 
+  const renderHighRiskAlerts = () => {
+    if (highRiskAlerts.length === 0) return null;
+    
+    return (
+      <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
+        <div className="flex items-center mb-3">
+          <AlertTriangleIcon className="h-5 w-5 text-red-600 mr-2" />
+          <h3 className="text-lg font-medium text-red-800">
+            {t('compliance.highRiskAlerts', 'High Risk Alerts')}
+          </h3>
+        </div>
+        
+        <div className="space-y-3">
+          {highRiskAlerts.map((alert, index) => (
+            <div key={index} className="flex items-center justify-between p-3 border border-red-200 rounded bg-white">
+              <div className="flex-1">
+                <div className="font-medium">{alert.client_name}</div>
+                <div className="text-sm text-gray-500">
+                  {new Date(alert.verification_date).toLocaleDateString()}
+                </div>
+                <div className="mt-1 flex items-center">
+                  {getRiskLevelBadge(alert.risk_level)}
+                  <span className="ml-2 text-sm">{alert.result}</span>
+                </div>
+              </div>
+              <div>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => handleDownloadReport(alert.id)}
+                  className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
+                >
+                  <ExternalLinkIcon className="h-4 w-4" />
+                  <span>{t('compliance.viewDetails', 'View Details')}</span>
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        <div className="mt-3 text-sm text-red-700 font-medium">
+          {t('compliance.warning', 'Warning')}: {t('compliance.highRiskWarning', 'These entities require immediate review and enhanced due diligence.')}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <Card className="w-full shadow-md">
       <CardHeader>
@@ -185,6 +253,9 @@ const ComplianceDashboardWidget: React.FC<ComplianceDashboardWidgetProps> = ({
           <div className="text-center text-red-500 p-4">{error}</div>
         ) : (
           <div className="space-y-6">
+            {/* High Risk Alerts Section */}
+            {renderHighRiskAlerts()}
+            
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {metrics.map((metric, index) => (
                 <div 
@@ -277,25 +348,33 @@ const ComplianceDashboardWidget: React.FC<ComplianceDashboardWidgetProps> = ({
           variant="outline" 
           onClick={() => handleNavigate('/compliance/uaf-report')}
         >
-          Generate UAF Report
+          {t('compliance.generateUAFReport', 'Generate UAF Report')}
         </Button>
         <Button 
           variant="outline" 
           onClick={() => handleNavigate('/compliance/sanctions-screening')}
         >
-          Sanctions Screening
+          {t('compliance.runSanctionsScreening', 'Sanctions Screening')}
         </Button>
         <Button 
           variant="outline"
           onClick={() => handleNavigate('/compliance/verify-customer')}
         >
-          Customer Verification
+          {t('compliance.verifyCustomer', 'Customer Verification')}
         </Button>
-        <Button 
-          onClick={() => handleNavigate('/compliance/dashboard')}
-        >
-          View Full Dashboard
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline"
+            onClick={() => handleNavigate('/compliance/country-risk-map')}
+          >
+            {t('compliance.viewRiskMap', 'View Risk Map')}
+          </Button>
+          <Button 
+            onClick={() => handleNavigate('/compliance/dashboard')}
+          >
+            {t('compliance.viewFullDashboard', 'View Full Dashboard')}
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   );

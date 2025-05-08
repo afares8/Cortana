@@ -188,7 +188,17 @@
     "lowRiskCountries": "Países Bajo Riesgo",
     "dataSources": "Fuentes de Datos",
     "validationStatus": "Estado de Validación",
-    "noRiskData": "No hay datos de riesgo disponibles"
+    "noRiskData": "No hay datos de riesgo disponibles",
+    "highRiskAlerts": "Alertas de Alto Riesgo",
+    "highRiskWarning": "Estos clientes requieren revisión inmediata y diligencia debida mejorada.",
+    "verifyCustomer": "Verificar Cliente",
+    "viewFullDashboard": "Ver Panel Completo",
+    "scheduledTaskStatus": "Estado de Tareas Programadas",
+    "nextScheduledRun": "Próxima Ejecución",
+    "taskMonitoring": "Monitoreo de Tareas",
+    "taskStatus": "Estado de la Tarea",
+    "lastRun": "Última Ejecución",
+    "errorDetails": "Detalles del Error"
   },
   "ai": {
     "tools": "Herramientas de IA",

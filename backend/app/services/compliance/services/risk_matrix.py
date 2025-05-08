@@ -598,14 +598,15 @@ class RiskMatrix:
         
         Checks:
         1. At least 190+ country entries exist
-        2. Each country has required fields
+        2. All required fields are present for each country
+        3. All ISO 3166 countries are represented
         
         Returns:
             bool: True if the risk map is valid, False otherwise
         """
         try:
             if not self.risk_map_file.exists():
-                logger.warning("Risk map file does not exist")
+                logger.warning(f"Risk map file does not exist: {self.risk_map_file}")
                 return False
                 
             with open(self.risk_map_file, 'r') as f:
@@ -614,16 +615,33 @@ class RiskMatrix:
             countries = risk_map.get("countries", {})
             country_count = len(countries)
             
+            try:
+                import iso3166
+                all_countries = set(country.alpha2 for country in iso3166.countries)
+                
+                # Find missing countries
+                missing_countries = all_countries - set(countries.keys())
+                if missing_countries:
+                    logger.warning(f"Risk map is missing {len(missing_countries)} ISO countries: {', '.join(list(missing_countries)[:10])}")
+                    logger.info(f"Detected country count: {country_count}, Expected: {len(all_countries)}")
+            except ImportError:
+                logger.warning("ISO 3166 library not available, skipping full country validation")
+            
             if country_count < 190:
                 logger.warning(f"Risk map contains only {country_count} countries, expected at least 190")
                 return False
                 
             missing_fields = []
-            for iso, country_data in countries.items():
-                if "risk_level" not in country_data:
-                    missing_fields.append(f"{iso}: missing risk_level")
-                if "sources" not in country_data:
-                    missing_fields.append(f"{iso}: missing sources")
+            required_fields = ["name", "risk_level", "sources"]
+            
+            for code, data in countries.items():
+                for field in required_fields:
+                    if field not in data:
+                        missing_fields.append(f"{code}.{field}")
+                        if len(missing_fields) >= 10:
+                            break
+                if len(missing_fields) >= 10:
+                    break
                     
             if missing_fields:
                 logger.warning(f"Risk map has countries with missing required fields: {', '.join(missing_fields[:5])}...")
