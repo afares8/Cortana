@@ -1,11 +1,13 @@
 from app.db.base import InMemoryDB
 from app.models.user import UserInDB
 from app.models.contract import ContractInDB
+from app.models.settings import SystemSettingInDB
 from app.models.ai_models import ExtractedClause, RiskScore, ComplianceCheck, AuditLog, AIQuery, ContractAnomaly
 from app.core.security import get_password_hash
 
 users_db = InMemoryDB[UserInDB](UserInDB)
 contracts_db = InMemoryDB[ContractInDB](ContractInDB)
+system_settings_db = InMemoryDB[SystemSettingInDB](SystemSettingInDB)
 
 extracted_clauses_db = InMemoryDB[ExtractedClause](ExtractedClause)
 risk_scores_db = InMemoryDB[RiskScore](RiskScore)
