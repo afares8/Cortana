@@ -1,0 +1,10 @@
+{
+  "entity": "CSS",
+  "name": "Social Security Payment",
+  "description": "Monthly social security contribution for employees",
+  "frequency": "monthly",
+  "due_day": 20,
+  "reminder_days": 7,
+  "concept": "Cuota Obrero-Patronal",
+  "authority": "Caja de Seguro Social"
+}

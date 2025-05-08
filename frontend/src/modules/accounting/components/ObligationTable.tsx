@@ -29,7 +29,9 @@ import {
 } from '@mui/icons-material';
 import { SelectChangeEvent } from '@mui/material/Select';
 import { format } from 'date-fns';
+import { toast } from 'react-toastify';
 import { Obligation } from '../types';
+import { payObligation } from '../api/accountingApi';
 
 interface ObligationTableProps {
   obligations: Obligation[];
@@ -54,9 +56,32 @@ const ObligationTable: React.FC<ObligationTableProps> = ({
     navigate(`/accounting/obligations/${id}`);
   };
 
-  const handleMakePayment = (id: number) => {
-    if (onMakePayment) {
-      onMakePayment(id);
+  const handleMakePayment = async (id: number) => {
+    try {
+      const obligation = obligations.find(o => o.id === id);
+      if (!obligation) return;
+      
+      const entity = obligation.tax_type_name || "DGI";
+      const note = `Payment for ${obligation.name}`;
+      
+      const result = await payObligation(
+        obligation.company_id, 
+        obligation.id, 
+        entity, 
+        note
+      );
+      
+      if (result.success) {
+        toast.success("Payment registered successfully");
+        if (onMakePayment) {
+          onMakePayment(id);
+        }
+      } else {
+        toast.error(result.message || "Failed to process payment");
+      }
+    } catch (error) {
+      console.error("Payment error:", error);
+      toast.error("An error occurred while processing the payment");
     }
   };
 

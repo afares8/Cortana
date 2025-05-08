@@ -1,0 +1,10 @@
+{
+  "entity": "Municipio de Chitré",
+  "name": "Municipal Tax",
+  "description": "Quarterly municipal tax for business operation",
+  "frequency": "quarterly",
+  "due_day": 10,
+  "reminder_days": 15,
+  "concept": "Impuesto Municipal de Comercio",
+  "authority": "Municipio de Chitré"
+}

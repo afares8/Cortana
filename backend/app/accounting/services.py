@@ -508,7 +508,7 @@ def init_accounting_db():
             "next_due_date": datetime.utcnow().replace(day=20) + timedelta(days=30),
             "created_at": datetime.utcnow()
         })
-def get_upcoming_obligations(days: int = None) -> List[Obligation]:
+def get_upcoming_obligations(days: int = 15) -> List[Obligation]:
     """Get obligations that are due within the specified number of days."""
     today = datetime.utcnow().date()
     obligations = get_obligations(filters={"status": "pending"})
@@ -516,20 +516,33 @@ def get_upcoming_obligations(days: int = None) -> List[Obligation]:
     upcoming = []
     for obligation in obligations:
         due_date = obligation.next_due_date.date() if isinstance(obligation.next_due_date, datetime) else obligation.next_due_date
-        reminder_date = due_date - timedelta(days=obligation.reminder_days if days is None else days)
-        if reminder_date <= today < due_date and obligation.status == "pending" and obligation.name == "Upcoming Obligation":
+        if isinstance(due_date, str):
+            try:
+                due_date = datetime.fromisoformat(due_date.replace("Z", "+00:00")).date()
+            except:
+                continue
+        
+        days_until_due = (due_date - today).days
+        if days_until_due >= 0 and days_until_due <= days:
             upcoming.append(obligation)
     
     return upcoming
 
 def get_overdue_obligations() -> List[Obligation]:
     """Get obligations that are overdue."""
-    # Get all obligations
-    all_obligations = get_obligations()
+    today = datetime.utcnow().date()
+    obligations = get_obligations()
     
     overdue = []
-    for obligation in all_obligations:
-        if obligation.status == "overdue" or obligation.name == "Overdue Obligation":
+    for obligation in obligations:
+        due_date = obligation.next_due_date.date() if isinstance(obligation.next_due_date, datetime) else obligation.next_due_date
+        if isinstance(due_date, str):
+            try:
+                due_date = datetime.fromisoformat(due_date.replace("Z", "+00:00")).date()
+            except:
+                continue
+        
+        if due_date < today and obligation.status == "pending":
             overdue.append(obligation)
     
     return overdue

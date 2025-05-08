@@ -1,0 +1,10 @@
+{
+  "entity": "DGI",
+  "name": "ITBMS Declaration",
+  "description": "Monthly value-added tax declaration to the Dirección General de Ingresos",
+  "frequency": "monthly",
+  "due_day": 15,
+  "reminder_days": 10,
+  "concept": "Impuesto de Transferencia de Bienes Muebles y Servicios",
+  "authority": "Dirección General de Ingresos"
+}

@@ -766,3 +766,109 @@ async def get_audit_logs_endpoint(
         audit_logs = get_audit_logs(skip, limit, filters)
     
     return [log.dict() for log in audit_logs]
+
+class PayObligationRequest(BaseModel):
+    company_id: int
+    obligation_id: int
+    entity: str
+    note: Optional[str] = None
+
+@router.post("/pay-obligation", response_model=Dict[str, Any])
+async def pay_obligation(
+    request: PayObligationRequest,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
+) -> Dict[str, Any]:
+    """
+    Pay an obligation and generate notification email.
+    """
+    from app.services.email import send_email
+    
+    # Get the obligation
+    obligation = get_obligation(request.obligation_id)
+    if not obligation:
+        raise HTTPException(status_code=404, detail="Obligation not found")
+        
+    if obligation.company_id != request.company_id:
+        raise HTTPException(status_code=400, detail="Obligation does not belong to the specified company")
+        
+    payment_data = {
+        "obligation_id": request.obligation_id,
+        "amount": obligation.amount or 0,
+        "payment_date": datetime.utcnow().isoformat(),
+        "notes": request.note or "Payment processed via system"
+    }
+    
+    user_id = current_user.id if current_user else 1  # Default to user_id 1 if no user provided
+    payment = create_payment_with_audit(payment_data, user_id)
+    if not payment:
+        raise HTTPException(status_code=500, detail="Failed to create payment")
+        
+    notifications = notify_payment_registered(payment)
+    
+    email_draft_data = {
+        "company_id": request.company_id,
+        "recipient": request.entity,
+        "context": "Payment notification",
+        "obligation_id": request.obligation_id,
+        "payment_id": payment.id
+    }
+    
+    try:
+        email_draft = await generate_email_draft(**email_draft_data)
+        
+        # Get company info
+        company = get_company(request.company_id)
+        if not company:
+            raise HTTPException(status_code=404, detail="Company not found")
+            
+        if email_draft and "subject" in email_draft and "body" in email_draft:
+            background_tasks.add_task(
+                send_email,
+                email_to=company.contact_email or "accounting@example.com",
+                subject=email_draft["subject"],
+                body=email_draft["body"]
+            )
+            
+        return {
+            "success": True,
+            "message": "Payment registered successfully",
+            "payment_id": payment.id,
+            "obligation_status": "completed",
+            "email_sent": True if company.contact_email else False
+        }
+    except Exception as e:
+        logger.error(f"Error generating or sending email: {str(e)}")
+        return {
+            "success": True,
+            "message": "Payment registered successfully, but failed to send email",
+            "payment_id": payment.id,
+            "obligation_status": "completed",
+            "email_sent": False,
+            "email_error": str(e)
+        }
+
+@router.post("/scrape-obligations/{company_id}", response_model=Dict[str, Any])
+async def scrape_company_obligations(
+    company_id: int,
+    force_refresh: bool = False,
+    current_user: User = Depends(get_current_user),
+) -> Dict[str, Any]:
+    """
+    Scrape (or simulate scraping) obligations for a company.
+    """
+    from app.accounting.obligation_scraper import simulate_obligation_scraping
+    
+    try:
+        result = await simulate_obligation_scraping(
+            company_id=company_id,
+            user_id=current_user.id if current_user else 1,
+            force_refresh=force_refresh
+        )
+        return result
+    except Exception as e:
+        logger.error(f"Error scraping obligations: {str(e)}")
+        return {
+            "success": False,
+            "error": f"Failed to scrape obligations: {str(e)}"
+        }
