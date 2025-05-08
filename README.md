@@ -374,6 +374,10 @@ For the compliance automation features to work properly:
     "ubos": []
   }
   ```
+- `GET /api/v1/compliance/country-risk` - Get country risk matrix data
+- `GET /api/v1/compliance/monitoring/tasks` - Get status of all scheduled compliance tasks
+- `POST /api/v1/compliance/force-update/risk-matrix` - Force update of risk matrix
+- `POST /api/v1/compliance/force-update/sanctions` - Force update of all sanctions lists
 
 ## Deployment
 
@@ -490,11 +494,15 @@ The application follows a modular microservice architecture designed for future 
 
 - **Manual Integration**: Process compliance manuals with document embeddings
 - **Due Diligence Automation**: Implement Basic, Enhanced, and Simplified due diligence
-- **Risk Assessment**: Calculate risk across multiple dimensions
+- **Risk Assessment**: Calculate risk across multiple dimensions with comprehensive country coverage
 - **Suspicious Activity Detection**: Identify and report suspicious activities
-- **PEP/Sanctions Screening**: Screen entities against PEP and sanctions lists
-- **UAF Reporting**: Generate regulatory reports for Panamanian authorities
+- **PEP/Sanctions Screening**: Screen entities against PEP and sanctions lists (OpenSanctions, UN, OFAC, EU)
+- **UAF Reporting**: Generate regulatory reports for Panamanian authorities with automated PDF generation
 - **Document Retention**: Enforce document retention policies
+- **Unified Verification**: Single API endpoint for complete customer verification
+- **High-Risk Alerts**: Dashboard alerts for high-risk entities requiring enhanced due diligence
+- **Scheduled Updates**: Automated updates of sanctions lists and risk matrices
+- **Task Monitoring**: Comprehensive monitoring of scheduled tasks with status reporting
 
 ### Workflow Service
 
@@ -666,6 +674,65 @@ Integration with OpenSanctions and local databases for comprehensive screening:
 - **Intelligent Caching**: 24-hour caching to reduce API calls
 - **Detailed Results**: Provides match scores and entity details
 - **Robust Error Handling**: Gracefully handles API failures with fallback mechanisms
+- **Multiple Data Sources**: Parallel screening against OpenSanctions, UN, OFAC, and EU lists
+- **Unified API**: Single endpoint for comprehensive verification
+
+#### Risk Matrix
+
+Comprehensive country risk assessment using multiple authoritative sources:
+
+- **Basel AML Index**: Incorporates Basel AML Index scores and rankings
+- **FATF Lists**: Includes FATF Blacklist and Greylist status
+- **EU High-Risk Countries**: Incorporates EU high-risk third countries list
+- **Comprehensive Coverage**: Includes 190+ countries with ISO codes
+- **Fallback Mechanism**: Uses last known data if external sources are unavailable
+- **Validation System**: Ensures data integrity and completeness
+- **Automatic Updates**: Weekly scheduled updates with error handling
+- **Heatmap Visualization**: Interactive global risk heatmap in the frontend
+
+#### Monitoring Scheduled Tasks
+
+The compliance module includes a comprehensive monitoring system for all scheduled tasks:
+
+##### Monitoring Endpoints
+
+- `GET /api/v1/compliance/monitoring/tasks` - Get status of all scheduled compliance tasks
+  ```json
+  {
+    "tasks": {
+      "risk_matrix": {"status": "success", "last_run": "2025-05-08T12:00:00", "next_run": "2025-05-15T12:00:00", "error": null},
+      "ofac": {"status": "success", "last_run": "2025-05-08T00:00:00", "next_run": "2025-05-09T00:00:00", "error": null},
+      "eu_sanctions": {"status": "success", "last_run": "2025-05-08T00:00:00", "next_run": "2025-05-09T00:00:00", "error": null},
+      "un_sanctions": {"status": "success", "last_run": "2025-05-08T00:00:00", "next_run": "2025-05-09T00:00:00", "error": null},
+      "opensanctions": {"status": "success", "last_run": "2025-05-08T00:00:00", "next_run": "2025-05-09T00:00:00", "error": null}
+    },
+    "last_updated": "2025-05-08T12:34:56"
+  }
+  ```
+
+##### Task Schedule
+
+- **Risk Matrix**: Updated weekly (every Sunday at midnight)
+- **Sanctions Lists** (OFAC, EU, UN, OpenSanctions): Updated daily (at midnight)
+
+##### Monitoring Dashboard
+
+The compliance dashboard includes a section showing the status of all scheduled tasks with their last update time and next scheduled run. The dashboard also displays alerts for any failed tasks that require attention.
+
+##### Command Line Monitoring
+
+You can also monitor task status from the command line:
+
+```bash
+# Check all task statuses
+curl -X GET http://localhost:8000/api/v1/compliance/monitoring/tasks
+
+# Force update a specific task
+curl -X POST http://localhost:8000/api/v1/compliance/force-update/risk-matrix
+
+# View logs for scheduled tasks
+tail -f ~/repos/Cortana/backend/logs/scheduler.log
+```
 
 ## Recent Updates
 

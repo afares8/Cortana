@@ -119,6 +119,10 @@ async def startup_event():
     scheduler = setup_scheduler()
     scheduler.start()
     setup_accounting_scheduler(scheduler)
+    
+    from app.services.compliance.scheduler import setup_compliance_scheduler
+    setup_compliance_scheduler(scheduler)
+    
     logger.info("Scheduler started")
 
 
