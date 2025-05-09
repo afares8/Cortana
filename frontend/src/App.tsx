@@ -43,6 +43,15 @@ import TrafficRecordDetail from './modules/traffic/pages/RecordDetail';
 import TrafficSubmissionLogs from './modules/traffic/pages/SubmissionLogs';
 import TrafficSubmissionDetail from './modules/traffic/pages/SubmissionDetail';
 
+import AdminDashboard from './modules/AdminControlPanel/pages/AdminDashboard';
+import DepartmentsPage from './modules/AdminControlPanel/pages/DepartmentsPage';
+import RolesPage from './modules/AdminControlPanel/pages/RolesPage';
+import FunctionsPage from './modules/AdminControlPanel/pages/FunctionsPage';
+import AutomationRulesPage from './modules/AdminControlPanel/pages/AutomationRulesPage';
+import AIProfilesPage from './modules/AdminControlPanel/pages/AIProfilesPage';
+import TemplatesPage from './modules/AdminControlPanel/pages/TemplatesPage';
+import AuditLogsPage from './modules/AdminControlPanel/pages/AuditLogsPage';
+
 const queryClient = new QueryClient();
 
 if (typeof window !== 'undefined') {
@@ -119,6 +128,16 @@ function App() {
           <Route path="traffic/record/:id" element={<TrafficRecordDetail />} />
           <Route path="traffic/logs" element={<TrafficSubmissionLogs />} />
           <Route path="traffic/logs/:id" element={<TrafficSubmissionDetail />} />
+          
+          {/* Admin Module Routes */}
+          <Route path="admin" element={<AdminDashboard />} />
+          <Route path="admin/departments" element={<DepartmentsPage />} />
+          <Route path="admin/roles" element={<RolesPage />} />
+          <Route path="admin/functions" element={<FunctionsPage />} />
+          <Route path="admin/automation" element={<AutomationRulesPage />} />
+          <Route path="admin/ai-profiles" element={<AIProfilesPage />} />
+          <Route path="admin/templates" element={<TemplatesPage />} />
+          <Route path="admin/audit" element={<AuditLogsPage />} />
           
           {/* Catch-all redirect to dashboard */}
           <Route path="*" element={<Navigate to="/" replace />} />

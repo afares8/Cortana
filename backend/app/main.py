@@ -20,6 +20,15 @@ from app.services.audit import audit_router
 from app.services.ai import ai_router
 from app.services.traffic import traffic_router
 
+from app.modules.admin.departments import router as departments_router
+from app.modules.admin.roles import router as roles_router
+from app.modules.admin.functions import router as functions_router
+from app.modules.admin.templates import router as templates_router
+from app.modules.admin.audit import router as admin_audit_router
+from app.modules.automation.rules_engine import router as rules_engine_router
+from app.modules.ai import router as ai_profiles_router
+from app.modules.core.users import router as user_departments_router
+
 from app.legal.routers import router as legal_router
 from app.legal.services import init_legal_db
 from app.accounting.routers import router as accounting_router
@@ -70,6 +79,15 @@ app.include_router(traffic_router, prefix=f"{settings.API_V1_STR}/traffic", tags
 app.include_router(accounting_router, prefix=f"{settings.API_V1_STR}/accounting", tags=["accounting"])
 app.include_router(system_settings.router, prefix=f"{settings.API_V1_STR}/system/settings", tags=["system"])
 app.include_router(diagnostics.router, prefix=f"{settings.API_V1_STR}/diagnostics", tags=["diagnostics"])
+
+app.include_router(departments_router, prefix=f"{settings.API_V1_STR}/admin/departments", tags=["admin", "departments"])
+app.include_router(roles_router, prefix=f"{settings.API_V1_STR}/admin/roles", tags=["admin", "roles"])
+app.include_router(functions_router, prefix=f"{settings.API_V1_STR}/admin/functions", tags=["admin", "functions"])
+app.include_router(templates_router, prefix=f"{settings.API_V1_STR}/admin/templates", tags=["admin", "templates"])
+app.include_router(admin_audit_router, prefix=f"{settings.API_V1_STR}/admin/audit", tags=["admin", "audit"])
+app.include_router(rules_engine_router, prefix=f"{settings.API_V1_STR}/automation/rules", tags=["automation", "rules"])
+app.include_router(ai_profiles_router, prefix=f"{settings.API_V1_STR}/ai/profiles", tags=["ai", "profiles"])
+app.include_router(user_departments_router, prefix=f"{settings.API_V1_STR}/users", tags=["users", "departments"])
 
 os.makedirs("uploads", exist_ok=True)
 

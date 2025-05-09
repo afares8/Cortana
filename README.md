@@ -39,6 +39,7 @@ A specialized internal tool for the Legal Department of the Zona Libre de Colón
 - Audit and compliance tracking
 - DMCE automation module for invoice processing and declaration creation
 - Diagnostics module (Artur) for system health monitoring and issue resolution
+- Business Administration module with departments, roles, and functions management
 - Designed for future integration with Accounting, HR, and Procurement
 - Microservice-based design with clear service boundaries
 
@@ -317,6 +318,23 @@ For the compliance automation features to work properly:
 - `POST /api/v1/ai/analyze-contract` - Analyze contract for risks and clauses
 - `POST /api/v1/ai/extract-clauses` - Extract clauses from contract text
 
+### Business Administration Endpoints
+
+- `POST /api/v1/admin/departments` - Create a new department
+- `GET /api/v1/admin/departments` - List all departments
+- `PUT /api/v1/admin/departments/{id}` - Update department
+- `DELETE /api/v1/admin/departments/{id}` - Delete department
+- `POST /api/v1/admin/roles` - Create a new role
+- `POST /api/v1/admin/roles/assign` - Assign role to user in department
+- `GET /api/v1/admin/roles/by-department/{id}` - Get roles for department
+- `POST /api/v1/admin/functions` - Create a new function
+- `GET /api/v1/admin/functions/by-department/{id}` - Get functions for department
+- `POST /api/v1/automation/rules` - Create a new automation rule
+- `GET /api/v1/automation/rules/by-department/{id}` - Get automation rules for department
+- `POST /api/v1/admin/departments/from-template` - Create department from template
+- `POST /api/v1/users/{user_id}/assign-to-department` - Assign user to department
+- `GET /api/v1/admin/audit/logs` - Get audit logs
+
 ### Compliance Endpoints
 
 - `POST /api/v1/compliance/manual/upload` - Upload compliance manual for embedding
@@ -518,6 +536,16 @@ The application follows a modular microservice architecture designed for future 
 - **Comprehensive Dashboard**: Visual representation of system health with detailed component status
 - **API Integration**: RESTful API endpoints for running diagnostics and retrieving statistics
 - **Configurable Depth**: Adjust the level of detail in diagnostics based on needs
+### Business Administration Service
+
+- **Department Management**: Create and manage business departments with AI capabilities
+- **Role & Permission System**: Define roles with granular permissions per department
+- **Function Registry**: Create and manage business functions with input/output schemas
+- **Workflow Automation**: Configure event-driven automation rules with conditions and actions
+- **AI Profile Management**: Configure AI models and parameters per department
+- **Department Templates**: Create and apply predefined department configurations
+- **User-Department-Role Assignment**: Assign users to departments with specific roles
+- **Audit Logging**: Comprehensive logging of administrative actions and system events
 
 ### Accounting Service
 
