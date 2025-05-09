@@ -9,7 +9,11 @@ import {
   DollarSign,
   UserCog,
   Shield,
-  UserCheck
+  UserCheck,
+  Building2,
+  Cpu,
+  GitBranch,
+  BarChart3
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -126,6 +130,51 @@ const Sidebar = () => {
                 >
                   <UserCog className="h-5 w-5 mr-3" />
                   {t('common.navigation.newUser')}
+                </Link>
+              </li>
+            </ul>
+          </li>
+          
+          {/* Administration */}
+          <li className="pt-4">
+            <div className="text-gray-400 text-xs uppercase font-semibold mb-2 pl-2">
+              {t('common.navigation.administration')}
+            </div>
+            <ul className="space-y-1">
+              <li>
+                <Link to="/admin" className="flex items-center p-2 rounded hover:bg-gray-700">
+                  <Home className="h-5 w-5 mr-3" />
+                  {t('common.navigation.dashboard')}
+                </Link>
+              </li>
+              <li>
+                <Link to="/admin/departments" className="flex items-center p-2 rounded hover:bg-gray-700">
+                  <Building2 className="h-5 w-5 mr-3" />
+                  {t('common.navigation.departments')}
+                </Link>
+              </li>
+              <li>
+                <Link to="/admin/roles" className="flex items-center p-2 rounded hover:bg-gray-700">
+                  <UserCog className="h-5 w-5 mr-3" />
+                  {t('common.navigation.roles')}
+                </Link>
+              </li>
+              <li>
+                <Link to="/admin/automation" className="flex items-center p-2 rounded hover:bg-gray-700">
+                  <GitBranch className="h-5 w-5 mr-3" />
+                  {t('common.navigation.automation')}
+                </Link>
+              </li>
+              <li>
+                <Link to="/admin/ai-profiles" className="flex items-center p-2 rounded hover:bg-gray-700">
+                  <Cpu className="h-5 w-5 mr-3" />
+                  {t('common.navigation.aiProfiles')}
+                </Link>
+              </li>
+              <li>
+                <Link to="/admin/audit" className="flex items-center p-2 rounded hover:bg-gray-700">
+                  <BarChart3 className="h-5 w-5 mr-3" />
+                  {t('common.navigation.auditLogs')}
                 </Link>
               </li>
             </ul>
