@@ -504,6 +504,18 @@ The application follows a modular microservice architecture designed for future 
 - **Scheduled Updates**: Automated updates of sanctions lists and risk matrices
 - **Task Monitoring**: Comprehensive monitoring of scheduled tasks with status reporting
 
+### Accounting Service
+
+- **Obligation Management**: Track and manage financial obligations with accurate date logic
+- **Payment Execution**: Process payments for obligations directly from the frontend
+- **Email Generation**: Automatically generate and send email notifications for payments
+- **Obligation Templates**: Pre-configured templates for common obligations (DGI, Municipio de Chitré, CSS, etc.)
+- **Date Logic**: Smart date validation for upcoming and overdue obligations
+- **Obligation Scraping**: Simulated web scraping to populate obligations for companies
+- **AI Integration**: Uses Mistral AI for intelligent email drafting and analysis
+- **Audit Logging**: Comprehensive logging of all payment activities
+- **Company Management**: Complete company profiles with fiscal information
+
 ### Workflow Service
 
 - **Workflow Templates**: Define approval and review workflows
@@ -762,6 +774,16 @@ tail -f ~/repos/Cortana/backend/logs/scheduler.log
   - Implemented local database of known sanctioned entities for faster matching
   - Added robust error handling in compliance verification service
   - Integrated Customer Verification with Compliance Dashboard
+  - **Accounting Module Enhancements**:
+    - Fixed the "Pay" button functionality in the frontend to process payments
+    - Implemented email generation for obligations with HTML templates
+    - Added proper date logic for upcoming and overdue obligations
+    - Created obligation templates for DGI, Municipio de Chitré, CSS, and more
+    - Implemented obligation scraping simulation for Magnate Spes company
+    - Added new endpoints for payment processing and obligation scraping
+    - Integrated Mistral AI for email content generation
+    - Enhanced frontend with proper error handling and success notifications
+    - Implemented automatic data refresh after payment processing
 
 - **Previous Updates**:
   - Implemented comprehensive compliance automation with Mistral 7B integration
