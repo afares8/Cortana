@@ -38,6 +38,7 @@ A specialized internal tool for the Legal Department of the Zona Libre de Colón
 - Workflow and task management system
 - Audit and compliance tracking
 - DMCE automation module for invoice processing and declaration creation
+- Diagnostics module (Artur) for system health monitoring and issue resolution
 - Designed for future integration with Accounting, HR, and Procurement
 - Microservice-based design with clear service boundaries
 
@@ -504,6 +505,20 @@ The application follows a modular microservice architecture designed for future 
 - **Scheduled Updates**: Automated updates of sanctions lists and risk matrices
 - **Task Monitoring**: Comprehensive monitoring of scheduled tasks with status reporting
 
+### Diagnostics Service (Artur)
+
+- **Real-time Health Checks**: Continuous monitoring of all system components including CPU, memory, disk usage
+- **Docker Container Monitoring**: Track the health and status of Docker containers, especially AI service containers
+- **Intelligent Issue Explanations**: Use Mistral AI to provide clear, human-readable explanations of system issues
+- **Corrective Action Suggestions**: Generate specific, actionable suggestions to resolve detected issues
+- **Predictive Maintenance**: Analyze historical data to predict potential future issues before they occur
+- **Trend Analysis**: Identify deteriorating or improving trends in system health over time
+- **Historical Data Logging**: Maintain comprehensive logs of all diagnostic runs for analysis
+- **Component-specific Diagnostics**: Targeted checks for AI services, database connections, and system resources
+- **Comprehensive Dashboard**: Visual representation of system health with detailed component status
+- **API Integration**: RESTful API endpoints for running diagnostics and retrieving statistics
+- **Configurable Depth**: Adjust the level of detail in diagnostics based on needs
+
 ### Accounting Service
 
 - **Obligation Management**: Track and manage financial obligations with accurate date logic
@@ -749,6 +764,14 @@ tail -f ~/repos/Cortana/backend/logs/scheduler.log
 ## Recent Updates
 
 - **May 2025**:
+  - Implemented Artur diagnostics module for system health monitoring and issue resolution
+  - Added real-time health checks for system resources, Docker containers, and services
+  - Integrated Mistral AI for intelligent issue explanations and corrective action suggestions
+  - Implemented predictive maintenance through trend analysis of system health data
+  - Created comprehensive diagnostics dashboard with component status visualization
+  - Added RESTful API endpoints for running diagnostics and retrieving statistics
+  - Implemented historical data logging for system performance tracking
+  - Added diagnostics module to sidebar navigation for easy access
   - Implemented comprehensive User Management module with role-based access control
   - Added granular permission system with time-bound constraints
   - Created user audit trail for tracking permission changes

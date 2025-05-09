@@ -1,0 +1,143 @@
+[
+  {
+    "component": "system_resources",
+    "status": "healthy",
+    "description": "System resources check",
+    "timestamp": "2025-05-09T08:30:00.000Z",
+    "log_id": "f8a7b6c5-d4e3-4f2a-b1c0-a9b8c7d6e5f4",
+    "created_at": "2025-05-09T08:30:00.000Z",
+    "details": {
+      "cpu_percent": 35,
+      "memory_percent": 42,
+      "disk_percent": 68
+    }
+  },
+  {
+    "component": "docker_ai-service",
+    "status": "healthy",
+    "description": "Docker container: ai-service",
+    "timestamp": "2025-05-09T08:30:00.000Z",
+    "log_id": "e5f4d3c2-b1a0-4f9e-8d7c-6b5a4c3d2e1f",
+    "created_at": "2025-05-09T08:30:00.000Z",
+    "details": {
+      "status": "running",
+      "health_status": "healthy",
+      "image": "mistral-7b:latest",
+      "running_for": "2 days"
+    }
+  },
+  {
+    "component": "ai_service",
+    "status": "healthy",
+    "description": "AI service status check",
+    "timestamp": "2025-05-09T08:30:00.000Z",
+    "log_id": "d3c2b1a0-9f8e-7d6c-5b4a-3c2d1e0f9a8b",
+    "created_at": "2025-05-09T08:30:00.000Z",
+    "details": {
+      "service_type": "mistral",
+      "response_time_ms": 245
+    }
+  },
+  {
+    "component": "database",
+    "status": "healthy",
+    "description": "Database check",
+    "timestamp": "2025-05-09T08:30:00.000Z",
+    "log_id": "c2b1a0f9-8e7d-6c5b-4a3c-2d1e0f9a8b7c",
+    "created_at": "2025-05-09T08:30:00.000Z",
+    "details": {
+      "is_writable": true,
+      "connection_time_ms": 12
+    }
+  },
+  {
+    "component": "system_resources",
+    "status": "warning",
+    "description": "System resources check",
+    "timestamp": "2025-05-09T09:00:00.000Z",
+    "log_id": "b1a0f9e8-7d6c-5b4a-3c2d-1e0f9a8b7c6d",
+    "created_at": "2025-05-09T09:00:00.000Z",
+    "details": {
+      "cpu_percent": 78,
+      "memory_percent": 85,
+      "disk_percent": 72
+    },
+    "error_details": {
+      "error": "High CPU and memory usage detected"
+    },
+    "suggested_action": "Consider closing unnecessary applications or increasing available resources."
+  },
+  {
+    "component": "docker_ai-service",
+    "status": "warning",
+    "description": "Docker container: ai-service",
+    "timestamp": "2025-05-09T09:00:00.000Z",
+    "log_id": "a0f9e8d7-6c5b-4a3c-2d1e-0f9a8b7c6d5e",
+    "created_at": "2025-05-09T09:00:00.000Z",
+    "details": {
+      "status": "restarting",
+      "health_status": "warning",
+      "image": "mistral-7b:latest",
+      "running_for": "5 minutes"
+    },
+    "error_details": {
+      "error": "Container is restarting frequently"
+    },
+    "suggested_action": "Check container logs for error messages and ensure sufficient resources are allocated."
+  },
+  {
+    "component": "ai_service",
+    "status": "error",
+    "description": "AI service status check",
+    "timestamp": "2025-05-09T09:30:00.000Z",
+    "log_id": "9e8d7c6b-5a4c-3d2e-1f0a-9b8c7d6e5f4a",
+    "created_at": "2025-05-09T09:30:00.000Z",
+    "details": {
+      "service_type": "mistral",
+      "response_time_ms": null
+    },
+    "error_details": {
+      "error": "Service is not responding"
+    },
+    "suggested_action": "Restart the AI service container and check for configuration issues."
+  },
+  {
+    "component": "system_resources",
+    "status": "healthy",
+    "description": "System resources check",
+    "timestamp": "2025-05-09T10:00:00.000Z",
+    "log_id": "8d7c6b5a-4c3d-2e1f-0a9b-8c7d6e5f4a3b",
+    "created_at": "2025-05-09T10:00:00.000Z",
+    "details": {
+      "cpu_percent": 42,
+      "memory_percent": 56,
+      "disk_percent": 72
+    }
+  },
+  {
+    "component": "docker_ai-service",
+    "status": "healthy",
+    "description": "Docker container: ai-service",
+    "timestamp": "2025-05-09T10:00:00.000Z",
+    "log_id": "7c6b5a4c-3d2e-1f0a-9b8c-7d6e5f4a3b2c",
+    "created_at": "2025-05-09T10:00:00.000Z",
+    "details": {
+      "status": "running",
+      "health_status": "healthy",
+      "image": "mistral-7b:latest",
+      "running_for": "30 minutes"
+    }
+  },
+  {
+    "component": "ai_service",
+    "status": "healthy",
+    "description": "AI service status check",
+    "timestamp": "2025-05-09T10:00:00.000Z",
+    "log_id": "6b5a4c3d-2e1f-0a9b-8c7d-6e5f4a3b2c1d",
+    "created_at": "2025-05-09T10:00:00.000Z",
+    "details": {
+      "service_type": "mistral",
+      "response_time_ms": 267
+    }
+  }
+]
