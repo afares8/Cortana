@@ -10,6 +10,7 @@ import {
   UserCog,
   Shield,
   UserCheck,
+  Activity
   Building2,
   Cpu,
   GitBranch,
@@ -74,6 +75,12 @@ const Sidebar = () => {
                 <Link to="/compliance/verify-customer" className="flex items-center p-2 rounded hover:bg-gray-700">
                   <UserCheck className="h-5 w-5 mr-3" />
                   {t('common.navigation.customerVerification')}
+                </Link>
+              </li>
+              <li>
+                <Link to="/diagnostics" className="flex items-center p-2 rounded hover:bg-gray-700">
+                  <Activity className="h-5 w-5 mr-3" />
+                  {t('common.navigation.diagnostics', 'Diagnostics')}
                 </Link>
               </li>
             </ul>
