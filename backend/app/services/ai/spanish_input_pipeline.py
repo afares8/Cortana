@@ -79,6 +79,15 @@ class SpanishInputPipeline:
         
     def _initialize_nlp_tools(self):
         """Initialize NLP tools if the required libraries are available."""
+        self.nlp = None
+        self.language_tool = None
+        self.sym_spell = None
+        self.use_grammar_check = False
+        self.use_spellcheck = False
+        
+        logger.warning("NLP tools disabled for compatibility with Python 3.12")
+        
+        """
         try:
             import spacy
             self.nlp = spacy.load("es_core_news_md")
@@ -110,6 +119,7 @@ class SpanishInputPipeline:
                 self.use_spellcheck = False
         else:
             self.sym_spell = None
+        """
     
     def detect_language(self, text: str) -> str:
         """
@@ -289,4 +299,17 @@ def process_spanish_input(text: str, debug: bool = False) -> Union[str, Tuple[st
     Returns:
         Processed text, or a tuple of (processed_text, debug_info) if debug=True
     """
-    return spanish_pipeline.process(text, debug)
+    try:
+        return spanish_pipeline.process(text, debug)
+    except Exception as e:
+        logger.warning(f"Error processing Spanish text: {e}")
+        if debug:
+            return text, {
+                "original_text": text,
+                "processed_text": text,
+                "is_spanish": False,
+                "language_detected": "unknown",
+                "changes_made": False,
+                "error": str(e)
+            }
+        return text

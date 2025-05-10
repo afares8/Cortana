@@ -1,6 +1,13 @@
 from typing import List, Optional, Dict, Any
 import json
-import yaml
+import logging
+
+try:
+    import yaml
+    YAML_AVAILABLE = True
+except ImportError:
+    YAML_AVAILABLE = False
+    logging.warning("PyYAML not available. YAML import/export functionality will be limited.")
 
 from app.db.base import InMemoryDB
 from app.modules.admin.templates.models import DepartmentTemplate
@@ -111,6 +118,9 @@ def export_template_to_json(template_id: int) -> str:
 
 def export_template_to_yaml(template_id: int) -> str:
     """Export a template to YAML format."""
+    if not YAML_AVAILABLE:
+        raise NotImplementedError("YAML functionality is not available. Please install PyYAML package.")
+        
     template = get_template(template_id)
     if not template:
         raise ValueError(f"Template with ID {template_id} not found")
@@ -124,5 +134,8 @@ def import_template_from_json(json_data: str) -> DepartmentTemplate:
 
 def import_template_from_yaml(yaml_data: str) -> DepartmentTemplate:
     """Import a template from YAML format."""
+    if not YAML_AVAILABLE:
+        raise NotImplementedError("YAML functionality is not available. Please install PyYAML package.")
+        
     template_data = yaml.safe_load(yaml_data)
     return create_template(template_data)

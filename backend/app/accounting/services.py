@@ -1173,3 +1173,5 @@ def get_company_audit_logs(
     paginated_logs = sorted_logs[skip:skip+limit]
     
     return [log.dict() for log in paginated_logs]
+
+from app.accounting.email_drafts import generate_email_draft
