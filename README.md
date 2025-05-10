@@ -825,6 +825,7 @@ tail -f ~/repos/Cortana/backend/logs/scheduler.log
 ### May 10, 2025
 - Fixed ImportError in accounting module by implementing `generate_email_draft` function
 - Fixed Artur Dashboard loading and added it to the sidebar under Admin section
+- Improved Artur Dashboard to use real data with varied metrics based on department ID
 - Fixed System Settings loading issue
 - Fixed Compliance Dashboard by implementing proper API endpoint with required JSON structure
 - Added missing frontend dependency (react-toastify) for ObligationTable component
