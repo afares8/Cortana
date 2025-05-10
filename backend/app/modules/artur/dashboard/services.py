@@ -33,11 +33,16 @@ class DashboardService:
             
             result = []
             for dept in departments:
-                suggestions = self.suggestions_db.get_all(ArturSuggestion)
-                active_suggestions = len([s for s in suggestions if s.department_id == dept.id and s.status == SuggestionStatus.PENDING])
+                suggestions = self.suggestions_db.get_multi()
+                active_suggestions = len([s for s in suggestions if hasattr(s, 'department_id') and 
+                                         s.department_id == dept.id and 
+                                         hasattr(s, 'status') and 
+                                         s.status == SuggestionStatus.PENDING])
                 
-                interventions = self.interventions_db.get_all(ArturIntervention)
-                recent_interventions = len([i for i in interventions if i.department_id == dept.id and 
+                interventions = self.interventions_db.get_multi()
+                recent_interventions = len([i for i in interventions if hasattr(i, 'department_id') and 
+                                          i.department_id == dept.id and 
+                                          hasattr(i, 'created_at') and
                                           i.created_at >= datetime.utcnow() - timedelta(days=7)])
                 
                 health_score = await self._calculate_health_score(dept.id)
