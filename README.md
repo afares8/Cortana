@@ -51,6 +51,21 @@ A specialized internal tool for a company in the Zona Libre de Colón perfumery 
 - Designed for future integration with Accounting, HR, and Procurement
 - Microservice-based design with clear service boundaries
 
+### Departments
+
+The Cortana platform supports the following departments:
+
+- **Legal** - Contract management and legal document processing
+- **Accounting** - Financial operations and tax obligations
+- **Compliance** - Regulatory compliance and reporting
+- **Traffic** - Logistics and shipping operations
+- **HR** - Human resources management
+- **Marketing** - Marketing campaigns and analytics
+- **Sales** - Sales operations and client management
+- **IT** - Technical infrastructure and support
+
+Each department has dedicated roles, functions, and AI profiles configured to support its specific operational needs.
+
 ## Tech Stack
 
 - **Backend**: Python with FastAPI

@@ -84,6 +84,66 @@ def init_db() -> None:
         )
         departments_db.data[compliance_dept.id] = compliance_dept
         
+        traffic_dept = Department(
+            id=4,
+            name="Traffic",
+            type="traffic",
+            ai_enabled=True,
+            ai_profile="logistics_assistant",
+            country="US",
+            timezone="America/New_York",
+            company_id=str(uuid.uuid4())
+        )
+        departments_db.data[traffic_dept.id] = traffic_dept
+        
+        hr_dept = Department(
+            id=5,
+            name="HR",
+            type="hr",
+            ai_enabled=True,
+            ai_profile="hr_assistant",
+            country="US",
+            timezone="America/Chicago",
+            company_id=str(uuid.uuid4())
+        )
+        departments_db.data[hr_dept.id] = hr_dept
+        
+        marketing_dept = Department(
+            id=6,
+            name="Marketing",
+            type="marketing",
+            ai_enabled=True,
+            ai_profile="marketing_assistant",
+            country="US",
+            timezone="America/Los_Angeles",
+            company_id=str(uuid.uuid4())
+        )
+        departments_db.data[marketing_dept.id] = marketing_dept
+        
+        sales_dept = Department(
+            id=7,
+            name="Sales",
+            type="sales",
+            ai_enabled=True,
+            ai_profile="sales_assistant",
+            country="US",
+            timezone="America/Denver",
+            company_id=str(uuid.uuid4())
+        )
+        departments_db.data[sales_dept.id] = sales_dept
+        
+        it_dept = Department(
+            id=8,
+            name="IT",
+            type="it",
+            ai_enabled=True,
+            ai_profile="tech_assistant",
+            country="US",
+            timezone="America/Phoenix",
+            company_id=str(uuid.uuid4())
+        )
+        departments_db.data[it_dept.id] = it_dept
+        
         roles_db.data[1] = Role(
             id=1,
             name="Legal Manager",
@@ -106,6 +166,46 @@ def init_db() -> None:
             description="Ensures regulatory compliance",
             department_id=3,
             permissions=["run_compliance_check", "approve_policy", "view_audit_logs"]
+        )
+        
+        roles_db.data[4] = Role(
+            id=4,
+            name="Traffic Manager",
+            description="Manages logistics and shipping operations",
+            department_id=4,
+            permissions=["create_shipment", "approve_invoice", "view_logistics_reports"]
+        )
+        
+        roles_db.data[5] = Role(
+            id=5,
+            name="HR Manager",
+            description="Manages human resources operations",
+            department_id=5,
+            permissions=["create_employee", "approve_leave", "view_personnel_records"]
+        )
+        
+        roles_db.data[6] = Role(
+            id=6,
+            name="Marketing Director",
+            description="Manages marketing campaigns and strategies",
+            department_id=6,
+            permissions=["create_campaign", "approve_content", "view_analytics"]
+        )
+        
+        roles_db.data[7] = Role(
+            id=7,
+            name="Sales Manager",
+            description="Manages sales team and client relationships",
+            department_id=7,
+            permissions=["create_opportunity", "approve_discount", "view_sales_reports"]
+        )
+        
+        roles_db.data[8] = Role(
+            id=8,
+            name="IT Administrator",
+            description="Manages technology infrastructure",
+            department_id=8,
+            permissions=["create_user", "approve_access", "view_system_logs"]
         )
         
         functions_db.data[1] = Function(
@@ -133,6 +233,51 @@ def init_db() -> None:
             input_schema={"document_id": "string", "regulation_codes": "array"},
             output_schema={"compliant": "boolean", "violations": "array", "risk_level": "string"},
             department_id=3
+        )
+        
+        functions_db.data[4] = Function(
+            id=4,
+            name="Shipment Processing",
+            description="Automated shipment documentation and tracking",
+            input_schema={"shipment_data": "object", "destination": "string"},
+            output_schema={"tracking_id": "string", "estimated_arrival": "date", "documents": "array"},
+            department_id=4
+        )
+        
+        functions_db.data[5] = Function(
+            id=5,
+            name="Employee Onboarding",
+            description="Automated employee onboarding workflow",
+            input_schema={"employee_data": "object", "position_id": "string"},
+            output_schema={"status": "string", "tasks": "array", "completion_date": "date"},
+            department_id=5
+        )
+        
+        functions_db.data[6] = Function(
+            id=6,
+            name="Campaign Analysis",
+            description="Automated marketing campaign performance analysis",
+            input_schema={"campaign_id": "string", "date_range": "object"},
+            output_schema={"performance": "object", "insights": "array", "recommendations": "array"},
+            department_id=6
+        )
+        
+        functions_db.data[7] = Function(
+            id=7,
+            name="Sales Forecasting",
+            description="Automated sales prediction and analysis",
+            input_schema={"product_id": "string", "period": "string"},
+            output_schema={"forecast": "number", "confidence": "number", "factors": "array"},
+            department_id=7
+        )
+        
+        functions_db.data[8] = Function(
+            id=8,
+            name="System Health Check",
+            description="Automated IT infrastructure monitoring",
+            input_schema={"system_id": "string", "check_type": "string"},
+            output_schema={"status": "string", "issues": "array", "recommendations": "array"},
+            department_id=8
         )
         
         ai_profiles_db.data[1] = AIProfile(
@@ -166,6 +311,61 @@ def init_db() -> None:
             top_p=0.85,
             context_type="compliance",
             department_id=3
+        )
+        
+        ai_profiles_db.data[4] = AIProfile(
+            id=4,
+            name="Logistics Assistant",
+            model="mistral-7b",
+            embedding_id="logistics-embeddings",
+            temperature=0.4,
+            top_p=0.9,
+            context_type="logistics",
+            department_id=4
+        )
+        
+        ai_profiles_db.data[5] = AIProfile(
+            id=5,
+            name="HR Assistant",
+            model="mistral-7b",
+            embedding_id="hr-embeddings",
+            temperature=0.6,
+            top_p=0.9,
+            context_type="hr",
+            department_id=5
+        )
+        
+        ai_profiles_db.data[6] = AIProfile(
+            id=6,
+            name="Marketing Assistant",
+            model="mistral-7b",
+            embedding_id="marketing-embeddings",
+            temperature=0.7,
+            top_p=0.95,
+            context_type="marketing",
+            department_id=6
+        )
+        
+        ai_profiles_db.data[7] = AIProfile(
+            id=7,
+            name="Sales Assistant",
+            model="mistral-7b",
+            embedding_id="sales-embeddings",
+            temperature=0.8,
+            top_p=0.95,
+            context_type="sales",
+            department_id=7
+        )
+        
+        ai_profiles_db.data[8] = AIProfile(
+            id=8,
+            name="IT Assistant",
+            model="mistral-7b",
+            embedding_id="it-embeddings",
+            temperature=0.5,
+            top_p=0.9,
+            context_type="it",
+            department_id=8
         )
         
         for i in range(1, 50):
@@ -247,6 +447,98 @@ def init_db() -> None:
                 "total_executions": 18,
                 "success_rate": 0.78,
                 "error_rate": 0.22
+            },
+            context={
+                "period_days": 30,
+                "threshold": 0.3
+            },
+            created_at=datetime.utcnow() - timedelta(days=3)
+        )
+        
+        insights_db.data[4] = ArturInsight(
+            id=4,
+            category=InsightCategory.FUNCTION_USAGE,
+            entity_type=EntityType.FUNCTION,
+            entity_id=4,
+            department_id=4,
+            metrics={
+                "total_executions": 22,
+                "success_rate": 0.82,
+                "error_rate": 0.18
+            },
+            context={
+                "period_days": 30,
+                "threshold": 0.3
+            },
+            created_at=datetime.utcnow() - timedelta(days=2)
+        )
+        
+        insights_db.data[5] = ArturInsight(
+            id=5,
+            category=InsightCategory.AI_CONSUMPTION,
+            entity_type=EntityType.DEPARTMENT,
+            entity_id=5,
+            department_id=5,
+            metrics={
+                "prompt_count": 65,
+                "response_count": 62,
+                "token_count": 28000,
+                "days_monitored": 30
+            },
+            context={
+                "period_days": 30,
+                "threshold": 5
+            },
+            created_at=datetime.utcnow() - timedelta(days=4)
+        )
+        
+        insights_db.data[6] = ArturInsight(
+            id=6,
+            category=InsightCategory.FUNCTION_USAGE,
+            entity_type=EntityType.FUNCTION,
+            entity_id=6,
+            department_id=6,
+            metrics={
+                "total_executions": 15,
+                "success_rate": 0.90,
+                "error_rate": 0.10
+            },
+            context={
+                "period_days": 30,
+                "threshold": 0.3
+            },
+            created_at=datetime.utcnow() - timedelta(days=5)
+        )
+        
+        insights_db.data[7] = ArturInsight(
+            id=7,
+            category=InsightCategory.AI_CONSUMPTION,
+            entity_type=EntityType.DEPARTMENT,
+            entity_id=7,
+            department_id=7,
+            metrics={
+                "prompt_count": 85,
+                "response_count": 82,
+                "token_count": 36000,
+                "days_monitored": 30
+            },
+            context={
+                "period_days": 30,
+                "threshold": 5
+            },
+            created_at=datetime.utcnow() - timedelta(days=1)
+        )
+        
+        insights_db.data[8] = ArturInsight(
+            id=8,
+            category=InsightCategory.FUNCTION_USAGE,
+            entity_type=EntityType.FUNCTION,
+            entity_id=8,
+            department_id=8,
+            metrics={
+                "total_executions": 30,
+                "success_rate": 0.85,
+                "error_rate": 0.15
             },
             context={
                 "period_days": 30,
