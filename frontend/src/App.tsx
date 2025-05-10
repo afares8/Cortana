@@ -56,6 +56,7 @@ import {
   ArturDashboard, 
   SuggestionsFeed, 
   SimulationView, 
+  SimulationDetail,
   InterventionLog, 
   KpiGraphs 
 } from './modules/Artur';
@@ -151,6 +152,7 @@ function App() {
           <Route path="admin/artur" element={<ArturDashboard />} />
           <Route path="admin/artur/suggestions" element={<SuggestionsFeed />} />
           <Route path="admin/artur/simulation" element={<SimulationView />} />
+          <Route path="admin/artur/simulation/:id" element={<SimulationDetail />} />
           <Route path="admin/artur/interventions" element={<InterventionLog />} />
           <Route path="admin/artur/kpi" element={<KpiGraphs />} />
           

@@ -98,8 +98,60 @@ export const SimulationStatus = {
   FAILED: "failed"
 };
 
-export const SimulationResult = {
+export const SimulationResultType = {
   RECOMMENDED: "recommended",
   NEUTRAL: "neutral",
   NOT_RECOMMENDED: "not_recommended"
 };
+
+export interface HeatmapDataItem {
+  department_id: number;
+  department_name: string;
+  ia_token_usage: number;
+  function_executions: number;
+  rule_triggers: number;
+  health_score: number;
+  hotspots: Array<{
+    type: string;
+    entity_id: number;
+    value: number;
+    coordinates: { x: number; y: number };
+  }>;
+}
+
+export interface HeatmapData {
+  items: HeatmapDataItem[];
+  max_token_usage: number;
+  max_executions: number;
+  max_triggers: number;
+}
+
+export interface Prediction {
+  id: number;
+  department_id: number;
+  department_name: string;
+  prediction_type: string;
+  summary: string;
+  details: Record<string, unknown>;
+  confidence: number;
+  impact_score: number;
+  predicted_timestamp: string;
+}
+
+export interface SimulationResult {
+  id: number;
+  suggestion_id: number;
+  simulation_type: string;
+  parameters: Record<string, unknown>;
+  before_state: Record<string, unknown>;
+  after_state: Record<string, unknown>;
+  dependencies: Array<{
+    entity_type: string;
+    entity_id: number;
+    impact_level: string;
+    details: Record<string, unknown>;
+  }>;
+  result_type: string;
+  confidence_score: number;
+  created_at: string;
+}

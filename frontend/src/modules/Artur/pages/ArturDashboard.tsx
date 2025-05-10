@@ -1,36 +1,52 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Brain, AlertTriangle, CheckCircle } from 'lucide-react';
-import { getDepartmentHealth } from '../api/arturApi';
-import { DepartmentHealth } from '../types';
+import TimelineView from '../components/TimelineView';
+import SuggestionFeed from '../components/SuggestionFeed';
+import InterventionSimulator from '../components/InterventionSimulator';
+import IntelligentHeatmap from '../components/IntelligentHeatmap';
+import PredictionsPanel from '../components/PredictionsPanel';
+import { ArturSuggestion, SuggestionStatus } from '../types';
+import { updateSuggestionStatus, executeIntervention } from '../api/arturApi';
+import { useDepartmentHealth } from '../hooks/useArturData';
 
 const ArturDashboard: React.FC = () => {
-  const [departmentHealth, setDepartmentHealth] = useState<DepartmentHealth[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchDepartmentHealth = async () => {
-      try {
-        setLoading(true);
-        const data = await getDepartmentHealth();
-        setDepartmentHealth(data);
-        setError(null);
-      } catch (err) {
-        setError('Failed to load department health data');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDepartmentHealth();
-  }, []);
-
-  const getHealthColor = (score: number) => {
-    if (score >= 80) return 'bg-green-500';
-    if (score >= 60) return 'bg-yellow-500';
-    return 'bg-red-500';
+  const [selectedSuggestion, setSelectedSuggestion] = useState<ArturSuggestion | null>(null);
+  const [showSimulator, setShowSimulator] = useState<boolean>(false);
+  
+  const { data: departmentHealth, loading, error } = useDepartmentHealth();
+  
+  const handleSimulate = (suggestion: ArturSuggestion) => {
+    setSelectedSuggestion(suggestion);
+    setShowSimulator(true);
   };
+  
+  const handleApply = async (suggestion: ArturSuggestion) => {
+    try {
+      await executeIntervention(suggestion.id);
+    } catch (err) {
+      console.error('Failed to execute intervention:', err);
+    }
+  };
+  
+  const handleDismiss = async (suggestion: ArturSuggestion) => {
+    try {
+      await updateSuggestionStatus(suggestion.id, SuggestionStatus.IGNORED);
+    } catch (err) {
+      console.error('Failed to dismiss suggestion:', err);
+    }
+  };
+  
+  const handleCloseSimulator = () => {
+    setShowSimulator(false);
+  };
+  
+  const handleSimulationComplete = () => {
+    setShowSimulator(false);
+    setSelectedSuggestion(null);
+  };
+
+
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -53,7 +69,11 @@ const ArturDashboard: React.FC = () => {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
+          >
             <div className="bg-white shadow-md rounded-lg p-6">
               <div className="flex items-center mb-4">
                 <Brain className="h-6 w-6 mr-2 text-blue-600" />
@@ -92,56 +112,55 @@ const ArturDashboard: React.FC = () => {
               </div>
               <p className="text-gray-600 mt-2">Successful system improvements</p>
             </div>
-          </div>
+          </motion.div>
 
-          <h2 className="text-xl font-semibold mb-4">Department Health Map</h2>
-          <div className="bg-white shadow-md rounded-lg overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Department
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Health Score
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Active Suggestions
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Recent Interventions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {departmentHealth.map((dept) => (
-                  <tr key={dept.department_id}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {dept.department_name}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div
-                          className={`${getHealthColor(
-                            dept.health_score
-                          )} h-3 w-3 rounded-full mr-2`}
-                        ></div>
-                        <div className="text-sm text-gray-900">{dept.health_score}%</div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{dept.active_suggestions}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{dept.recent_interventions}</div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <motion.div 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <TimelineView />
+            </motion.div>
+            
+            <motion.div 
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <SuggestionFeed 
+                onSimulate={handleSimulate}
+                onApply={handleApply}
+                onDismiss={handleDismiss}
+              />
+            </motion.div>
           </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <IntelligentHeatmap />
+            </motion.div>
+            
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <PredictionsPanel />
+            </motion.div>
+          </div>
+          
+          {showSimulator && (
+            <InterventionSimulator 
+              suggestion={selectedSuggestion}
+              onClose={handleCloseSimulator}
+              onComplete={handleSimulationComplete}
+            />
+          )}
         </>
       )}
     </div>

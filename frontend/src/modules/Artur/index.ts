@@ -1,5 +1,15 @@
-export { default as ArturDashboard } from './pages/ArturDashboard';
-export { default as SuggestionsFeed } from './pages/SuggestionsFeed';
-export { default as SimulationView } from './pages/SimulationView';
-export { default as InterventionLog } from './pages/InterventionLog';
-export { default as KpiGraphs } from './pages/KpiGraphs';
+import ArturDashboard from './pages/ArturDashboard';
+import SuggestionsFeed from './pages/SuggestionsFeed';
+import SimulationView from './pages/SimulationView';
+import SimulationDetail from './pages/SimulationDetail';
+import InterventionLog from './pages/InterventionLog';
+import KpiGraphs from './pages/KpiGraphs';
+
+export {
+  ArturDashboard,
+  SuggestionsFeed,
+  SimulationView,
+  SimulationDetail,
+  InterventionLog,
+  KpiGraphs
+};
