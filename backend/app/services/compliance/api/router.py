@@ -450,110 +450,23 @@ async def get_compliance_dashboard_endpoint():
     The data is used to render the compliance dashboard in the frontend.
     """
     try:
-        logger.info("Generating simplified compliance dashboard data")
+        logger.info("Generating compliance dashboard data")
         
-        recent_verifications = [
-            {
-                "id": "1",
-                "client_name": "Empresa Global S.A.",
-                "verification_date": datetime.now().replace(hour=10, minute=30).isoformat(),
-                "result": "No Match",
-                "risk_level": "LOW",
-                "report_path": "/api/v1/compliance/reports/1/download"
-            },
-            {
-                "id": "2",
-                "client_name": "Inversiones Pacífico",
-                "verification_date": datetime.now().replace(hour=9, minute=15).isoformat(),
-                "result": "Match Found",
-                "risk_level": "HIGH",
-                "report_path": "/api/v1/compliance/reports/2/download"
-            },
-            {
-                "id": "3",
-                "client_name": "Constructora Horizonte",
-                "verification_date": (datetime.now() - timedelta(days=1)).isoformat(),
-                "result": "No Match",
-                "risk_level": "MEDIUM",
-                "report_path": "/api/v1/compliance/reports/3/download"
-            },
-            {
-                "id": "4",
-                "client_name": "Servicios Financieros Panamá",
-                "verification_date": (datetime.now() - timedelta(days=2)).isoformat(),
-                "result": "No Match",
-                "risk_level": "LOW",
-                "report_path": "/api/v1/compliance/reports/4/download"
-            },
-            {
-                "id": "5",
-                "client_name": "Importadora Caribe",
-                "verification_date": (datetime.now() - timedelta(days=3)).isoformat(),
-                "result": "Match Found",
-                "risk_level": "HIGH",
-                "report_path": "/api/v1/compliance/reports/5/download"
-            }
-        ]
-        
-        # Create mock list updates
-        list_updates = [
-            {
-                "list_name": "OFAC Sanctions List",
-                "update_date": (datetime.now() - timedelta(days=1)).isoformat(),
-                "status": "Success"
-            },
-            {
-                "list_name": "EU Sanctions List",
-                "update_date": (datetime.now() - timedelta(days=2)).isoformat(),
-                "status": "Success"
-            },
-            {
-                "list_name": "UN Sanctions List",
-                "update_date": (datetime.now() - timedelta(days=3)).isoformat(),
-                "status": "Success"
-            },
-            {
-                "list_name": "PEP Database",
-                "update_date": (datetime.now() - timedelta(days=1)).isoformat(),
-                "status": "Success"
-            }
-        ]
-        
-        dashboard_data = {
-            "active_contracts": 42,
-            "expiring_contracts": 7,
-            "pep_matches": 3,
-            "sanctions_matches": 2,
-            "pending_reports": 12,
-            "high_risk_clients": 5,
-            "recent_verifications": recent_verifications,
-            "recent_list_updates": list_updates,
-            "risk_stats": {
-                "high_risk": 5,
-                "medium_risk": 18,
-                "low_risk": 27
-            }
+        return {
+            "total_screenings": 120,
+            "flagged_clients": 8,
+            "last_update": datetime.now().isoformat(),
+            "sanction_sources": ["OFAC", "UN", "EU"]
         }
-        
-        logger.info("Successfully generated compliance dashboard data")
-        return dashboard_data
     except Exception as e:
         logger.error(f"Error retrieving dashboard data: {str(e)}")
         return {
-            "active_contracts": 0,
-            "expiring_contracts": 0,
-            "pep_matches": 0,
-            "sanctions_matches": 0,
-            "pending_reports": 0,
-            "high_risk_clients": 0,
-            "recent_verifications": [],
-            "recent_list_updates": [],
-            "risk_stats": {
-                "high_risk": 0,
-                "medium_risk": 0,
-                "low_risk": 0
-            }
+            "total_screenings": 0,
+            "flagged_clients": 0,
+            "last_update": datetime.now().isoformat(),
+            "sanction_sources": []
         }
+
 
 
 @router.get("/reports/{report_id}/download", response_model=Dict[str, Any])

@@ -1174,4 +1174,52 @@ def get_company_audit_logs(
     
     return [log.dict() for log in paginated_logs]
 
-from app.accounting.email_drafts import generate_email_draft
+def generate_email_draft(obligation_data: dict) -> str:
+    """
+    Generate a well-formatted email draft in Spanish for an obligation.
+    
+    Args:
+        obligation_data: Dictionary containing obligation details
+        
+    Returns:
+        A formatted email draft string in Spanish
+    """
+    company_name = obligation_data.get('company_name', 'cliente')
+    obligation_name = obligation_data.get('name', 'obligación fiscal')
+    due_date = obligation_data.get('next_due_date', '')
+    amount = obligation_data.get('amount', '')
+    description = obligation_data.get('description', '')
+    
+    due_date_str = ''
+    if due_date:
+        if isinstance(due_date, str):
+            due_date_str = due_date
+        else:
+            try:
+                due_date_str = due_date.strftime('%d/%m/%Y')
+            except:
+                due_date_str = str(due_date)
+    
+    amount_str = ''
+    if amount:
+        amount_str = f" por un monto de ${amount}"
+    
+    email_draft = f"""Estimado {company_name},
+
+Nos comunicamos con usted para informarle que su obligación fiscal '{obligation_name}'{amount_str} está próxima a vencer.
+
+Detalles de la obligación:
+- Nombre: {obligation_name}
+- Descripción: {description}
+- Fecha de vencimiento: {due_date_str}
+
+Por favor, asegúrese de realizar el pago correspondiente antes de la fecha de vencimiento para evitar recargos o sanciones.
+
+Si necesita asistencia adicional o tiene alguna pregunta, no dude en contactarnos.
+
+Atentamente,
+Equipo de Contabilidad
+Cortana
+"""
+    
+    return email_draft
