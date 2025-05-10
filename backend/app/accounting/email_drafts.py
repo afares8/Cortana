@@ -3,7 +3,7 @@ from typing import Dict, Any, Optional
 from uuid import UUID
 
 from app.services.ai.mistral_client import MistralClient
-from app.services.ai.spanish_input_pipeline import preprocess_spanish_text
+from app.services.ai.spanish_input_pipeline import process_spanish_input
 from app.accounting.services import get_company, get_obligation, get_payment
 
 logger = logging.getLogger(__name__)
@@ -101,7 +101,7 @@ async def generate_email_draft(
     """
     
     if language == "es":
-        prompt = preprocess_spanish_text(prompt)
+        prompt = process_spanish_input(prompt)
     
     try:
         response = await mistral_client.generate(prompt, temperature=0.7)

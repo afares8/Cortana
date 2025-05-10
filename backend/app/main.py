@@ -8,7 +8,10 @@ from logging.handlers import RotatingFileHandler
 
 from app.core.config import settings
 from app.db.init_db import init_db
-from app.routers import auth, test_mistral, system_settings, diagnostics
+from app.routers.auth import router as auth_router
+from app.routers.test_mistral import router as test_mistral_router
+from app.routers.system_settings import router as system_settings_router
+from app.routers.diagnostics import router as diagnostics_router
 from app.services.email import setup_scheduler
 
 from app.services.contracts import contracts_router
@@ -65,9 +68,9 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
-app.include_router(auth, prefix=f"{settings.API_V1_STR}/auth", tags=["auth"])
+app.include_router(auth_router, prefix=f"{settings.API_V1_STR}/auth", tags=["auth"])
 app.include_router(legal_router, prefix=f"{settings.API_V1_STR}/legal", tags=["legal"])
-app.include_router(test_mistral.router, prefix=f"{settings.API_V1_STR}", tags=["test"])
+app.include_router(test_mistral_router, prefix=f"{settings.API_V1_STR}", tags=["test"])
 
 app.include_router(contracts_router, prefix=f"{settings.API_V1_STR}/contracts", tags=["contracts"])
 app.include_router(clients_router, prefix=f"{settings.API_V1_STR}/clients", tags=["clients"])
@@ -78,8 +81,8 @@ app.include_router(audit_router, prefix=f"{settings.API_V1_STR}/audit", tags=["a
 app.include_router(ai_router, prefix=f"{settings.API_V1_STR}/ai", tags=["ai"])
 app.include_router(traffic_router, prefix=f"{settings.API_V1_STR}/traffic", tags=["traffic"])
 app.include_router(accounting_router, prefix=f"{settings.API_V1_STR}/accounting", tags=["accounting"])
-app.include_router(system_settings.router, prefix=f"{settings.API_V1_STR}/system/settings", tags=["system"])
-app.include_router(diagnostics.router, prefix=f"{settings.API_V1_STR}/diagnostics", tags=["diagnostics"])
+app.include_router(system_settings_router, prefix=f"{settings.API_V1_STR}/system/settings", tags=["system"])
+app.include_router(diagnostics_router, prefix=f"{settings.API_V1_STR}/diagnostics", tags=["diagnostics"])
 
 app.include_router(departments_router, prefix=f"{settings.API_V1_STR}/admin/departments", tags=["admin", "departments"])
 app.include_router(roles_router, prefix=f"{settings.API_V1_STR}/admin/roles", tags=["admin", "roles"])
