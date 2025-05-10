@@ -21,6 +21,7 @@ class TargetType:
     FUNCTION = "function"
     AUTOMATION_RULE = "automation_rule"
     AI_PROFILE = "ai_profile"
+    AI_MODEL = "ai_model"
     TEMPLATE = "template"
     USER = "user"
     SYSTEM = "system"

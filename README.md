@@ -13,6 +13,14 @@ A specialized internal tool for the Legal Department of the Zona Libre de Colón
 - Comprehensive user management with role-based access control
 - DMCE portal automation for invoice processing
 
+### Artur Autonomous Governance
+- **Self-Aware System Core**: Observes, analyzes, restructures, and evolves Cortana continuously
+- **Observation Layer**: Monitors department creation, function usage, rule execution, and AI consumption
+- **Reasoning Layer**: Generates high-confidence suggestions using Mistral 7B
+- **Intervention Layer**: Takes action automatically or after admin approval
+- **Simulation Core**: Runs risk-free evaluations of interventions
+- **Dashboard**: Health map by department, suggestions feed, simulation view, and KPI graphs
+
 ### AI-Powered Features
 - Contract risk analysis using Mistral 7B LLM
 - Automatic clause extraction and categorization
@@ -346,6 +354,14 @@ For the compliance automation features to work properly:
     "end_date": "2025-03-31T23:59:59"
   }
   ```
+
+### Artur Endpoints
+
+- `GET /api/v1/artur/observation/insights` - List system insights
+- `GET /api/v1/artur/evaluation/suggestions` - List improvement suggestions
+- `POST /api/v1/artur/intervention/execute` - Execute an approved suggestion
+- `POST /api/v1/artur/simulation/run` - Run a simulation for a suggestion
+- `GET /api/v1/artur/dashboard/department-health` - Get department health metrics
 - `GET /api/v1/compliance/dashboard` - Get compliance dashboard data
 - `POST /api/v1/compliance/pep-screening` - Screen client against PEP lists
   ```json

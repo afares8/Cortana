@@ -52,6 +52,14 @@ import AIProfilesPage from './modules/AdminControlPanel/pages/AIProfilesPage';
 import TemplatesPage from './modules/AdminControlPanel/pages/TemplatesPage';
 import AuditLogsPage from './modules/AdminControlPanel/pages/AuditLogsPage';
 
+import { 
+  ArturDashboard, 
+  SuggestionsFeed, 
+  SimulationView, 
+  InterventionLog, 
+  KpiGraphs 
+} from './modules/Artur';
+
 const queryClient = new QueryClient();
 
 if (typeof window !== 'undefined') {
@@ -138,6 +146,13 @@ function App() {
           <Route path="admin/ai-profiles" element={<AIProfilesPage />} />
           <Route path="admin/templates" element={<TemplatesPage />} />
           <Route path="admin/audit" element={<AuditLogsPage />} />
+          
+          {/* Artur Module Routes */}
+          <Route path="admin/artur" element={<ArturDashboard />} />
+          <Route path="admin/artur/suggestions" element={<SuggestionsFeed />} />
+          <Route path="admin/artur/simulation" element={<SimulationView />} />
+          <Route path="admin/artur/interventions" element={<InterventionLog />} />
+          <Route path="admin/artur/kpi" element={<KpiGraphs />} />
           
           {/* Catch-all redirect to dashboard */}
           <Route path="*" element={<Navigate to="/" replace />} />

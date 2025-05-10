@@ -175,13 +175,14 @@ class MistralClient:
         
         return not self.fallback_mode
         
-    async def generate(self, prompt: str, debug: bool = False, **kwargs) -> Union[str, Dict[str, Any]]:
+    async def generate(self, prompt: str, debug: bool = False, department_id: Optional[int] = None, **kwargs) -> Union[str, Dict[str, Any]]:
         """
         Generate text using the LLM model.
         
         Args:
             prompt: The input prompt for the model
             debug: Whether to return debug information about Spanish preprocessing
+            department_id: Optional department ID to use specific AI profile
             **kwargs: Additional parameters to pass to the model
             
         Returns:
@@ -197,6 +198,16 @@ class MistralClient:
             "do_sample": True,
             "repetition_penalty": 1.1
         }
+        
+        if department_id:
+            try:
+                from app.services.ai.department_profile_loader import get_department_ai_profile
+                profile_params = await get_department_ai_profile(department_id)
+                if profile_params:
+                    logger.info(f"Using department-specific AI profile for department_id {department_id}")
+                    parameters.update(profile_params)
+            except Exception as e:
+                logger.error(f"Error loading department AI profile: {e}")
         
         parameters.update(kwargs)
         
@@ -435,7 +446,7 @@ class MistralClient:
                 fallback_note
             )
     
-    async def analyze_contract(self, contract_text: str, query: str, debug: bool = False) -> Dict[str, Any]:
+    async def analyze_contract(self, contract_text: str, query: str, debug: bool = False, department_id: Optional[int] = None) -> Dict[str, Any]:
         """
         Analyze a contract using the Mistral 7B model.
         
@@ -443,6 +454,7 @@ class MistralClient:
             contract_text: The text of the contract to analyze
             query: The specific analysis query (e.g., "Extract key clauses", "Identify risks")
             debug: Whether to return debug information about Spanish preprocessing
+            department_id: Optional department ID to use specific AI profile
             
         Returns:
             A dictionary containing the analysis results
@@ -561,7 +573,7 @@ Provide your analysis in JSON format with appropriate fields based on the task.
                 result["debug_info"] = debug_info
             return result
     
-    async def query_legal_assistant(self, query: str, context: Optional[str] = None, debug: bool = False) -> Union[str, Dict[str, Any]]:
+    async def query_legal_assistant(self, query: str, context: Optional[str] = None, debug: bool = False, department_id: Optional[int] = None) -> Union[str, Dict[str, Any]]:
         """
         Query the legal assistant with a natural language question.
         
@@ -569,6 +581,7 @@ Provide your analysis in JSON format with appropriate fields based on the task.
             query: The user's question
             context: Optional context information (e.g., relevant contract snippets)
             debug: Whether to return debug information about Spanish preprocessing
+            department_id: Optional department ID to use specific AI profile
             
         Returns:
             The assistant's response, or a dict with response and debug info if debug=True
@@ -642,7 +655,7 @@ Provide a helpful, accurate, and concise response based on the information avail
         
         try:
             if debug:
-                response = await self.generate(prompt, debug=True, temperature=0.7, max_new_tokens=512)
+                response = await self.generate(prompt, debug=True, department_id=department_id, temperature=0.7, max_new_tokens=512)
                 if isinstance(response, dict):
                     result = response.get("generated_text", "").strip()
                     debug_info.update(response.get("debug_info", {}))
@@ -659,7 +672,7 @@ Provide a helpful, accurate, and concise response based on the information avail
                         "is_fallback": False
                     }
             else:
-                response = await self.generate(prompt, temperature=0.7, max_new_tokens=512)
+                response = await self.generate(prompt, department_id=department_id, temperature=0.7, max_new_tokens=512)
                 if isinstance(response, dict):
                     return response.get("generated_text", "").strip()
                 else:
