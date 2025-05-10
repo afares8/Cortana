@@ -1,7 +1,7 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Search, X, Menu, LogOut, ChevronRight, ChevronDown, AlertCircle, Bell, Settings, Shield, FileText, Users, Activity, CheckSquare, Database, Brain, BarChart2, Truck, DollarSign, Mail, UserCog } from 'lucide-react';
+import { Search, X, Menu, LogOut, ChevronRight, ChevronDown, AlertCircle, Bell, Settings, Shield, FileText, Users, Activity, CheckSquare, Database, Brain, BarChart2, BarChart3, Truck, DollarSign, Mail, UserCog, Building2, GitBranch, Cpu } from 'lucide-react';
 import NotificationBadge from '../../modules/accounting/components/NotificationBadge';
 import LanguageToggle from '../LanguageToggle';
 import SettingsPanel from '../settings/SettingsPanel';
@@ -142,6 +142,25 @@ export default function Layout({ children, title }: LayoutProps) {
         { path: 'accounting/audit', label: 'common.navigation.auditLogs', icon: <Database className="h-4 w-4" /> },
         { path: 'accounting/email-drafts', label: 'common.navigation.emailDrafts', icon: <Mail className="h-4 w-4" /> },
         { path: 'accounting/admin/users', label: 'common.navigation.userAccess', icon: <UserCog className="h-4 w-4" /> }
+      ]
+    },
+    { 
+      path: 'admin', 
+      label: 'common.navigation.administration', 
+      icon: <Settings className="h-5 w-5" />, 
+      section: 'admin',
+      children: [
+        { path: 'admin', label: 'common.navigation.dashboard', icon: <BarChart2 className="h-4 w-4" /> },
+        { path: 'admin/departments', label: 'common.navigation.departments', icon: <Building2 className="h-4 w-4" /> },
+        { path: 'admin/roles', label: 'common.navigation.roles', icon: <UserCog className="h-4 w-4" /> },
+        { path: 'admin/automation', label: 'common.navigation.automation', icon: <GitBranch className="h-4 w-4" /> },
+        { path: 'admin/ai-profiles', label: 'common.navigation.aiProfiles', icon: <Cpu className="h-4 w-4" /> },
+        { path: 'admin/audit', label: 'common.navigation.auditLogs', icon: <BarChart3 className="h-4 w-4" /> },
+        { path: 'admin/artur', label: 'common.navigation.arturDashboard', icon: <Brain className="h-4 w-4" /> },
+        { path: 'admin/artur/suggestions', label: 'common.navigation.arturSuggestions', icon: <Brain className="h-4 w-4" /> },
+        { path: 'admin/artur/simulation', label: 'common.navigation.arturSimulation', icon: <Brain className="h-4 w-4" /> },
+        { path: 'admin/artur/interventions', label: 'common.navigation.arturInterventions', icon: <Brain className="h-4 w-4" /> },
+        { path: 'admin/artur/kpi', label: 'common.navigation.arturKPI', icon: <Brain className="h-4 w-4" /> }
       ]
     }
   ];
