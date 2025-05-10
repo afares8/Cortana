@@ -1,0 +1,6 @@
+{
+  "last_updated": "2025-05-10T21:41:00Z",
+  "source": "FATF Lists",
+  "blacklist": ["KP", "IR"],
+  "greylist": ["PA"]
+}

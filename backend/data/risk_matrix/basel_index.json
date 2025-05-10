@@ -1,0 +1,48 @@
+{
+  "last_updated": "2025-05-10T21:41:00Z",
+  "source": "Basel AML Index",
+  "countries": [
+    {
+      "iso": "KP",
+      "name": "North Korea",
+      "score": 8.9,
+      "rank": 1
+    },
+    {
+      "iso": "IR",
+      "name": "Iran",
+      "score": 8.7,
+      "rank": 2
+    },
+    {
+      "iso": "PA",
+      "name": "Panama",
+      "score": 5.8,
+      "rank": 22
+    },
+    {
+      "iso": "MX",
+      "name": "Mexico",
+      "score": 5.5,
+      "rank": 25
+    },
+    {
+      "iso": "CO",
+      "name": "Colombia",
+      "score": 5.2,
+      "rank": 30
+    },
+    {
+      "iso": "US",
+      "name": "United States",
+      "score": 4.2,
+      "rank": 45
+    },
+    {
+      "iso": "ES",
+      "name": "Spain",
+      "score": 4.1,
+      "rank": 48
+    }
+  ]
+}

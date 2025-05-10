@@ -829,6 +829,8 @@ tail -f ~/repos/Cortana/backend/logs/scheduler.log
 - Fixed System Settings loading issue
 - Fixed Compliance Dashboard by implementing proper API endpoint with required JSON structure
 - Added missing frontend dependency (react-toastify) for ObligationTable component
+- Fixed Compliance Verification page by ensuring weasyprint module is properly installed
+- Fixed Country Risk API endpoint by implementing proper risk data files and dependencies
 
 - **May 2025**:
   - Implemented Artur diagnostics module for system health monitoring and issue resolution
