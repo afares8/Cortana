@@ -1,0 +1,68 @@
+{
+  "last_updated": "2025-05-10T21:41:00Z",
+  "countries": {
+    "US": {
+      "name": "United States",
+      "iso": "US",
+      "risk_level": "low",
+      "basel_score": 4.2,
+      "basel_rank": 45,
+      "fatf_status": "not_listed",
+      "eu_high_risk": false
+    },
+    "PA": {
+      "name": "Panama",
+      "iso": "PA",
+      "risk_level": "medium",
+      "basel_score": 5.8,
+      "basel_rank": 22,
+      "fatf_status": "greylist",
+      "eu_high_risk": false
+    },
+    "IR": {
+      "name": "Iran",
+      "iso": "IR",
+      "risk_level": "high",
+      "basel_score": 8.7,
+      "basel_rank": 2,
+      "fatf_status": "blacklist",
+      "eu_high_risk": true
+    },
+    "KP": {
+      "name": "North Korea",
+      "iso": "KP",
+      "risk_level": "high",
+      "basel_score": 8.9,
+      "basel_rank": 1,
+      "fatf_status": "blacklist",
+      "eu_high_risk": true
+    },
+    "ES": {
+      "name": "Spain",
+      "iso": "ES",
+      "risk_level": "low",
+      "basel_score": 4.1,
+      "basel_rank": 48,
+      "fatf_status": "not_listed",
+      "eu_high_risk": false
+    },
+    "CO": {
+      "name": "Colombia",
+      "iso": "CO",
+      "risk_level": "medium",
+      "basel_score": 5.2,
+      "basel_rank": 30,
+      "fatf_status": "not_listed",
+      "eu_high_risk": false
+    },
+    "MX": {
+      "name": "Mexico",
+      "iso": "MX",
+      "risk_level": "medium",
+      "basel_score": 5.5,
+      "basel_rank": 25,
+      "fatf_status": "not_listed",
+      "eu_high_risk": false
+    }
+  }
+}
