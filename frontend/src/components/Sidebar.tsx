@@ -10,11 +10,12 @@ import {
   UserCog,
   Shield,
   UserCheck,
-  Activity
+  Activity,
   Building2,
   Cpu,
   GitBranch,
-  BarChart3
+  BarChart3,
+  Brain
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -182,6 +183,38 @@ const Sidebar = () => {
                 <Link to="/admin/audit" className="flex items-center p-2 rounded hover:bg-gray-700">
                   <BarChart3 className="h-5 w-5 mr-3" />
                   {t('common.navigation.auditLogs')}
+                </Link>
+              </li>
+              
+              {/* Artur Autonomous Governance */}
+              <li>
+                <Link to="/admin/artur" className="flex items-center p-2 rounded hover:bg-gray-700">
+                  <Brain className="h-5 w-5 mr-3" />
+                  Artur Dashboard
+                </Link>
+              </li>
+              <li>
+                <Link to="/admin/artur/suggestions" className="flex items-center p-2 rounded hover:bg-gray-700">
+                  <Brain className="h-5 w-5 mr-3" />
+                  Suggestions Feed
+                </Link>
+              </li>
+              <li>
+                <Link to="/admin/artur/simulation" className="flex items-center p-2 rounded hover:bg-gray-700">
+                  <Brain className="h-5 w-5 mr-3" />
+                  Simulation View
+                </Link>
+              </li>
+              <li>
+                <Link to="/admin/artur/interventions" className="flex items-center p-2 rounded hover:bg-gray-700">
+                  <Brain className="h-5 w-5 mr-3" />
+                  Intervention Log
+                </Link>
+              </li>
+              <li>
+                <Link to="/admin/artur/kpi" className="flex items-center p-2 rounded hover:bg-gray-700">
+                  <Brain className="h-5 w-5 mr-3" />
+                  KPI Graphs
                 </Link>
               </li>
             </ul>

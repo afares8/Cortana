@@ -2,9 +2,12 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 import os
 import uuid
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Body, Query, Path
+import logging
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Body, Query, Path, BackgroundTasks
+
+logger = logging.getLogger(__name__)
 from fastapi.responses import JSONResponse, FileResponse
-from pydantic import EmailStr
+from pydantic import EmailStr, BaseModel
 
 from app.core.config import settings
 from app.accounting.dependencies import (
@@ -30,7 +33,8 @@ from app.accounting.services import (
     create_attachment, get_attachment, get_attachments, delete_attachment,
     get_upcoming_obligations, get_overdue_obligations, get_template_file, analyze_obligation_history,
     export_obligations_to_excel, export_payments_to_excel,
-    get_notifications, get_notification, mark_notification_read
+    get_notifications, get_notification, mark_notification_read,
+    notify_payment_registered, generate_email_draft
 )
 
 router = APIRouter()

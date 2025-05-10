@@ -28,6 +28,7 @@ from app.modules.admin.audit import router as admin_audit_router
 from app.modules.automation.rules_engine import router as rules_engine_router
 from app.modules.ai import router as ai_profiles_router
 from app.modules.core.users import router as user_departments_router
+from app.modules.artur.routers import router as artur_router
 
 from app.legal.routers import router as legal_router
 from app.legal.services import init_legal_db
@@ -88,6 +89,7 @@ app.include_router(admin_audit_router, prefix=f"{settings.API_V1_STR}/admin/audi
 app.include_router(rules_engine_router, prefix=f"{settings.API_V1_STR}/automation/rules", tags=["automation", "rules"])
 app.include_router(ai_profiles_router, prefix=f"{settings.API_V1_STR}/ai/profiles", tags=["ai", "profiles"])
 app.include_router(user_departments_router, prefix=f"{settings.API_V1_STR}/users", tags=["users", "departments"])
+app.include_router(artur_router, prefix=f"{settings.API_V1_STR}/artur", tags=["artur"])
 
 os.makedirs("uploads", exist_ok=True)
 
@@ -141,6 +143,9 @@ async def startup_event():
     
     from app.services.compliance.scheduler import setup_compliance_scheduler
     setup_compliance_scheduler(scheduler)
+    
+    from app.modules.artur.observation.scheduler import observation_scheduler
+    observation_scheduler.start()
     
     logger.info("Scheduler started")
 
