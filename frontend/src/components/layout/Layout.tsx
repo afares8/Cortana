@@ -39,6 +39,7 @@ export default function Layout({ children, title }: LayoutProps) {
   const [settingsPanelOpen, setSettingsPanelOpen] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     dashboard: true,
+    admin: true,
     contracts: true,
     legal: true,
     compliance: true,
@@ -66,6 +67,15 @@ export default function Layout({ children, title }: LayoutProps) {
       label: 'common.navigation.dashboard', 
       icon: <BarChart2 className="h-5 w-5" />, 
       section: 'dashboard'
+    },
+    { 
+      path: 'admin', 
+      label: 'common.navigation.admin', 
+      icon: <UserCog className="h-5 w-5" />, 
+      section: 'admin',
+      children: [
+        { path: 'admin/artur', label: 'common.navigation.artur', icon: <Brain className="h-4 w-4" /> }
+      ]
     },
     { 
       path: 'contracts', 
@@ -155,6 +165,7 @@ export default function Layout({ children, title }: LayoutProps) {
     if (path.startsWith('accounting/')) return 'accounting';
     if (path.startsWith('users/')) return 'users';
     if (path.startsWith('ai-')) return 'ai';
+    if (path.startsWith('admin/')) return 'admin';
     return 'dashboard';
   };
 
