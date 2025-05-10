@@ -57,3 +57,9 @@ class DepartmentService:
         self.db.data = global_db.data
 
 department_service = DepartmentService()
+
+create_department = department_service.create_department
+get_department = department_service.get_department
+get_departments = department_service.get_departments
+update_department = department_service.update_department
+delete_department = department_service.delete_department
