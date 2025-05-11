@@ -190,31 +190,31 @@ const Sidebar = () => {
               <li>
                 <Link to="/admin/artur" className="flex items-center p-2 rounded hover:bg-gray-700">
                   <Brain className="h-5 w-5 mr-3" />
-                  Artur Dashboard
+                  Artur Executive Dashboard
                 </Link>
               </li>
               <li>
                 <Link to="/admin/artur/suggestions" className="flex items-center p-2 rounded hover:bg-gray-700">
                   <Brain className="h-5 w-5 mr-3" />
-                  Suggestions Feed
+                  Suggestion Feed
                 </Link>
               </li>
               <li>
                 <Link to="/admin/artur/simulation" className="flex items-center p-2 rounded hover:bg-gray-700">
                   <Brain className="h-5 w-5 mr-3" />
-                  Simulation View
+                  Intervention Simulator
                 </Link>
               </li>
               <li>
                 <Link to="/admin/artur/interventions" className="flex items-center p-2 rounded hover:bg-gray-700">
                   <Brain className="h-5 w-5 mr-3" />
-                  Intervention Log
+                  Timeline View
                 </Link>
               </li>
               <li>
                 <Link to="/admin/artur/kpi" className="flex items-center p-2 rounded hover:bg-gray-700">
                   <Brain className="h-5 w-5 mr-3" />
-                  KPI Graphs
+                  Intelligent Insights
                 </Link>
               </li>
             </ul>

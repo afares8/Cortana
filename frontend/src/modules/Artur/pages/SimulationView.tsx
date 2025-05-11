@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Play, Cpu } from 'lucide-react';
 import { getSimulations, getSimulationById, runSimulation } from '../api/arturApi';
-import { ArturSimulation, SimulationStatus, SimulationResult } from '../types';
+import { ArturSimulation, SimulationStatus, SimulationResultType } from '../types';
 
 const SimulationView: React.FC = () => {
   const [simulations, setSimulations] = useState<ArturSimulation[]>([]);
@@ -73,11 +73,11 @@ const SimulationView: React.FC = () => {
 
   const getResultColor = (result: string) => {
     switch (result) {
-      case SimulationResult.RECOMMENDED:
+      case SimulationResultType.RECOMMENDED:
         return 'bg-green-100 text-green-800';
-      case SimulationResult.NEUTRAL:
+      case SimulationResultType.NEUTRAL:
         return 'bg-gray-100 text-gray-800';
-      case SimulationResult.NOT_RECOMMENDED:
+      case SimulationResultType.NOT_RECOMMENDED:
         return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
