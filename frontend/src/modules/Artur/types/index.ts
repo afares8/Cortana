@@ -40,7 +40,12 @@ export interface ArturSimulation {
   simulation_parameters: Record<string, unknown>;
   expected_outcomes: Record<string, unknown>;
   actual_outcomes: Record<string, unknown>;
-  dependencies: Array<Record<string, unknown>>;
+  dependencies: Array<{
+    type: string;
+    name: string;
+    id: number;
+    impact?: string;
+  }>;
   status: string;
   result?: string;
   created_at: string;
