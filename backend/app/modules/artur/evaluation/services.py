@@ -27,7 +27,7 @@ class EvaluationService:
         min_confidence: Optional[float] = None
     ) -> List[ArturSuggestion]:
         """Get suggestions with optional filtering"""
-        suggestions = self.db.get_all(ArturSuggestion)
+        suggestions = self.db.get_multi()
         
         if status:
             suggestions = [s for s in suggestions if s.status == status]
@@ -57,7 +57,7 @@ class EvaluationService:
     
     async def evaluate_function_usage_insights(self) -> List[ArturSuggestion]:
         """Evaluate function usage insights and generate suggestions"""
-        insights = self.insights_db.get_all(ArturInsight)
+        insights = self.insights_db.get_multi()
         function_insights = [
             i for i in insights 
             if i.category in [InsightCategory.FUNCTION_USAGE, InsightCategory.INACTIVE_ENTITY]
@@ -137,7 +137,7 @@ class EvaluationService:
     
     async def evaluate_ai_consumption_insights(self) -> List[ArturSuggestion]:
         """Evaluate AI consumption insights and generate suggestions"""
-        insights = self.insights_db.get_all(ArturInsight)
+        insights = self.insights_db.get_multi()
         ai_insights = [
             i for i in insights 
             if i.category == InsightCategory.AI_CONSUMPTION
