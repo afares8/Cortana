@@ -429,6 +429,31 @@ For the compliance automation features to work properly:
 - `POST /api/v1/compliance/force-update/risk-matrix` - Force update of risk matrix
 - `POST /api/v1/compliance/force-update/sanctions` - Force update of all sanctions lists
 
+### Artur Dashboard 2.0 (Executive Intelligence UI)
+
+The Artur Dashboard 2.0 provides a sophisticated, AI-driven executive interface that clearly explains and justifies AI decisions, provides predictive analytics and proactive recommendations, allows real-time simulations of interventions, and visually represents system health in an intelligent and interactive way.
+
+#### Features
+
+- **TimelineView**: Displays Artur's actions and interventions chronologically with clear explanations. Automatically refreshes every 60 seconds and includes filtering by department, date range, or action type.
+
+- **SuggestionFeed**: Provides real-time actionable intelligence suggestions with clear justifications. Includes buttons for "Simulate", "Apply Now", and "Dismiss", along with filters by department, type, and severity.
+
+- **InterventionSimulator**: Allows safe preview (sandbox) of system changes suggested by Artur. Shows detailed before/after states and dependency impacts.
+
+- **IntelligentHeatmap**: Creates an interactive visual representation of IA usage, rule overlaps, and automation health. Includes a heatmap by department with IA token usage indicators and interactive filters.
+
+- **PredictionsPanel**: Shows intelligent predictions and proactive insights to prevent future issues. Automatically refreshes every 5 minutes.
+
+#### API Endpoints
+
+- `GET /api/v1/artur/interventions/logs` - Retrieves intervention logs with filtering options
+- `GET /api/v1/artur/suggestions` - Retrieves actionable suggestions with filtering options
+- `POST /api/v1/artur/simulate` - Simulates an intervention before execution
+- `POST /api/v1/artur/interventions/execute` - Executes a confirmed intervention
+- `GET /api/v1/artur/insights/heatmap` - Retrieves heatmap data showing IA usage and system health
+- `GET /api/v1/artur/insights/predictions` - Retrieves predictive insights and recommendations
+
 ## Deployment
 
 ### Backend Deployment

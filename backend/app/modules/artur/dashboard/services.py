@@ -2,7 +2,7 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 import logging
 
-from app.modules.artur.dashboard.schemas import DepartmentHealthOut
+from app.modules.artur.dashboard.schemas import DepartmentHealthOut, HeatmapDataItem, HeatmapDataOut, PredictionItem, PredictionsOut
 from app.modules.artur.evaluation.models import ArturSuggestion, SuggestionStatus
 from app.modules.artur.intervention.models import ArturIntervention, InterventionStatus
 from app.modules.artur.observation.services import observation_service
@@ -98,7 +98,7 @@ class DashboardService:
                 negative_insights = len([i for i in insights if i.category in [
                     InsightCategory.INACTIVE_ENTITY, 
                     InsightCategory.ORPHANED_ENTITY,
-                    InsightCategory.ERROR_RATE
+                    InsightCategory.RULE_EXECUTION
                 ]])
                 
                 if total_insights > 0:
@@ -240,7 +240,7 @@ class DashboardService:
             else:
                 function_usage = self._get_real_function_usage(department)
                 
-            rule_insights = [i for i in insights if i.entity_type == EntityType.RULE]
+            rule_insights = [i for i in insights if i.entity_type == EntityType.AUTOMATION_RULE]
             if rule_insights:
                 rule_efficiency = int(100 - sum([
                     i.metrics.get("error_rate", 0.1) * 100 for i in rule_insights
@@ -385,5 +385,188 @@ class DashboardService:
         except Exception as e:
             logger.error(f"Error getting real AI utilization: {str(e)}")
             return 70
+
+    async def get_heatmap_data(self) -> HeatmapDataOut:
+        """Get heatmap data for all departments based on real system metrics"""
+        try:
+            departments = department_service.get_departments()
+            
+            if not departments:
+                logger.warning("No departments found in the system. Returning empty list.")
+                return HeatmapDataOut(items=[], max_token_usage=1, max_executions=1, max_triggers=1)
+            
+            all_insights = await observation_service.get_insights()
+            
+            result = []
+            max_token_usage = 0
+            max_executions = 0
+            max_triggers = 0
+            
+            for dept in departments:
+                ai_insights = [i for i in all_insights 
+                              if i.department_id == dept.id and 
+                              i.category == InsightCategory.AI_CONSUMPTION]
+                
+                function_insights = [i for i in all_insights 
+                                    if i.department_id == dept.id and 
+                                    i.entity_type == EntityType.FUNCTION]
+                
+                rule_insights = [i for i in all_insights 
+                                if i.department_id == dept.id and 
+                                i.entity_type == EntityType.AUTOMATION_RULE]
+                
+                ia_token_usage = sum([i.metrics.get("token_count", 0) for i in ai_insights])
+                max_token_usage = max(max_token_usage, ia_token_usage)
+                
+                function_executions = sum([i.metrics.get("total_executions", 0) for i in function_insights])
+                max_executions = max(max_executions, function_executions)
+                
+                rule_triggers = sum([i.metrics.get("total_executions", 0) for i in rule_insights])
+                max_triggers = max(max_triggers, rule_triggers)
+                
+                health_score = await self._calculate_health_score(dept.id)
+                
+                hotspots = []
+                
+                for insight in function_insights:
+                    if insight.metrics.get("total_executions", 0) > 20:
+                        hotspots.append({
+                            "type": "high_function_usage",
+                            "entity_id": insight.entity_id,
+                            "value": insight.metrics.get("total_executions", 0),
+                            "coordinates": {"x": len(hotspots) * 10, "y": len(hotspots) * 10}
+                        })
+                
+                overlap_insights = [i for i in all_insights 
+                                  if i.department_id == dept.id and 
+                                  i.category == InsightCategory.OVERLAPPING_ENTITY]
+                
+                for insight in overlap_insights:
+                    hotspots.append({
+                        "type": "rule_overlap",
+                        "entity_id": insight.entity_id,
+                        "value": insight.metrics.get("overlap_count", 1),
+                        "coordinates": {"x": len(hotspots) * 10, "y": len(hotspots) * 10}
+                    })
+                
+                result.append(HeatmapDataItem(
+                    department_id=dept.id,
+                    department_name=dept.name,
+                    ia_token_usage=ia_token_usage,
+                    function_executions=function_executions,
+                    rule_triggers=rule_triggers,
+                    health_score=health_score,
+                    hotspots=hotspots
+                ))
+            
+            return HeatmapDataOut(
+                items=result,
+                max_token_usage=max(1, max_token_usage),  # Avoid division by zero
+                max_executions=max(1, max_executions),
+                max_triggers=max(1, max_triggers)
+            )
+        except Exception as e:
+            logger.error(f"Error getting heatmap data: {str(e)}")
+            return HeatmapDataOut(items=[], max_token_usage=1, max_executions=1, max_triggers=1)
+    
+    async def get_predictions(self) -> PredictionsOut:
+        """Get predictive insights based on real system data"""
+        try:
+            departments = department_service.get_departments()
+            
+            if not departments:
+                logger.warning("No departments found in the system. Returning empty list.")
+                return PredictionsOut(items=[])
+            
+            all_insights = await observation_service.get_insights()
+            
+            result = []
+            prediction_id = 1
+            
+            for dept in departments:
+                dept_insights = [i for i in all_insights if i.department_id == dept.id]
+                
+                if len(dept_insights) < 3:
+                    continue
+                
+                function_insights = [i for i in dept_insights 
+                                    if i.entity_type == EntityType.FUNCTION]
+                
+                if function_insights:
+                    total_executions = sum([i.metrics.get("total_executions", 0) for i in function_insights])
+                    error_rate = sum([i.metrics.get("error_rate", 0) * i.metrics.get("total_executions", 0) 
+                                    for i in function_insights]) / max(1, total_executions)
+                    
+                    if error_rate > 0.2:  # High error rate prediction
+                        result.append(PredictionItem(
+                            id=prediction_id,
+                            department_id=dept.id,
+                            department_name=dept.name,
+                            prediction_type="error_increase",
+                            summary=f"Increasing error rates detected in {dept.name} department functions",
+                            details={
+                                "current_error_rate": round(error_rate * 100, 1),
+                                "affected_functions": len(function_insights),
+                                "recommendation": "Review function implementations and error handling"
+                            },
+                            confidence=min(0.95, max(0.6, error_rate * 2)),
+                            impact_score=min(100, int(error_rate * 200)),
+                            predicted_timestamp=(datetime.utcnow() + timedelta(days=7)).isoformat()
+                        ))
+                        prediction_id += 1
+                
+                ai_insights = [i for i in dept_insights 
+                              if i.category == InsightCategory.AI_CONSUMPTION]
+                
+                if ai_insights and len(ai_insights) >= 2:
+                    token_counts = [i.metrics.get("token_count", 0) for i in ai_insights]
+                    avg_tokens = sum(token_counts) / len(token_counts)
+                    
+                    if avg_tokens > 1000:  # High token usage prediction
+                        result.append(PredictionItem(
+                            id=prediction_id,
+                            department_id=dept.id,
+                            department_name=dept.name,
+                            prediction_type="token_usage_increase",
+                            summary=f"AI token usage in {dept.name} department projected to increase",
+                            details={
+                                "current_avg_usage": int(avg_tokens),
+                                "projected_increase": "25-30%",
+                                "recommendation": "Optimize AI prompts and implement token caching"
+                            },
+                            confidence=0.85,
+                            impact_score=70,
+                            predicted_timestamp=(datetime.utcnow() + timedelta(days=14)).isoformat()
+                        ))
+                        prediction_id += 1
+                
+                inactive_insights = [i for i in dept_insights 
+                                   if i.category == InsightCategory.INACTIVE_ENTITY]
+                
+                if inactive_insights:
+                    inactive_count = len(inactive_insights)
+                    
+                    if inactive_count >= 3:  # Multiple inactive entities
+                        result.append(PredictionItem(
+                            id=prediction_id,
+                            department_id=dept.id,
+                            department_name=dept.name,
+                            prediction_type="resource_waste",
+                            summary=f"Unused resources in {dept.name} department reducing efficiency",
+                            details={
+                                "inactive_entities": inactive_count,
+                                "entity_types": list(set([i.entity_type for i in inactive_insights])),
+                                "recommendation": "Clean up unused entities to improve system performance"
+                            },
+                            confidence=0.9,
+                            impact_score=60,
+                            predicted_timestamp=(datetime.utcnow() + timedelta(days=30)).isoformat()
+                        ))
+                        prediction_id += 1
+            
+            return PredictionsOut(items=result)
+        except Exception as e:
+            logger.error(f"Error getting predictions: {str(e)}")
+            return PredictionsOut(items=[])
 
 dashboard_service = DashboardService()

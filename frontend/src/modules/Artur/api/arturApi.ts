@@ -4,7 +4,10 @@ import {
   ArturSuggestion, 
   ArturIntervention, 
   ArturSimulation,
-  DepartmentHealth
+  DepartmentHealth,
+  HeatmapData,
+  Prediction,
+  SimulationResult
 } from '../types';
 
 const API_URL = '/api/v1/artur';
@@ -142,6 +145,41 @@ export const runObservationCycle = async (): Promise<{ status: string; message: 
 };
 
 export const getDepartmentHealth = async (): Promise<DepartmentHealth[]> => {
-  const response = await axios.get(`${API_URL}/dashboard/department-health`);
+  const response = await axios.get(`${API_URL}/department-health`);
+  return response.data;
+};
+
+export const getInterventionLogs = async (
+  params: {
+    department_id?: number;
+    from_date?: string;
+    to_date?: string;
+    action_type?: string;
+    skip?: number;
+    limit?: number;
+  } = {}
+): Promise<ArturIntervention[]> => {
+  const response = await axios.get(`${API_URL}/interventions/logs`, { params });
+  return response.data;
+};
+
+export const getHeatmapData = async (): Promise<HeatmapData> => {
+  const response = await axios.get(`${API_URL}/insights/heatmap`);
+  return response.data;
+};
+
+export const getPredictions = async (): Promise<Prediction[]> => {
+  const response = await axios.get(`${API_URL}/insights/predictions`);
+  return response.data.items;
+};
+
+export const simulateIntervention = async (
+  params: {
+    suggestion_id: number;
+    simulation_type: string;
+    parameters?: Record<string, unknown>;
+  }
+): Promise<SimulationResult> => {
+  const response = await axios.post(`${API_URL}/simulate`, params);
   return response.data;
 };
