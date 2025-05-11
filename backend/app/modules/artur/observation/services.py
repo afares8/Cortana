@@ -25,7 +25,7 @@ class ObservationService:
         department_id: Optional[int] = None
     ) -> List[ArturInsight]:
         """Get insights with optional filtering"""
-        insights = self.db.get_all(ArturInsight)
+        insights = self.db.get_multi()
         
         if category:
             insights = [i for i in insights if i.category == category]
@@ -42,7 +42,7 @@ class ObservationService:
     
     async def monitor_function_usage(self, days: int = 30) -> List[ArturInsight]:
         """Monitor function usage patterns and create insights"""
-        audit_logs = self.audit_db.get_all(AuditLog)
+        audit_logs = self.audit_db.get_multi()
         function_logs = [
             log for log in audit_logs 
             if log.action_type == ActionType.FUNCTION_EXECUTION
@@ -108,7 +108,7 @@ class ObservationService:
     
     async def monitor_ai_consumption(self, days: int = 30) -> List[ArturInsight]:
         """Monitor AI token consumption patterns and create insights"""
-        audit_logs = self.audit_db.get_all(AuditLog)
+        audit_logs = self.audit_db.get_multi()
         ai_logs = [
             log for log in audit_logs 
             if log.action_type in [ActionType.AI_PROMPT, ActionType.AI_RESPONSE]

@@ -379,7 +379,7 @@ async def get_scheduled_tasks_status_endpoint():
         from app.db.in_memory import list_updates_db
         from datetime import datetime, timedelta
         
-        list_updates = list_updates_db.get_all()
+        list_updates = list_updates_db.get_multi()
         list_updates.sort(key=lambda x: getattr(x, 'update_date', datetime.now()) if not isinstance(getattr(x, 'update_date', None), str) else datetime.now(), reverse=True)
         
         tasks_status = {
