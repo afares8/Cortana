@@ -1,10 +1,11 @@
 from typing import List, Optional, Dict, Any
-from datetime import datetime
+from datetime import datetime, date
 from app.modules.artur.intervention.models import ArturIntervention, InterventionType, InterventionStatus
 from app.modules.artur.evaluation.models import ArturSuggestion, SuggestionStatus
 from app.modules.admin.functions.models import Function
 from app.modules.automation.rules_engine.models import AutomationRule
 from app.modules.ai.models import AIProfile
+from app.modules.admin.departments.models import Department
 from app.db.base import InMemoryDB
 
 class InterventionService:
@@ -14,6 +15,7 @@ class InterventionService:
         self.functions_db = InMemoryDB(Function)    # For accessing functions
         self.rules_db = InMemoryDB(AutomationRule)        # For accessing automation rules
         self.ai_profiles_db = InMemoryDB(AIProfile)  # For accessing AI profiles
+        self.departments_db = InMemoryDB(Department)  # For accessing departments
         
     async def create_intervention(self, intervention_data: Dict[str, Any]) -> ArturIntervention:
         """Create a new intervention record"""
@@ -31,7 +33,7 @@ class InterventionService:
         department_id: Optional[int] = None
     ) -> List[ArturIntervention]:
         """Get interventions with optional filtering"""
-        interventions = self.db.get_all(ArturIntervention)
+        interventions = self.db.get_multi()
         
         if status:
             interventions = [i for i in interventions if i.status == status]
@@ -314,5 +316,148 @@ class InterventionService:
             
         except Exception:
             return False
+
+    async def get_intervention_logs(
+        self,
+        from_date: Optional[date] = None,
+        to_date: Optional[date] = None,
+        department_id: Optional[int] = None,
+        action_type: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Get intervention logs with filtering options.
+        
+        This endpoint returns a chronological list of Artur's actions and interventions
+        with detailed explanations and context.
+        """
+        interventions = self.db.get_multi()
+        
+        if from_date:
+            from_datetime = datetime.combine(from_date, datetime.min.time())
+            interventions = [i for i in interventions if i.created_at >= from_datetime]
+        
+        if to_date:
+            to_datetime = datetime.combine(to_date, datetime.max.time())
+            interventions = [i for i in interventions if i.created_at <= to_datetime]
+        
+        if department_id:
+            interventions = [i for i in interventions if i.department_id == department_id]
+        
+        if action_type:
+            interventions = [i for i in interventions if i.intervention_type == action_type]
+        
+        interventions.sort(key=lambda x: x.created_at, reverse=True)
+        
+        result = []
+        for intervention in interventions:
+            department_name = None
+            if intervention.department_id:
+                department = self.departments_db.get_by_id(Department, intervention.department_id)
+                if department:
+                    department_name = department.name
+            
+            explanation = self._generate_explanation(intervention)
+            
+            confidence_score = self._calculate_confidence_score(intervention)
+            impact_level = self._determine_impact_level(intervention)
+            
+            log_entry = {
+                "id": intervention.id,
+                "intervention_type": intervention.intervention_type,
+                "status": intervention.status,
+                "department_id": intervention.department_id,
+                "department_name": department_name,
+                "state_before": intervention.state_before,
+                "state_after": intervention.state_after,
+                "explanation": explanation,
+                "context": self._generate_context(intervention),
+                "confidence_score": confidence_score,
+                "impact_level": impact_level,
+                "created_at": intervention.created_at,
+                "executed_at": intervention.executed_at,
+                "rolled_back_at": intervention.rolled_back_at,
+                "user_id": intervention.user_id
+            }
+            
+            result.append(log_entry)
+        
+        return result
+    
+    def _generate_explanation(self, intervention: ArturIntervention) -> str:
+        """Generate a detailed explanation for an intervention."""
+        if intervention.intervention_type == InterventionType.MERGE_FUNCTIONS:
+            functions = intervention.state_before.get("functions", [])
+            function_names = [f.get("name", "Unknown") for f in functions]
+            return f"Merged {len(function_names)} functions ({', '.join(function_names)}) to optimize department operations and reduce redundancy."
+            
+        elif intervention.intervention_type == InterventionType.REMOVE_ENTITY:
+            function = intervention.state_before.get("function", {})
+            function_name = function.get("name", "Unknown")
+            return f"Removed redundant function '{function_name}' to streamline department operations."
+            
+        elif intervention.intervention_type == InterventionType.UPDATE_AI_PROFILE:
+            profile = intervention.state_before.get("profile", {})
+            profile_name = profile.get("name", "Unknown")
+            updates = []
+            
+            before = intervention.state_before.get("profile", {})
+            after = intervention.state_after.get("profile", {})
+            
+            if before.get("model") != after.get("model"):
+                updates.append(f"model from {before.get('model')} to {after.get('model')}")
+                
+            if before.get("temperature") != after.get("temperature"):
+                updates.append(f"temperature from {before.get('temperature')} to {after.get('temperature')}")
+                
+            if before.get("top_p") != after.get("top_p"):
+                updates.append(f"top_p from {before.get('top_p')} to {after.get('top_p')}")
+                
+            return f"Updated AI profile '{profile_name}' parameters ({', '.join(updates)}) to improve response quality and efficiency."
+            
+        else:
+            return f"Performed {intervention.intervention_type.replace('_', ' ')} intervention based on system analysis."
+    
+    def _generate_context(self, intervention: ArturIntervention) -> Optional[str]:
+        """Generate additional context for an intervention."""
+        if intervention.intervention_type == InterventionType.MERGE_FUNCTIONS:
+            return "Function merging reduces operational overhead and improves system efficiency by consolidating similar capabilities."
+            
+        elif intervention.intervention_type == InterventionType.REMOVE_ENTITY:
+            return "Removing redundant functions helps maintain a clean system architecture and reduces maintenance burden."
+            
+        elif intervention.intervention_type == InterventionType.UPDATE_AI_PROFILE:
+            return "AI profile updates are based on usage patterns and performance metrics to optimize response quality and resource utilization."
+            
+        return None
+    
+    def _calculate_confidence_score(self, intervention: ArturIntervention) -> float:
+        """Calculate a confidence score for the intervention."""
+        if intervention.status == InterventionStatus.COMPLETED:
+            return 0.95
+        elif intervention.status == InterventionStatus.FAILED:
+            return 0.3
+        elif intervention.status == InterventionStatus.ROLLED_BACK:
+            return 0.4
+        else:
+            return 0.75
+    
+    def _determine_impact_level(self, intervention: ArturIntervention) -> str:
+        """Determine the impact level of an intervention."""
+        if intervention.intervention_type == InterventionType.MERGE_FUNCTIONS:
+            functions = intervention.state_before.get("functions", [])
+            if len(functions) > 3:
+                return "high"
+            elif len(functions) > 1:
+                return "medium"
+            else:
+                return "low"
+                
+        elif intervention.intervention_type == InterventionType.UPDATE_AI_PROFILE:
+            return "medium"
+            
+        elif intervention.intervention_type == InterventionType.REMOVE_ENTITY:
+            return "low"
+            
+        return "medium"
 
 intervention_service = InterventionService()

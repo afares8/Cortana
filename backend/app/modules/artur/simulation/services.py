@@ -33,7 +33,7 @@ class SimulationService:
         suggestion_id: Optional[int] = None
     ) -> List[ArturSimulation]:
         """Get simulations with optional filtering"""
-        simulations = self.db.get_all(ArturSimulation)
+        simulations = self.db.get_multi()
         
         if status:
             simulations = [s for s in simulations if s.status == status]
@@ -83,7 +83,7 @@ class SimulationService:
             for function_id in function_ids:
                 function = self.functions_db.get_by_id(Function, function_id)
                 if function:
-                    rules = self.rules_db.get_all(AutomationRule)
+                    rules = self.rules_db.get_multi()
                     dependent_rules = []
                     
                     for rule in rules:

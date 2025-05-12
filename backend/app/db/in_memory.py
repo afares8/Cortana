@@ -71,6 +71,16 @@ class InMemoryDB:
     def get_all(self) -> List[Any]:
         """Get all records."""
         return list(self.data.values())
+        
+    def get_multi(self, skip: int = 0, limit: int = 100, filters: Optional[Dict[str, Any]] = None) -> List[Any]:
+        """Get multiple records with optional filtering and pagination."""
+        records = list(self.data.values())
+        
+        if filters:
+            for key, value in filters.items():
+                records = [r for r in records if hasattr(r, key) and getattr(r, key) == value]
+        
+        return records[skip:skip + limit]
 
     def update(self, record_id: int, record: Any) -> bool:
         """Update a record by ID."""

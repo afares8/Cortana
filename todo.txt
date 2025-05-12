@@ -1,0 +1,16 @@
+# Artur Dashboard 2.0 Backend Endpoints Todo List
+
+- [x] department-health - Implemented in artur/routers.py
+- [x] interventions/logs - Implemented in artur/intervention/routers.py and artur/routers.py
+- [x] suggestions - Implemented in artur/evaluation/routers.py and forwarded in artur/routers.py
+- [x] insights/heatmap - Implemented in artur/dashboard/routers.py and artur/routers.py
+- [x] insights/predictions - Implemented in artur/dashboard/routers.py and artur/routers.py
+- [x] simulate - Implemented in artur/simulation/routers.py and artur/routers.py
+
+# Database Method Fixes
+- [x] Replace get_all with get_multi in intervention/services.py
+- [x] Replace get_all with get_multi in evaluation/services.py
+- [x] Replace get_all with get_multi in observation/services.py
+- [x] Replace get_all with get_multi in simulation/services.py
+- [x] Add get_multi method to InMemoryDB class
+- [x] Fix compliance router to use get_multi
