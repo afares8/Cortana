@@ -202,3 +202,40 @@ export interface AuditLog {
   details: string;
   timestamp: string;
 }
+
+export interface DueDiligenceResponse {
+  full_name: string;
+  passport: string;
+  country: string;
+  results: {
+    OFAC: MatchResult[];
+    UN: MatchResult[];
+    EU: MatchResult[];
+    PEP: MatchResult[];
+  };
+  status: string;
+  risk_score: number;
+  verification_id?: number;
+  verification_date: string;
+}
+
+export interface MatchResult {
+  name: string;
+  score: number;
+  source?: string;
+  details?: string;
+}
+
+export interface ContractAnalysisResult {
+  clauses?: string[];
+  risk_score?: number;
+  anomalies?: string[];
+  rewrites?: Record<string, string>;
+  impact?: string;
+  error?: string;
+}
+
+export interface LegalQAResponse {
+  response: string;
+  error?: string;
+}

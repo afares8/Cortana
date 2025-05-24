@@ -46,6 +46,12 @@ const Sidebar = () => {
             </div>
             <ul className="space-y-1">
               <li>
+                <Link to="/legal/dashboard" className="flex items-center p-2 rounded hover:bg-gray-700">
+                  <Brain className="h-5 w-5 mr-3" />
+                  {t('common.navigation.dashboard')}
+                </Link>
+              </li>
+              <li>
                 <Link to="/legal/clients" className="flex items-center p-2 rounded hover:bg-gray-700">
                   <Users className="h-5 w-5 mr-3" />
                   {t('common.navigation.clients')}
