@@ -315,6 +315,27 @@ For the compliance automation features to work properly:
 - `POST /api/v1/legal/clients` - Create a new client
 - `GET /api/v1/legal/workflows` - List all workflows
 - `GET /api/v1/legal/tasks` - List all tasks
+- `POST /api/v1/legal/verify-client` - Unified client verification with due diligence checks
+  ```json
+  {
+    "full_name": "John Doe",
+    "passport": "A123456",
+    "country": "US"
+  }
+  ```
+- `POST /api/v1/legal/ask` - Conversational legal assistant for legal queries
+  ```json
+  {
+    "prompt": "What is a confidentiality clause?"
+  }
+  ```
+- `POST /api/v1/legal/contracts/analyze` - AI-powered contract analysis with multiple analysis types
+  ```json
+  {
+    "contract_text": "Contract text here...",
+    "analysis_type": "extract_clauses|calculate_risk|detect_anomalies|suggest_rewrites|simulate_impact"
+  }
+  ```
 
 ### AI Endpoints
 
@@ -644,6 +665,8 @@ The application follows a modular microservice architecture designed for future 
 - **Task Suggestions**: Generate tasks based on contract content
 - **Spanish Language Support**: Preprocess Spanish legal documents for AI analysis
 - **Contextual Generation**: Provide context-aware responses using RAG
+- **Legal AI Analysis**: AI-powered contract analysis for clause extraction, risk scoring, anomaly detection, clause rewriting, and legal impact simulation
+- **Conversational Legal Assistant**: AI-powered legal question answering with domain-specific context
 
 ### Spanish Language Support
 
@@ -846,6 +869,15 @@ tail -f ~/repos/Cortana/backend/logs/scheduler.log
 ```
 
 ## Recent Updates
+
+### May 24, 2025
+- Implemented Cortana Legal 2.0 with AI-powered contract analysis and unified verification
+- Enhanced existing legal module with AI-first principles and modular architecture
+- Added new endpoints for client verification, legal Q&A, and contract analysis
+- Created comprehensive frontend components including LegalDashboard and DueDiligencePanel
+- Implemented useContractAI hook for interacting with AI contract analysis endpoints
+- Added unit tests for due diligence service, AI contract analysis, and API endpoints
+- Ensured all components follow existing patterns and conventions for future scalability
 
 ### May 10, 2025
 - Fixed ImportError in accounting module by implementing `generate_email_draft` function
