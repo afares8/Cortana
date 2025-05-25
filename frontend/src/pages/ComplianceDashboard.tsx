@@ -53,7 +53,7 @@ const ComplianceDashboard: React.FC = () => {
         setError(null);
       } catch (err) {
         console.error('Error fetching compliance dashboard data:', err);
-        setError('Failed to load compliance dashboard data. Please try again later.');
+        setError(t('compliance.loadError'));
       } finally {
         setLoading(false);
       }

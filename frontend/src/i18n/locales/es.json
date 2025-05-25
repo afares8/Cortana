@@ -48,13 +48,15 @@
       "arturSuggestions": "Sugerencias Artur",
       "arturSimulation": "Simulación Artur",
       "arturInterventions": "Intervenciones Artur",
-      "arturKPI": "KPI Artur"
+      "arturKPI": "KPI Artur",
+      "legalAssistant": "Asistente Legal"
     },
     "searchPlaceholder": "Buscar...",
     "labels": {
       "english": "Inglés",
       "spanish": "Español",
-      "language": "Idioma"
+      "language": "Idioma",
+      "note": "Nota"
     },
     "messages": {
       "loading": "Cargando..."
@@ -69,7 +71,19 @@
     "loading": "Cargando...",
     "saving": "Guardando...",
     "saveChanges": "Guardar Cambios",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "buttons": {
+      "search": "Buscar",
+      "send": "Enviar",
+      "submit": "Enviar",
+      "cancel": "Cancelar",
+      "save": "Guardar",
+      "delete": "Eliminar",
+      "edit": "Editar",
+      "view": "Ver",
+      "add": "Añadir",
+      "create": "Crear"
+    }
   },
   "dashboard": {
     "welcomeMessage": "Bienvenido a Cortana",
@@ -262,13 +276,47 @@
     "taskMonitoring": "Monitoreo de Tareas",
     "taskStatus": "Estado de la Tarea",
     "lastRun": "Última Ejecución",
-    "errorDetails": "Detalles del Error"
+    "errorDetails": "Detalles del Error",
+    "loadError": "Error al cargar los datos del panel de cumplimiento. Por favor, inténtelo de nuevo más tarde.",
+    "downloadError": "Error al descargar el informe"
   },
   "ai": {
     "tools": "Herramientas de IA",
     "commandCenter": "Centro de Comando IA",
     "analyzeContract": "Analizar Contrato",
-    "recentAnalyses": "Análisis Recientes"
+    "recentAnalyses": "Análisis Recientes",
+    "assistant": "Asistente de IA",
+    "askQuestions": "Haz preguntas sobre contratos, clientes y más",
+    "analyzingContracts": "Analizando contratos...",
+    "contextualAssistant": "Asistente Contextual",
+    "contextualDescription": "Consulta información sobre tareas, contratos, clientes y reportes",
+    "contractAnalysis": "Análisis de Contratos",
+    "contractsAnalyzed": "contratos analizados",
+    "riskDistribution": "Distribución de Riesgo",
+    "anomaliesDetected": "Anomalías Detectadas",
+    "highRisk": "Alto Riesgo",
+    "mediumRisk": "Riesgo Medio", 
+    "lowRisk": "Bajo Riesgo",
+    "high": "Alto",
+    "medium": "Medio",
+    "low": "Bajo",
+    "modelInformation": "Información del Modelo de IA",
+    "modelDescription": "Usando {{model}} para análisis legal mejorado",
+    "recentQueries": "Consultas Recientes ({{total}} total)",
+    "clauseDistribution": "Distribución de Cláusulas",
+    "clauseAnalysis": "Análisis de {{total}} cláusulas extraídas de contratos",
+    "smartNotifications": "Notificaciones Inteligentes",
+    "smartNotificationsDescription": "Alertas y recomendaciones impulsadas por IA",
+    "fallbackResponse": "Esta es una respuesta de respaldo. El modelo Mistral 7B requiere hardware GPU con soporte para Flash Attention v2, que no está disponible en el entorno actual.",
+    "notification1Title": "El contrato ABC vencerá en 17 días",
+    "notification1Description": "Este contrato contiene una cláusula de arbitraje no estándar que requiere un aviso de 30 días para la renovación.",
+    "notification2Title": "3 contratos del Proveedor X están pendientes de firma más allá del umbral SLA",
+    "notification2Description": "Estos contratos han estado en revisión durante más de 14 días, excediendo el tiempo estándar de aprobación de su empresa.",
+    "notification3Title": "Patrón detectado: Aumento de la tasa de terminación en Q2",
+    "notification3Description": "La tasa de terminación de acuerdos de servicio ha aumentado un 15% en comparación con el trimestre anterior.",
+    "inputPlaceholder": "ej., 'Muéstrame todos los contratos que vencen el próximo trimestre' o '¿Qué contratos carecen de cláusulas de indemnización?'",
+    "traditionalNlp": "NLP Tradicional",
+    "mistralAi": "Mistral AI"
   },
   "traffic": {
     "actions": "Acciones de Tráfico",
@@ -420,5 +468,20 @@
       "saveFailed": "Error al guardar la configuración",
       "adminRequired": "Se requieren permisos de administrador para acceder a la configuración"
     }
+  },
+  "chat": {
+    "greeting": "Hola, soy tu asistente legal. ¿En qué puedo ayudarte hoy?",
+    "error": "Lo siento, hubo un error al procesar tu consulta. Por favor, intenta de nuevo más tarde.",
+    "title": "Asistente Legal Contextual", 
+    "description": "Consulta información sobre tareas, contratos, clientes y reportes",
+    "debugInformation": "Información de Debug",
+    "originalQuery": "Consulta Original:",
+    "intentConfidence": "Confianza de Intención:",
+    "parameters": "Parámetros:",
+    "contextData": "Datos de Contexto:",
+    "debugMode": "Modo de Depuración",
+    "placeholder": "Escribe tu consulta aquí...",
+    "send": "Enviar",
+    "helpText": "Puedes preguntar sobre tareas pendientes, contratos, clientes, o reportes de cumplimiento."
   }
 }

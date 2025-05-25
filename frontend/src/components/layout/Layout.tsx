@@ -84,7 +84,8 @@ export default function Layout({ children, title }: LayoutProps) {
         { path: 'legal/audit-logs', label: 'common.navigation.auditLogs', icon: <Database className="h-4 w-4" /> },
         { path: 'legal/compliance/pep', label: 'common.navigation.pepScreening', icon: <Users className="h-4 w-4" /> },
         { path: 'legal/compliance/sanctions', label: 'common.navigation.sanctionsScreening', icon: <Shield className="h-4 w-4" /> },
-        { path: 'legal/compliance/uaf', label: 'common.navigation.uafReport', icon: <FileText className="h-4 w-4" /> }
+        { path: 'legal/compliance/uaf', label: 'common.navigation.uafReport', icon: <FileText className="h-4 w-4" /> },
+        { path: 'ai-dashboard', label: 'common.navigation.legalAssistant', icon: <Brain className="h-4 w-4" /> }
       ]
     },
     { 
@@ -109,12 +110,7 @@ export default function Layout({ children, title }: LayoutProps) {
         { path: 'traffic/logs', label: 'common.navigation.history', icon: <Activity className="h-4 w-4" /> }
       ]
     },
-    { 
-      path: 'ai-dashboard', 
-      label: 'common.navigation.aiCenter', 
-      icon: <Brain className="h-5 w-5" />, 
-      section: 'ai'
-    },
+
     { 
       path: 'accounting', 
       label: 'common.navigation.accounting', 
@@ -153,10 +149,10 @@ export default function Layout({ children, title }: LayoutProps) {
   const getCurrentSection = () => {
     const path = location.hash.replace('#/', '');
     if (path.startsWith('legal/')) return 'legal';
+    if (path === 'ai-dashboard') return 'legal';
     if (path.startsWith('traffic/')) return 'traffic';
     if (path.startsWith('accounting/')) return 'accounting';
     if (path.startsWith('users/')) return 'users';
-    if (path.startsWith('ai-')) return 'ai';
     if (path.startsWith('admin/')) return 'admin';
     return 'dashboard';
   };
@@ -249,6 +245,13 @@ export default function Layout({ children, title }: LayoutProps) {
                 {t('common.navigation.dashboard')}
               </button>
               <button 
+                onClick={() => navigate('ai-dashboard')}
+                className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
+              >
+                <span className="mr-2">🧠</span>
+                {t('common.navigation.legalAssistant')}
+              </button>
+              <button 
                 onClick={() => navigate('legal/contracts/upload')}
                 className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
               >
@@ -296,40 +299,7 @@ export default function Layout({ children, title }: LayoutProps) {
           </div>
         );
       
-      case 'ai':
-        return (
-          <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
-            <h3 className="font-medium text-gray-900 mb-3">{t('ai.tools')}</h3>
-            <div className="space-y-2">
-              <button 
-                onClick={() => navigate('/ai-dashboard')}
-                className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
-              >
-                <span className="mr-2">🧠</span>
-                {t('ai.commandCenter')}
-              </button>
-              <button 
-                onClick={() => navigate('legal/contracts')}
-                className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
-              >
-                <span className="mr-2">📄</span>
-                {t('ai.analyzeContract')}
-              </button>
-            </div>
-            
-            <h3 className="font-medium text-gray-900 mt-6 mb-3">{t('ai.recentAnalyses')}</h3>
-            <div className="space-y-2">
-              <div className="p-3 bg-purple-50 rounded-md">
-                <p className="text-sm font-medium text-purple-800">Global Fragrances Ltd. Contract</p>
-                <p className="text-xs text-purple-700">Analyzed 2 days ago</p>
-              </div>
-              <div className="p-3 bg-purple-50 rounded-md">
-                <p className="text-sm font-medium text-purple-800">TechStart Inc. NDA</p>
-                <p className="text-xs text-purple-700">Analyzed 1 week ago</p>
-              </div>
-            </div>
-          </div>
-        );
+
       
       case 'traffic':
         return (

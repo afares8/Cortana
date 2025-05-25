@@ -110,7 +110,7 @@ const ComplianceDashboardWidget: React.FC<ComplianceDashboardWidgetProps> = ({
         }
       } catch (err) {
         console.error('Error fetching compliance dashboard data:', err);
-        setError('Failed to load compliance dashboard data');
+        setError(t('compliance.loadError'));
         
         setMetrics([
           { label: 'Active Contracts', value: 42, status: 'success', icon: '📄' },
@@ -180,7 +180,7 @@ const ComplianceDashboardWidget: React.FC<ComplianceDashboardWidgetProps> = ({
       document.body.removeChild(a);
     } catch (err) {
       console.error('Error downloading report:', err);
-      setError('Failed to download report');
+      setError(t('compliance.downloadError'));
     }
   };
 
@@ -270,7 +270,7 @@ const ComplianceDashboardWidget: React.FC<ComplianceDashboardWidgetProps> = ({
             </div>
             
             <div className="mt-6">
-              <h3 className="text-lg font-medium mb-2">Recent Verifications</h3>
+              <h3 className="text-lg font-medium mb-2">{t('compliance.recentVerifications')}</h3>
               <div className="border rounded-md overflow-hidden">
                 <Table>
                   <TableHeader>
