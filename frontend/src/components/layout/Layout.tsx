@@ -69,15 +69,6 @@ export default function Layout({ children, title }: LayoutProps) {
       section: 'dashboard'
     },
     { 
-      path: 'admin', 
-      label: 'common.navigation.admin', 
-      icon: <UserCog className="h-5 w-5" />, 
-      section: 'admin',
-      children: [
-        { path: 'admin/artur', label: 'common.navigation.artur', icon: <Brain className="h-4 w-4" /> }
-      ]
-    },
-    { 
       path: 'contracts', 
       label: 'common.navigation.contracts', 
       icon: <FileText className="h-5 w-5" />, 
@@ -93,6 +84,7 @@ export default function Layout({ children, title }: LayoutProps) {
       icon: <Shield className="h-5 w-5" />, 
       section: 'legal',
       children: [
+        { path: 'legal/dashboard', label: 'legal.dashboard', icon: <BarChart2 className="h-4 w-4" /> },
         { path: 'legal/clients', label: 'common.navigation.clients', icon: <Users className="h-4 w-4" /> },
         { path: 'legal/contracts', label: 'common.navigation.contracts', icon: <FileText className="h-4 w-4" /> },
         { path: 'legal/workflows', label: 'common.navigation.workflows', icon: <Activity className="h-4 w-4" /> },
@@ -311,21 +303,21 @@ export default function Layout({ children, title }: LayoutProps) {
             <h3 className="font-medium text-gray-900 mb-3">{t('legal.department')}</h3>
             <div className="space-y-2">
               <button 
-                onClick={() => navigate('/legal/clients/new')}
+                onClick={() => navigate('legal/clients/new')}
                 className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
               >
                 <span className="mr-2">➕</span>
                 {t('legal.addNewClient')}
               </button>
               <button 
-                onClick={() => navigate('/legal/workflows/new')}
+                onClick={() => navigate('legal/workflows/new')}
                 className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
               >
                 <span className="mr-2">🔄</span>
                 {t('legal.createWorkflow')}
               </button>
               <button 
-                onClick={() => navigate('/legal/tasks/new')}
+                onClick={() => navigate('legal/tasks/new')}
                 className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
               >
                 <span className="mr-2">✅</span>
