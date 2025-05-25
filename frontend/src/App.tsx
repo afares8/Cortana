@@ -25,6 +25,7 @@ import WorkflowDetail from './modules/legal/pages/WorkflowDetail';
 import TaskList from './modules/legal/pages/TaskList';
 import TaskDetail from './modules/legal/pages/TaskDetail';
 import AuditLogList from './modules/legal/pages/AuditLogList';
+import LegalDashboard from './modules/legal/pages/LegalDashboard';
 
 import UserList from './modules/users/pages/UserList';
 import UserForm from './modules/users/pages/UserForm';
@@ -103,6 +104,7 @@ function App() {
           <Route path="compliance/country-risk-map" element={<CountryRiskMap />} />
           
           {/* Legal Module Routes */}
+          <Route path="legal/dashboard" element={<LegalDashboard />} />
           <Route path="legal/clients" element={<ClientList />} />
           <Route path="legal/clients/:id" element={<ClientDetail />} />
           <Route path="legal/contracts" element={<LegalContractList />} />

@@ -41,7 +41,7 @@ A specialized internal tool for a company in the Zona Libre de Colón perfumery 
 - Comprehensive compliance dashboard
 
 ### Modular Architecture
-- Legal Department module with client and contract management
+- Legal & Contracts module with client management, contract analysis, and compliance features
 - User Management module with role-based access control
 - Workflow and task management system
 - Audit and compliance tracking
@@ -55,9 +55,8 @@ A specialized internal tool for a company in the Zona Libre de Colón perfumery 
 
 The Cortana platform supports the following departments:
 
-- **Legal** - Contract management and legal document processing
+- **Legal & Contratos** - Unified module for contract management, legal document processing, and compliance operations
 - **Accounting** - Financial operations and tax obligations
-- **Compliance** - Regulatory compliance and reporting
 - **Traffic** - Logistics and shipping operations
 - **HR** - Human resources management
 - **Marketing** - Marketing campaigns and analytics
@@ -315,6 +314,27 @@ For the compliance automation features to work properly:
 - `POST /api/v1/legal/clients` - Create a new client
 - `GET /api/v1/legal/workflows` - List all workflows
 - `GET /api/v1/legal/tasks` - List all tasks
+- `POST /api/v1/legal/verify-client` - Unified client verification with due diligence checks
+  ```json
+  {
+    "full_name": "John Doe",
+    "passport": "A123456",
+    "country": "US"
+  }
+  ```
+- `POST /api/v1/legal/ask` - Conversational legal assistant for legal queries
+  ```json
+  {
+    "prompt": "What is a confidentiality clause?"
+  }
+  ```
+- `POST /api/v1/legal/contracts/analyze` - AI-powered contract analysis with multiple analysis types
+  ```json
+  {
+    "contract_text": "Contract text here...",
+    "analysis_type": "extract_clauses|calculate_risk|detect_anomalies|suggest_rewrites|simulate_impact"
+  }
+  ```
 
 ### AI Endpoints
 
@@ -360,8 +380,8 @@ For the compliance automation features to work properly:
 
 ### Compliance Endpoints
 
-- `POST /api/v1/compliance/manual/upload` - Upload compliance manual for embedding
-- `POST /api/v1/compliance/uaf-reports` - Generate UAF report
+- `POST /api/v1/legal/compliance/manual/upload` - Upload compliance manual for embedding
+- `POST /api/v1/legal/compliance/uaf-reports` - Generate UAF report
   ```json
   {
     "client_id": 123,
@@ -369,6 +389,8 @@ For the compliance automation features to work properly:
     "end_date": "2025-03-31T23:59:59"
   }
   ```
+- `POST /api/v1/legal/compliance/pep-screening` - Screen for politically exposed persons
+- `POST /api/v1/legal/compliance/sanctions-screening` - Screen against sanctions lists
 
 ### Artur Endpoints
 
@@ -644,6 +666,8 @@ The application follows a modular microservice architecture designed for future 
 - **Task Suggestions**: Generate tasks based on contract content
 - **Spanish Language Support**: Preprocess Spanish legal documents for AI analysis
 - **Contextual Generation**: Provide context-aware responses using RAG
+- **Legal AI Analysis**: AI-powered contract analysis for clause extraction, risk scoring, anomaly detection, clause rewriting, and legal impact simulation
+- **Conversational Legal Assistant**: AI-powered legal question answering with domain-specific context
 
 ### Spanish Language Support
 
@@ -846,6 +870,15 @@ tail -f ~/repos/Cortana/backend/logs/scheduler.log
 ```
 
 ## Recent Updates
+
+### May 24, 2025
+- Implemented Cortana Legal 2.0 with AI-powered contract analysis and unified verification
+- Enhanced existing legal module with AI-first principles and modular architecture
+- Added new endpoints for client verification, legal Q&A, and contract analysis
+- Created comprehensive frontend components including LegalDashboard and DueDiligencePanel
+- Implemented useContractAI hook for interacting with AI contract analysis endpoints
+- Added unit tests for due diligence service, AI contract analysis, and API endpoints
+- Ensured all components follow existing patterns and conventions for future scalability
 
 ### May 10, 2025
 - Fixed ImportError in accounting module by implementing `generate_email_draft` function
