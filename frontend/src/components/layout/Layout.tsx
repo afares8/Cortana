@@ -75,6 +75,7 @@ export default function Layout({ children, title }: LayoutProps) {
       section: 'legal',
       children: [
         { path: 'legal/dashboard', label: 'common.navigation.dashboard', icon: <BarChart2 className="h-4 w-4" /> },
+        { path: 'compliance/dashboard', label: 'compliance.dashboard', icon: <BarChart2 className="h-4 w-4" /> },
         { path: 'legal/contracts', label: 'common.navigation.allContracts', icon: <FileText className="h-4 w-4" /> },
         { path: 'legal/contracts/upload', label: 'common.navigation.uploadContract', icon: <FileText className="h-4 w-4" /> },
         { path: 'legal/clients', label: 'common.navigation.clients', icon: <Users className="h-4 w-4" /> },
