@@ -1,7 +1,7 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Search, X, Menu, LogOut, ChevronRight, ChevronDown, AlertCircle, Bell, Settings, Shield, FileText, Users, Activity, CheckSquare, Database, Brain, BarChart2, BarChart3, Truck, DollarSign, Mail, UserCog, Building2, GitBranch, Cpu } from 'lucide-react';
+import { Search, X, Menu, LogOut, ChevronRight, ChevronDown, Bell, Settings, Shield, FileText, Users, Activity, CheckSquare, Database, Brain, BarChart2, BarChart3, Truck, DollarSign, Mail, UserCog, Building2, GitBranch, Cpu } from 'lucide-react';
 import NotificationBadge from '../../modules/accounting/components/NotificationBadge';
 import LanguageToggle from '../LanguageToggle';
 import SettingsPanel from '../settings/SettingsPanel';
@@ -68,40 +68,22 @@ export default function Layout({ children, title }: LayoutProps) {
       icon: <BarChart2 className="h-5 w-5" />, 
       section: 'dashboard'
     },
-    { 
-      path: 'contracts', 
-      label: 'common.navigation.contracts', 
-      icon: <FileText className="h-5 w-5" />, 
-      section: 'contracts',
-      children: [
-        { path: 'contracts', label: 'common.navigation.allContracts', icon: <FileText className="h-4 w-4" /> },
-        { path: 'contracts/upload', label: 'common.navigation.uploadContract', icon: <FileText className="h-4 w-4" /> }
-      ]
-    },
-    { 
-      path: 'legal', 
-      label: 'common.navigation.legal', 
-      icon: <Shield className="h-5 w-5" />, 
+    {
+      path: 'legal',
+      label: 'common.navigation.legalAndContracts',
+      icon: <Shield className="h-5 w-5" />,
       section: 'legal',
       children: [
-        { path: 'legal/dashboard', label: 'legal.dashboard', icon: <BarChart2 className="h-4 w-4" /> },
+        { path: 'legal/dashboard', label: 'common.navigation.dashboard', icon: <BarChart2 className="h-4 w-4" /> },
+        { path: 'legal/contracts', label: 'common.navigation.allContracts', icon: <FileText className="h-4 w-4" /> },
+        { path: 'legal/contracts/upload', label: 'common.navigation.uploadContract', icon: <FileText className="h-4 w-4" /> },
         { path: 'legal/clients', label: 'common.navigation.clients', icon: <Users className="h-4 w-4" /> },
-        { path: 'legal/contracts', label: 'common.navigation.contracts', icon: <FileText className="h-4 w-4" /> },
         { path: 'legal/workflows', label: 'common.navigation.workflows', icon: <Activity className="h-4 w-4" /> },
         { path: 'legal/tasks', label: 'common.navigation.tasks', icon: <CheckSquare className="h-4 w-4" /> },
-        { path: 'legal/audit-logs', label: 'common.navigation.auditLogs', icon: <Database className="h-4 w-4" /> }
-      ]
-    },
-    { 
-      path: 'compliance', 
-      label: 'common.navigation.compliance', 
-      icon: <AlertCircle className="h-5 w-5" />, 
-      section: 'compliance',
-      children: [
-        { path: 'compliance/dashboard', label: 'common.navigation.dashboard', icon: <BarChart2 className="h-4 w-4" /> },
-        { path: 'compliance/uaf-report/new', label: 'common.navigation.uafReport', icon: <FileText className="h-4 w-4" /> },
-        { path: 'compliance/pep-screening/new', label: 'common.navigation.pepScreening', icon: <Users className="h-4 w-4" /> },
-        { path: 'compliance/sanctions-screening/new', label: 'common.navigation.sanctionsScreening', icon: <Shield className="h-4 w-4" /> }
+        { path: 'legal/audit-logs', label: 'common.navigation.auditLogs', icon: <Database className="h-4 w-4" /> },
+        { path: 'legal/compliance/pep', label: 'common.navigation.pepScreening', icon: <Users className="h-4 w-4" /> },
+        { path: 'legal/compliance/sanctions', label: 'common.navigation.sanctionsScreening', icon: <Shield className="h-4 w-4" /> },
+        { path: 'legal/compliance/uaf', label: 'common.navigation.uafReport', icon: <FileText className="h-4 w-4" /> }
       ]
     },
     { 
@@ -170,8 +152,6 @@ export default function Layout({ children, title }: LayoutProps) {
   const getCurrentSection = () => {
     const path = location.hash.replace('#/', '');
     if (path.startsWith('legal/')) return 'legal';
-    if (path.startsWith('compliance/')) return 'compliance';
-    if (path.startsWith('contracts/')) return 'contracts';
     if (path.startsWith('traffic/')) return 'traffic';
     if (path.startsWith('accounting/')) return 'accounting';
     if (path.startsWith('users/')) return 'users';
@@ -255,53 +235,25 @@ export default function Layout({ children, title }: LayoutProps) {
 
   const renderContextualPanel = () => {
     switch (currentSection) {
-      case 'contracts':
-        return (
-          <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
-            <h3 className="font-medium text-gray-900 mb-3">{t('contracts.actions')}</h3>
-            <div className="space-y-2">
-              <button 
-                onClick={() => navigate('/contracts/upload')}
-                className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
-              >
-                <span className="mr-2">📤</span>
-                {t('dashboard.uploadNewContract')}
-              </button>
-              <button 
-                onClick={() => navigate('/contracts')}
-                className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
-              >
-                <span className="mr-2">🔍</span>
-                {t('contracts.browseAll')}
-              </button>
-              <button 
-                onClick={() => navigate('/ai-dashboard')}
-                className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
-              >
-                <span className="mr-2">🧠</span>
-                {t('contracts.aiAnalysis')}
-              </button>
-            </div>
-            
-            <h3 className="font-medium text-gray-900 mt-6 mb-3">{t('contracts.expiringSoon')}</h3>
-            <div className="space-y-2">
-              <div className="p-3 bg-yellow-50 rounded-md">
-                <p className="text-sm font-medium text-yellow-800">Global Fragrances Ltd.</p>
-                <p className="text-xs text-yellow-700">Expires in 15 days</p>
-              </div>
-              <div className="p-3 bg-yellow-50 rounded-md">
-                <p className="text-sm font-medium text-yellow-800">TechStart Inc. NDA</p>
-                <p className="text-xs text-yellow-700">Expires in 30 days</p>
-              </div>
-            </div>
-          </div>
-        );
-      
       case 'legal':
         return (
           <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
             <h3 className="font-medium text-gray-900 mb-3">{t('legal.department')}</h3>
             <div className="space-y-2">
+              <button 
+                onClick={() => navigate('legal/dashboard')}
+                className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
+              >
+                <span className="mr-2">📊</span>
+                {t('common.navigation.dashboard')}
+              </button>
+              <button 
+                onClick={() => navigate('legal/contracts/upload')}
+                className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
+              >
+                <span className="mr-2">📤</span>
+                {t('common.navigation.uploadContract')}
+              </button>
               <button 
                 onClick={() => navigate('legal/clients/new')}
                 className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
@@ -331,51 +283,13 @@ export default function Layout({ children, title }: LayoutProps) {
                 <p className="text-sm font-medium text-gray-800">Contract Review</p>
                 <p className="text-xs text-gray-600">Updated 2 hours ago</p>
               </div>
-              <div className="p-3 bg-gray-50 rounded-md">
-                <p className="text-sm font-medium text-gray-800">Client Meeting</p>
-                <p className="text-xs text-gray-600">Scheduled for tomorrow</p>
+              <div className="p-3 bg-yellow-50 rounded-md">
+                <p className="text-sm font-medium text-yellow-800">TechStart Inc. NDA</p>
+                <p className="text-xs text-yellow-700">Expires in 30 days</p>
               </div>
-            </div>
-          </div>
-        );
-      
-      case 'compliance':
-        return (
-          <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
-            <h3 className="font-medium text-gray-900 mb-3">{t('compliance.actions')}</h3>
-            <div className="space-y-2">
-              <button 
-                onClick={() => navigate('/compliance/uaf-report/new')}
-                className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
-              >
-                <span className="mr-2">📊</span>
-                {t('common.navigation.uafReport')}
-              </button>
-              <button 
-                onClick={() => navigate('/compliance/pep-screening/new')}
-                className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
-              >
-                <span className="mr-2">👥</span>
-                {t('common.navigation.pepScreening')}
-              </button>
-              <button 
-                onClick={() => navigate('/compliance/sanctions-screening/new')}
-                className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
-              >
-                <span className="mr-2">🛡️</span>
-                {t('common.navigation.sanctionsScreening')}
-              </button>
-            </div>
-            
-            <h3 className="font-medium text-gray-900 mt-6 mb-3">{t('compliance.pendingReports')}</h3>
-            <div className="space-y-2">
               <div className="p-3 bg-blue-50 rounded-md">
                 <p className="text-sm font-medium text-blue-800">UAF Report - Q2 2025</p>
                 <p className="text-xs text-blue-700">Due in 15 days</p>
-              </div>
-              <div className="p-3 bg-blue-50 rounded-md">
-                <p className="text-sm font-medium text-blue-800">Annual Compliance Review</p>
-                <p className="text-xs text-blue-700">Due in 45 days</p>
               </div>
             </div>
           </div>
@@ -394,7 +308,7 @@ export default function Layout({ children, title }: LayoutProps) {
                 {t('ai.commandCenter')}
               </button>
               <button 
-                onClick={() => navigate('/contracts')}
+                onClick={() => navigate('legal/contracts')}
                 className="w-full text-left px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-50 flex items-center"
               >
                 <span className="mr-2">📄</span>
