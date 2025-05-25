@@ -41,7 +41,7 @@ A specialized internal tool for a company in the Zona Libre de Colón perfumery 
 - Comprehensive compliance dashboard
 
 ### Modular Architecture
-- Legal Department module with client and contract management
+- Legal & Contracts module with client management, contract analysis, and compliance features
 - User Management module with role-based access control
 - Workflow and task management system
 - Audit and compliance tracking
@@ -55,9 +55,8 @@ A specialized internal tool for a company in the Zona Libre de Colón perfumery 
 
 The Cortana platform supports the following departments:
 
-- **Legal** - Contract management and legal document processing
+- **Legal & Contratos** - Unified module for contract management, legal document processing, and compliance operations
 - **Accounting** - Financial operations and tax obligations
-- **Compliance** - Regulatory compliance and reporting
 - **Traffic** - Logistics and shipping operations
 - **HR** - Human resources management
 - **Marketing** - Marketing campaigns and analytics
@@ -381,8 +380,8 @@ For the compliance automation features to work properly:
 
 ### Compliance Endpoints
 
-- `POST /api/v1/compliance/manual/upload` - Upload compliance manual for embedding
-- `POST /api/v1/compliance/uaf-reports` - Generate UAF report
+- `POST /api/v1/legal/compliance/manual/upload` - Upload compliance manual for embedding
+- `POST /api/v1/legal/compliance/uaf-reports` - Generate UAF report
   ```json
   {
     "client_id": 123,
@@ -390,6 +389,8 @@ For the compliance automation features to work properly:
     "end_date": "2025-03-31T23:59:59"
   }
   ```
+- `POST /api/v1/legal/compliance/pep-screening` - Screen for politically exposed persons
+- `POST /api/v1/legal/compliance/sanctions-screening` - Screen against sanctions lists
 
 ### Artur Endpoints
 
