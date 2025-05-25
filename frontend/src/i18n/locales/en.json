@@ -52,7 +52,8 @@
     "labels": {
       "english": "English",
       "spanish": "Spanish",
-      "language": "Language"
+      "language": "Language",
+      "note": "Note"
     },
     "messages": {
       "loading": "Loading..."
@@ -63,7 +64,19 @@
     "allRightsReserved": "All Rights Reserved",
     "searching": "Searching...",
     "noResultsFound": "No results found",
-    "pressEnterForAllResults": "Press Enter for all results"
+    "pressEnterForAllResults": "Press Enter for all results",
+    "buttons": {
+      "search": "Search",
+      "send": "Send",
+      "submit": "Submit",
+      "cancel": "Cancel",
+      "save": "Save",
+      "delete": "Delete",
+      "edit": "Edit",
+      "view": "View",
+      "add": "Add",
+      "create": "Create"
+    }
   },
   "dashboard": {
     "welcomeMessage": "Welcome to Cortana",
@@ -184,13 +197,56 @@
     "back": "Back",
     "actions": "Compliance Actions",
     "pendingReports": "Pending Reports",
-    "noDashboardData": "No dashboard data available"
+    "noDashboardData": "No dashboard data available",
+    "loadError": "Failed to load compliance dashboard data. Please try again later.",
+    "downloadError": "Failed to download report",
+    "highRiskAlerts": "High Risk Alerts",
+    "viewDetails": "View Details",
+    "warning": "Warning",
+    "highRiskWarning": "These entities require immediate review and enhanced due diligence.",
+    "generateUAFReport": "Generate UAF Report",
+    "runSanctionsScreening": "Run Sanctions Screening",
+    "verifyCustomer": "Customer Verification",
+    "viewRiskMap": "View Risk Map",
+    "viewFullDashboard": "View Full Dashboard"
   },
   "ai": {
     "tools": "AI Tools",
     "commandCenter": "AI Command Center",
     "analyzeContract": "Analyze Contract",
-    "recentAnalyses": "Recent Analyses"
+    "recentAnalyses": "Recent Analyses",
+    "assistant": "AI Assistant", 
+    "askQuestions": "Ask questions about contracts, clients and more",
+    "analyzingContracts": "Analyzing contracts...",
+    "contextualAssistant": "Contextual Assistant",
+    "contextualDescription": "Query information about tasks, contracts, clients and reports",
+    "contractAnalysis": "Contract Analysis",
+    "contractsAnalyzed": "contracts analyzed",
+    "riskDistribution": "Risk Distribution", 
+    "anomaliesDetected": "Anomalies Detected",
+    "highRisk": "High Risk",
+    "mediumRisk": "Medium Risk",
+    "lowRisk": "Low Risk", 
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low",
+    "modelInformation": "AI Model Information",
+    "modelDescription": "Using {{model}} for enhanced legal analysis", 
+    "recentQueries": "Recent Queries ({{total}} total)",
+    "clauseDistribution": "Clause Distribution",
+    "clauseAnalysis": "Analysis of {{total}} clauses extracted from contracts",
+    "smartNotifications": "Smart Notifications",
+    "smartNotificationsDescription": "AI-powered alerts and recommendations",
+    "fallbackResponse": "This is a fallback response. The Mistral 7B model requires GPU hardware with Flash Attention v2 support, which is not available in the current environment.",
+    "notification1Title": "Contract ABC will expire in 17 days",
+    "notification1Description": "This contract contains a non-standard arbitration clause that requires 30 days notice for renewal.",
+    "notification2Title": "3 contracts from Supplier X are pending signature beyond SLA threshold",
+    "notification2Description": "These contracts have been in review for more than 14 days, exceeding your company's standard approval timeline.",
+    "notification3Title": "Pattern detected: Increasing termination rate in Q2",
+    "notification3Description": "Termination rate for service agreements has increased by 15% compared to previous quarter.",
+    "inputPlaceholder": "e.g., 'Show me all contracts that expire next quarter' or 'Which contracts lack indemnity clauses?'",
+    "traditionalNlp": "Traditional NLP",
+    "mistralAi": "Mistral AI"
   },
   "traffic": {
     "actions": "Traffic Actions",
@@ -200,5 +256,20 @@
     "sentDaysAgo": "Sent {{days}} days ago",
     "invoiceConsolidation": "Invoice Consolidation",
     "completedWeeksAgo": "Completed {{weeks}} week ago"
+  },
+  "chat": {
+    "greeting": "Hello, I'm your legal assistant. How can I help you today?",
+    "error": "Sorry, there was an error processing your query. Please try again later.",
+    "title": "Contextual Legal Assistant",
+    "description": "Query information about tasks, contracts, clients and reports", 
+    "debugInformation": "Debug Information",
+    "originalQuery": "Original Query:",
+    "intentConfidence": "Intent Confidence:",
+    "parameters": "Parameters:",
+    "contextData": "Context Data:",
+    "debugMode": "Debug Mode",
+    "placeholder": "Type your query here...",
+    "send": "Send",
+    "helpText": "You can ask about pending tasks, contracts, clients, or compliance reports."
   }
 }
