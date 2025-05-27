@@ -13,12 +13,13 @@ export default defineConfig({
     host: true, // Expose to all network interfaces
     proxy: {
       "/api": {
-        target: "http://localhost:8000",
+        target: "http://localhost:8000", // Asume que backend está corriendo en tu PC
         changeOrigin: true,
+        secure: false,
       },
     },
     hmr: {
-      overlay: false
+      overlay: false          // Evita errores molestos en pantalla
     },
   },
 })
