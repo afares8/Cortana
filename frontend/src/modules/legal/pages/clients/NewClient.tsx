@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Card, 
@@ -35,13 +35,6 @@ const NewClient: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   
-  useEffect(() => {
-    setLoading(false);
-    return () => {
-      setLoading(false);
-    };
-  }, []);
-  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -56,6 +49,7 @@ const NewClient: React.FC = () => {
     }
     
     if (loading) {
+      console.log('Form submission already in progress, preventing duplicate submission');
       return; // Prevent multiple submissions
     }
     
@@ -87,7 +81,6 @@ const NewClient: React.FC = () => {
       setNotes('');
       
       setSuccess(true);
-      setLoading(false);
       
       setTimeout(() => {
         navigate('/legal/clients');
@@ -95,6 +88,7 @@ const NewClient: React.FC = () => {
     } catch (err) {
       console.error('Error creating client:', err);
       setError(t('Failed to create client. Please try again later.'));
+    } finally {
       setLoading(false);
     }
   };
