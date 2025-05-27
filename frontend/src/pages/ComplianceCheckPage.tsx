@@ -126,7 +126,7 @@ const ComplianceCheckPage: React.FC = () => {
                   <Label htmlFor="customerDob">{t('compliance.dateOfBirth')}</Label>
                   <Input 
                     id="customerDob" 
-                    type="date"
+                    placeholder="YYYY-MM-DD"
                     value={customerDob}
                     onChange={(e) => setCustomerDob(e.target.value)}
                   />

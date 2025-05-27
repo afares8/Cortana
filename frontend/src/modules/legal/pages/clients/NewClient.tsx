@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Card, 
@@ -35,6 +35,13 @@ const NewClient: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   
+  useEffect(() => {
+    setLoading(false);
+    return () => {
+      setLoading(false);
+    };
+  }, []);
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -48,10 +55,14 @@ const NewClient: React.FC = () => {
       return;
     }
     
+    if (loading) {
+      return; // Prevent multiple submissions
+    }
+    
+    setLoading(true);
+    setError(null);
+    
     try {
-      setLoading(true);
-      setError(null);
-      
       const clientData: ClientCreate = {
         name,
         contact_email: contactEmail,
@@ -62,16 +73,28 @@ const NewClient: React.FC = () => {
         notes
       };
       
+      console.log('Submitting client data:', clientData);
+      
       const response = await createClient(clientData);
+      console.log('Client created successfully:', response);
+      
+      setName('');
+      setIndustry('');
+      setContactEmail('');
+      setContactPhone('');
+      setAddress('');
+      setKycVerified(false);
+      setNotes('');
       
       setSuccess(true);
+      setLoading(false);
+      
       setTimeout(() => {
-        navigate(`/legal/clients/${response.id}`);
+        navigate('/legal/clients');
       }, 1500);
     } catch (err) {
       console.error('Error creating client:', err);
       setError(t('Failed to create client. Please try again later.'));
-    } finally {
       setLoading(false);
     }
   };

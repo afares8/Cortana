@@ -20,49 +20,98 @@ interface CustomerVerifyRequest {
 
 interface VerificationMatch {
   source: string;
-  source_id: string;
   name: string;
-  match_type: string;
   score: number;
   details: Record<string, any>;
+  source_id?: string;
+  match_type?: string;
 }
 
 interface VerificationResult {
   status: string;
   matches: VerificationMatch[];
-  source: string;
-  timestamp: string;
+  source?: string;
+  timestamp?: string;
 }
 
 export interface ComplianceCheckResponse {
-  pep: VerificationResult;
-  ofac: VerificationResult;
-  un: VerificationResult;
-  eu: VerificationResult;
-  uk?: VerificationResult;
-  local?: VerificationResult;
-  wikidata?: VerificationResult;
-  enriched_data: Record<string, any>;
-  verification_id: string;
-  created_at: string;
+  customer: {
+    name: string;
+    enriched_data: Record<string, any>;
+    pep_matches: VerificationMatch[];
+    sanctions_matches: VerificationMatch[];
+    risk_score: number;
+  };
+  directors: Array<any>;
+  ubos: Array<any>;
+  country_risk: {
+    country_code: string;
+    name: string;
+    risk_level: string;
+    sources: string[];
+    notes?: string;
+    last_updated: string;
+  };
+  report: {
+    id: number;
+    path: string;
+    generated_at: string;
+  };
+  sources_checked: string[];
 }
 
 export const useComplianceCheck = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<ComplianceCheckResponse | null>(null);
+  const [result, setResult] = useState<any | null>(null);
 
   const checkCompliance = async (data: CustomerVerifyRequest): Promise<ComplianceCheckResponse | null> => {
     try {
       setLoading(true);
       setError(null);
+      setResult(null); // Reset result before new request
+      
+      console.log('Sending compliance check request:', data);
       
       const response = await axios.post<ComplianceCheckResponse>(
         `${API_URL}/api/v1/compliance/verify-customer`, 
         data
       );
       
-      setResult(response.data);
+      console.log('Received compliance check response:', response.data);
+      
+      const transformedResult = {
+        pep: {
+          status: response.data.customer.pep_matches.length > 0 ? 'matched' : 'clear',
+          matches: response.data.customer.pep_matches,
+          source: 'PEP Lists',
+          timestamp: new Date().toISOString()
+        },
+        ofac: {
+          status: response.data.customer.sanctions_matches.some(m => m.source.includes('OFAC')) ? 'matched' : 'clear',
+          matches: response.data.customer.sanctions_matches.filter(m => m.source.includes('OFAC')),
+          source: 'OFAC',
+          timestamp: new Date().toISOString()
+        },
+        un: {
+          status: response.data.customer.sanctions_matches.some(m => m.source.includes('UN')) ? 'matched' : 'clear',
+          matches: response.data.customer.sanctions_matches.filter(m => m.source.includes('UN')),
+          source: 'UN',
+          timestamp: new Date().toISOString()
+        },
+        eu: {
+          status: response.data.customer.sanctions_matches.some(m => m.source.includes('EU')) ? 'matched' : 'clear',
+          matches: response.data.customer.sanctions_matches.filter(m => m.source.includes('EU')),
+          source: 'EU',
+          timestamp: new Date().toISOString()
+        },
+        enriched_data: response.data.customer.enriched_data,
+        verification_id: response.data.report.id.toString(),
+        created_at: response.data.report.generated_at
+      };
+      
+      console.log('Transformed result:', transformedResult);
+      setResult(transformedResult);
       return response.data;
     } catch (err) {
       console.error('Error performing compliance check:', err);
