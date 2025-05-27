@@ -31,3 +31,24 @@ class ArturInterventionOut(ArturInterventionBase):
 class ExecuteInterventionRequest(BaseModel):
     suggestion_id: int
     intervention_type: str
+
+class InterventionLogOut(BaseModel):
+    id: int
+    intervention_type: str
+    status: str
+    department_id: Optional[int] = None
+    department_name: Optional[str] = None
+    state_before: Dict[str, Any] = {}
+    state_after: Dict[str, Any] = {}
+    explanation: str
+    context: Optional[str] = None
+    confidence_score: float
+    impact_level: str
+    created_at: datetime
+    executed_at: Optional[datetime] = None
+    rolled_back_at: Optional[datetime] = None
+    user_id: Optional[int] = None
+
+    model_config = {
+        "from_attributes": True
+    }
