@@ -31,3 +31,15 @@ class ArturSimulationOut(ArturSimulationBase):
 class RunSimulationRequest(BaseModel):
     suggestion_id: int
     simulation_type: str
+
+class SimulationResultOut(BaseModel):
+    success: bool
+    result: str
+    details: Dict[str, Any] = {}
+    impact_assessment: Dict[str, Any] = {}
+    dependencies_affected: List[Dict[str, Any]] = []
+    recommendation: str
+    
+    model_config = {
+        "from_attributes": True
+    }

@@ -871,6 +871,13 @@ tail -f ~/repos/Cortana/backend/logs/scheduler.log
 
 ## Recent Updates
 
+### May 27, 2025
+- Fixed Docker backend startup issues by resolving coroutine serialization errors in health check endpoint
+- Added missing schema classes for Artur intervention and simulation modules
+- Fixed enum serialization in simulation service to ensure proper JSON encoding
+- Properly implemented async/await pattern for AI service status checks
+- Ensured all FastAPI routes are correctly exposed and functional
+
 ### May 24, 2025
 - Implemented Cortana Legal 2.0 with AI-powered contract analysis and unified verification
 - Enhanced existing legal module with AI-first principles and modular architecture

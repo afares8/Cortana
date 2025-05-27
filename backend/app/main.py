@@ -108,7 +108,7 @@ async def health():
     Validates scheduler tasks and AI service status."""
     from app.services.ai.mistral_client import check_ai_service_status
     
-    ai_status = check_ai_service_status()
+    ai_status = await check_ai_service_status()  # Await the coroutine
     
     scheduler_status = "active"
     

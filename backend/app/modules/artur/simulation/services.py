@@ -280,5 +280,146 @@ class SimulationService:
             simulation.status = SimulationStatus.FAILED
             self.db.update(ArturSimulation, simulation)
             return False
+    
+    async def simulate_intervention(self, simulation_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Simulate an intervention before execution.
+        
+        This endpoint allows for safe preview (sandbox) of system changes suggested by Artur.
+        """
+        action_type = simulation_data.get("action_type", "")
+        details = simulation_data.get("details", {})
+        dependencies_affected = []
+        impact_assessment = {}
+        recommendation = ""
+        success = True
+        result = SimulationResult.NEUTRAL
+        
+        try:
+            if action_type == "merge_functions":
+                function_ids = details.get("function_ids", [])
+                
+                breaking_rules = []
+                for function_id in function_ids:
+                    function = self.functions_db.get_by_id(Function, function_id)
+                    if function:
+                        rules = self.rules_db.get_multi()
+                        for rule in rules:
+                            for action in rule.actions:
+                                if (action.get("type") == "run_function" and 
+                                    action.get("function_id") == function_id):
+                                    breaking_rules.append({
+                                        "id": rule.id,
+                                        "name": rule.name,
+                                        "type": "automation_rule"
+                                    })
+                        
+                        dependencies_affected.append({
+                            "entity_id": function_id,
+                            "entity_type": "function",
+                            "name": function.name,
+                            "impact": "Will be merged"
+                        })
+                
+                if breaking_rules:
+                    impact_assessment = {
+                        "breaking_changes": f"Would break {len(breaking_rules)} automation rules",
+                        "affected_rules": breaking_rules,
+                        "complexity_reduction": f"Would reduce function count by {len(function_ids) - 1}"
+                    }
+                    recommendation = "Update affected rules before merging functions"
+                    result = SimulationResult.NOT_RECOMMENDED
+                else:
+                    impact_assessment = {
+                        "complexity_reduction": f"Would reduce function count by {len(function_ids) - 1}",
+                        "breaking_changes": "No breaking changes detected"
+                    }
+                    recommendation = "Safe to proceed with function merge"
+                    result = SimulationResult.RECOMMENDED
+                    
+            elif action_type == "remove_function":
+                function_id = details.get("function_id")
+                function = self.functions_db.get_by_id(Function, function_id)
+                
+                if function:
+                    rules = self.rules_db.get_multi()
+                    breaking_rules = []
+                    
+                    for rule in rules:
+                        for action in rule.actions:
+                            if (action.get("type") == "run_function" and 
+                                action.get("function_id") == function_id):
+                                breaking_rules.append({
+                                    "id": rule.id,
+                                    "name": rule.name,
+                                    "type": "automation_rule"
+                                })
+                    
+                    dependencies_affected.append({
+                        "entity_id": function_id,
+                        "entity_type": "function",
+                        "name": function.name,
+                        "impact": "Will be removed"
+                    })
+                    
+                    if breaking_rules:
+                        impact_assessment = {
+                            "breaking_changes": f"Would break {len(breaking_rules)} automation rules",
+                            "affected_rules": breaking_rules
+                        }
+                        recommendation = "Update or remove affected rules before removing function"
+                        result = SimulationResult.NOT_RECOMMENDED
+                    else:
+                        impact_assessment = {
+                            "complexity_reduction": "Would remove unused function",
+                            "breaking_changes": "No breaking changes detected"
+                        }
+                        recommendation = "Safe to proceed with function removal"
+                        result = SimulationResult.RECOMMENDED
+                
+            elif action_type == "update_ai_profile":
+                profile_id = details.get("profile_id")
+                profile = self.ai_profiles_db.get_by_id(AIProfile, profile_id)
+                updates = details.get("updates", {})
+                
+                if profile:
+                    dependencies_affected.append({
+                        "entity_id": profile_id,
+                        "entity_type": "ai_profile",
+                        "name": profile.name,
+                        "impact": "Configuration will be updated"
+                    })
+                    
+                    if updates.get("temperature", 0) > 0.9:
+                        impact_assessment = {
+                            "performance_impact": "High temperature may lead to unpredictable responses"
+                        }
+                        recommendation = "Consider using a lower temperature value"
+                        result = SimulationResult.NEUTRAL
+                    else:
+                        impact_assessment = {
+                            "performance_impact": "Changes should improve AI response quality"
+                        }
+                        recommendation = "Safe to proceed with AI profile update"
+                        result = SimulationResult.RECOMMENDED
+            
+            return {
+                "success": success,
+                "result": str(result),  # Convert enum to string
+                "details": details,
+                "impact_assessment": impact_assessment,
+                "dependencies_affected": dependencies_affected,
+                "recommendation": recommendation
+            }
+            
+        except Exception as e:
+            return {
+                "success": False,
+                "result": "error",  # Use string instead of enum
+                "details": {"error": str(e)},
+                "impact_assessment": {"error": "Failed to simulate intervention"},
+                "dependencies_affected": [],
+                "recommendation": "Unable to provide recommendation due to simulation error"
+            }
 
 simulation_service = SimulationService()
