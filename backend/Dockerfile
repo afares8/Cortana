@@ -33,6 +33,7 @@ COPY pyproject.toml poetry.lock ./
 # Instala dependencias del proyecto (sin crear venv adicional)
 RUN poetry config virtualenvs.create false && \
     poetry install --no-interaction --no-ansi
+    poetry run pip install iso3166 beautifulsoup4
 
 # ➤ Instalación de Playwright y navegadores
 RUN apt-get update && \
