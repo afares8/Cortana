@@ -14,6 +14,13 @@ RUN apt-get update && \
       curl \
       git \
       default-jre \
+      libpango-1.0-0 \
+      libpangoft2-1.0-0 \
+      libcairo2 \
+      libpq-dev \
+      libffi-dev \
+      libjpeg-dev \
+      libopenjp2-7-dev \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Instala Poetry

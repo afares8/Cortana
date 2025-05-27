@@ -10,6 +10,7 @@ export default defineConfig({
     },
   },
   server: {
+    host: true, // Expose to all network interfaces
     proxy: {
       "/api": {
         target: "http://localhost:8000",
