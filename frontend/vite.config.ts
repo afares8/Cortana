@@ -10,9 +10,7 @@ export default defineConfig({
     },
   },
   server: {
-    host: "0.0.0.0",          // 🔥 Esto permite que otros dispositivos accedan
-    port: 5173,               // Puedes cambiar este puerto si quieres
-    strictPort: true,         // Si el puerto está ocupado, lanza error en vez de cambiarlo
+    host: true, // Expose to all network interfaces
     proxy: {
       "/api": {
         target: "http://localhost:8000", // Asume que backend está corriendo en tu PC
