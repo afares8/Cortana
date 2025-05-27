@@ -36,8 +36,15 @@ export const getClient = async (id: number): Promise<Client> => {
 };
 
 export const createClient = async (client: ClientCreate): Promise<Client> => {
-  const response = await axios.post(`${API_BASE}/legal/clients`, client);
-  return response.data;
+  console.log('API: Creating client with data:', client);
+  try {
+    const response = await axios.post(`${API_BASE}/legal/clients`, client);
+    console.log('API: Client created successfully:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('API: Error creating client:', error);
+    throw error;
+  }
 };
 
 export const updateClient = async (id: number, client: ClientUpdate): Promise<Client> => {
