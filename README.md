@@ -877,6 +877,9 @@ tail -f ~/repos/Cortana/backend/logs/scheduler.log
 - Fixed enum serialization in simulation service to ensure proper JSON encoding
 - Properly implemented async/await pattern for AI service status checks
 - Ensured all FastAPI routes are correctly exposed and functional
+- Fixed country risk map data loading by implementing real-time data fetching from Basel AML Index, FATF Lists, and EU High-Risk Countries
+- Enhanced risk matrix validation and error handling for comprehensive country risk assessment
+- Added missing dependencies (weasyprint, iso3166, beautifulsoup4) for proper risk data processing
 
 ### May 24, 2025
 - Implemented Cortana Legal 2.0 with AI-powered contract analysis and unified verification
