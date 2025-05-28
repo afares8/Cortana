@@ -14,6 +14,13 @@ RUN apt-get update && \
       curl \
       git \
       default-jre \
+      libpango-1.0-0 \
+      libpangoft2-1.0-0 \
+      libcairo2 \
+      libpq-dev \
+      libffi-dev \
+      libjpeg-dev \
+      libopenjp2-7-dev \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Instala Poetry
@@ -26,7 +33,7 @@ COPY pyproject.toml poetry.lock ./
 # Instala dependencias del proyecto (sin crear venv adicional)
 RUN poetry config virtualenvs.create false && \
     poetry install --no-interaction --no-ansi
-
+    
 # ➤ Instalación de Playwright y navegadores
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \

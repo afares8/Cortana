@@ -877,6 +877,19 @@ tail -f ~/repos/Cortana/backend/logs/scheduler.log
 - Fixed enum serialization in simulation service to ensure proper JSON encoding
 - Properly implemented async/await pattern for AI service status checks
 - Ensured all FastAPI routes are correctly exposed and functional
+- Fixed country risk map data loading by implementing real-time data fetching from Basel AML Index, FATF Lists, and EU High-Risk Countries
+- Enhanced risk matrix validation and error handling for comprehensive country risk assessment
+- Added missing dependencies (weasyprint, iso3166, beautifulsoup4) for proper risk data processing
+- Configured Vite server to be accessible on the internal network by setting `host: true`
+- Enhanced Mistral 7B AI integration with improved diagnostics and GPU support
+- Added system dependencies for weasyprint to Docker configuration for PDF generation
+- Added detailed test endpoint for Mistral 7B with hardware detection and diagnostics
+- Fixed client creation form loading issues and button stuck states
+- Implemented persistent in-memory storage for client data during application runtime
+- Enhanced error handling in PDF generation with fallback to text reports
+- Fixed compliance verification to properly display real data matches
+- Added test client (Nicolás Maduro) to verify PEP and sanctions detection functionality
+- Improved frontend API response handling for compliance verification
 
 ### May 24, 2025
 - Implemented Cortana Legal 2.0 with AI-powered contract analysis and unified verification

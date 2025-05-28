@@ -48,10 +48,15 @@ const NewClient: React.FC = () => {
       return;
     }
     
+    if (loading) {
+      console.log('Form submission already in progress, preventing duplicate submission');
+      return; // Prevent multiple submissions
+    }
+    
+    setLoading(true);
+    setError(null);
+    
     try {
-      setLoading(true);
-      setError(null);
-      
       const clientData: ClientCreate = {
         name,
         contact_email: contactEmail,
@@ -62,11 +67,23 @@ const NewClient: React.FC = () => {
         notes
       };
       
+      console.log('Submitting client data:', clientData);
+      
       const response = await createClient(clientData);
+      console.log('Client created successfully:', response);
+      
+      setName('');
+      setIndustry('');
+      setContactEmail('');
+      setContactPhone('');
+      setAddress('');
+      setKycVerified(false);
+      setNotes('');
       
       setSuccess(true);
+      
       setTimeout(() => {
-        navigate(`/legal/clients/${response.id}`);
+        navigate('/legal/clients');
       }, 1500);
     } catch (err) {
       console.error('Error creating client:', err);
