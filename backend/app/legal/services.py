@@ -4,7 +4,10 @@ import os
 import uuid
 import json
 import base64
+import logging
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 from app.db.init_db import users_db
 from app.core.config import settings
@@ -31,17 +34,79 @@ LEGAL_UPLOADS_DIR = Path("uploads/legal")
 LEGAL_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 
 def create_client(client_data: Dict[str, Any]) -> Client:
-    """Create a new client."""
+    """Create a new client with automatic risk evaluation and compliance checks."""
+    from app.services.compliance.services.excel_risk_evaluator import (
+        excel_risk_evaluator,
+    )
+    from app.services.compliance.services.compliance_service import compliance_service
+    import asyncio
+
     client = clients_db.create(obj_in=Client(**client_data))
-    
+
+    try:
+        risk_evaluation = excel_risk_evaluator.calculate_risk(
+            {
+                "client_type": client_data.get("client_type", "individual"),
+                "country": client_data.get("country", "PA"),  # Default to Panama
+                "industry": client_data.get("industry", "other"),
+                "channel": client_data.get("channel", "presencial"),
+            }
+        )
+
+        client.risk_score = risk_evaluation.get("total_score", 2.0)
+        client.risk_level = risk_evaluation.get("risk_level", "MEDIUM")
+        client.risk_details = risk_evaluation
+
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+        pep_result = loop.run_until_complete(
+            compliance_service.create_pep_screening(
+                {
+                    "client_id": client.id,
+                    "match_status": "pending",
+                    "screened_by": "system",
+                    "risk_level": "unknown",
+                    "notes": "Automatic screening during client creation",
+                }
+            )
+        )
+
+        sanctions_result = loop.run_until_complete(
+            compliance_service.create_sanctions_screening(
+                {
+                    "client_id": client.id,
+                    "match_status": "pending",
+                    "screened_by": "system",
+                    "risk_level": "unknown",
+                    "notes": "Automatic screening during client creation",
+                }
+            )
+        )
+
+        client.pep_screening_id = pep_result.id if pep_result else None
+        client.sanctions_screening_id = (
+            sanctions_result.id if sanctions_result else None
+        )
+
+        clients_db.data[client.id] = client
+
+        loop.close()
+
+    except Exception as e:
+        logger.error(f"Error during client risk evaluation: {str(e)}")
+
     create_audit_log(
         entity_type="client",
         entity_id=client.id,
         action="created",
         user_email=client_data.get("created_by", "system"),
-        details={"client_name": client.name}
+        details={
+            "client_name": client.name,
+            "risk_level": getattr(client, "risk_level", "UNKNOWN"),
+        },
     )
-    
+
     return client
 
 def get_client(client_id: int) -> Optional[Client]:

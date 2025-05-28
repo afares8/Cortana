@@ -347,3 +347,84 @@ async def get_audit_logs_endpoint(
         start_date=start_date,
         end_date=end_date
     )
+
+
+@router.post("/verify-client", response_model=Dict[str, Any])
+async def verify_client_endpoint(
+    client_id: int = Body(..., embed=True),
+    name: Optional[str] = Body(None, embed=True),
+    country: Optional[str] = Body(None, embed=True),
+    type: Optional[str] = Body(None, embed=True),
+):
+    """
+    Verify a client against PEP and sanctions lists.
+    Proxies to the compliance verification service.
+    """
+    from app.services.compliance.schemas.verify import CustomerVerifyRequest, EntityBase as Customer
+    from app.services.compliance.services.unified_verification_service import (
+        unified_verification_service,
+    )
+    import logging
+
+    logger = logging.getLogger(__name__)
+
+    client = get_client(client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+
+    try:
+        request = CustomerVerifyRequest(
+            customer=Customer(
+                name=name or client.name,
+                country=country or getattr(client, "country", "PA"),
+                type=type or getattr(client, "client_type", "natural"),
+            )
+        )
+
+        result = await unified_verification_service.verify_customer(request)
+
+        client_update = {
+            "verification_status": "verified",
+            "verification_date": datetime.utcnow(),
+            "verification_result": result,
+        }
+
+        update_client(client_id, client_update)
+
+        result_with_status = {
+            **result,
+            "status": "verified",
+            "verification_date": client_update["verification_date"].isoformat()
+        }
+
+        return result_with_status
+    except Exception as e:
+        logger.error(f"Error verifying client {client_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to verify client")
+
+
+@router.post("/contracts/{contract_id}/analyze", response_model=Dict[str, Any])
+async def analyze_contract_endpoint(contract_id: int = Path(...)):
+    """
+    Analyze a contract using AI contract intelligence.
+    Uses existing AI service for contract analysis.
+    """
+    from app.services.ai.contract_intelligence import process_contract
+    import logging
+
+    logger = logging.getLogger(__name__)
+
+    contract = get_contract(contract_id)
+    if not contract:
+        raise HTTPException(status_code=404, detail="Contract not found")
+
+    try:
+        analysis_result = process_contract(contract)
+        return {
+            "contract_id": contract_id,
+            "analysis": analysis_result,
+            "status": "completed",
+        }
+    except Exception as e:
+        logger.error(f"Error analyzing contract {contract_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to analyze contract")

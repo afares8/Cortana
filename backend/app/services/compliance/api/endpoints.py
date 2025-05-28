@@ -227,3 +227,39 @@ async def get_compliance_dashboard_endpoint():
     Get data for the compliance dashboard.
     """
     return await compliance_service.get_compliance_dashboard_data()
+
+
+@router.post("/risk-evaluation", response_model=Dict[str, Any])
+async def evaluate_client_risk_endpoint(
+    client_id: Optional[int] = Body(None, embed=True),
+    client_data: Dict[str, Any] = Body(..., embed=True),
+):
+    """
+    Evaluate client risk using the Excel-based risk matrix.
+    This endpoint uses the legal risk matrix from Grupo Magnate to calculate risk scores.
+    """
+    import logging
+    from app.services.compliance.services.excel_risk_evaluator import (
+        excel_risk_evaluator,
+    )
+
+    logger = logging.getLogger(__name__)
+
+    try:
+        risk_evaluation = excel_risk_evaluator.calculate_risk(client_data)
+
+        if client_id:
+            from app.legal.services import update_client
+
+            client_update = {
+                "risk_score": risk_evaluation.get("total_score"),
+                "risk_level": risk_evaluation.get("risk_level"),
+                "risk_details": risk_evaluation,
+            }
+
+            update_client(client_id, client_update)
+
+        return risk_evaluation
+    except Exception as e:
+        logger.error(f"Error evaluating client risk: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to evaluate client risk")

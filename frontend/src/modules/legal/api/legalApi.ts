@@ -16,7 +16,10 @@ import {
   Task,
   TaskCreate,
   TaskUpdate,
-  AuditLog
+  AuditLog,
+  DueDiligenceResponse,
+  ContractAnalysisResult,
+  LegalQAResponse
 } from '../types';
 
 export const getClients = async (params?: { 
@@ -205,5 +208,63 @@ export const getAuditLogs = async (params?: {
   end_date?: string;
 }): Promise<AuditLog[]> => {
   const response = await axios.get(`${API_URL}/legal/audit-logs`, { params });
+  return response.data;
+};
+
+export const verifyClient = async (
+  clientId: number, 
+  data?: { name?: string; country?: string; type?: string }
+): Promise<DueDiligenceResponse> => {
+  const payload = {
+    client_id: clientId,
+    ...data
+  };
+  
+  const response = await axios.post(`${API_BASE}/legal/verify-client`, payload);
+  return response.data;
+};
+
+export const analyzeContract = async (contractId: number): Promise<ContractAnalysisResult> => {
+  const response = await axios.post(`${API_BASE}/legal/contracts/${contractId}/analyze`);
+  return response.data;
+};
+
+export const evaluateClientRisk = async (
+  clientId: number, 
+  clientData: { 
+    client_type?: string; 
+    country?: string; 
+    industry?: string; 
+    channel?: string 
+  }
+): Promise<any> => {
+  const payload = {
+    client_id: clientId,
+    client_data: clientData
+  };
+  
+  const response = await axios.post(`${API_BASE}/compliance/risk-evaluation`, payload);
+  return response.data;
+};
+
+export const generateUAFReport = async (
+  clientId: number,
+  startDate: string,
+  endDate: string
+): Promise<any> => {
+  const payload = {
+    client_id: clientId,
+    start_date: startDate,
+    end_date: endDate
+  };
+  
+  const response = await axios.post(`${API_BASE}/compliance/uaf-reports`, payload);
+  return response.data;
+};
+
+export const downloadUAFReport = async (reportId: number): Promise<Blob> => {
+  const response = await axios.get(`${API_BASE}/compliance/reports/${reportId}/download`, {
+    responseType: 'blob'
+  });
   return response.data;
 };

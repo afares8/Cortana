@@ -13,6 +13,16 @@ class Client(TimestampModel):
     industry: Optional[str] = None
     kyc_verified: bool = False
     notes: Optional[str] = None
+    client_type: Optional[str] = None
+    country: Optional[str] = None
+    risk_score: Optional[float] = None
+    risk_level: Optional[str] = None
+    risk_details: Optional[Dict[str, Any]] = None
+    pep_screening_id: Optional[int] = None
+    sanctions_screening_id: Optional[int] = None
+    verification_status: Optional[str] = None
+    verification_date: Optional[datetime] = None
+    verification_result: Optional[Dict[str, Any]] = None
 
 class Contract(TimestampModel):
     id: int
