@@ -41,104 +41,108 @@ const NewClient: React.FC = () => {
   const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
   
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!name) {
-      setError(t('Please enter a client name'));
-      return;
-    }
-    
-    if (!contactEmail) {
-      setError(t('Please enter a contact email'));
-      return;
-    }
-    
-    if (loading) {
-      console.log('Form submission already in progress, preventing duplicate submission');
-      return; // Prevent multiple submissions
-    }
-    
-    setLoading(true);
-    setError(null);
-    
+   e.preventDefault();
+
+   if (!name) {
+    setError(t('Please enter a client name'));
+    return;
+   }
+
+   if (!contactEmail) {
+    setError(t('Please enter a contact email'));
+    return;
+   }
+
+   if (loading) {
+    console.log('Form submission already in progress, preventing duplicate submission');
+    return;
+   }
+
+   setLoading(true);
+   setError(null);
+
+   try {
+    const clientData: ClientCreate = {
+      name,
+      contact_email: contactEmail,
+      contact_phone: contactPhone,
+      address: address || '',
+      industry: industry || 'other',
+      kyc_verified: kycVerified,
+      notes: notes || '',
+      client_type: clientType,
+      country: country
+    };
+
+    console.log('Submitting client data:', clientData);
+
+    const response = await createClient(clientData);
+    console.log('Client created successfully:', response);
+
     try {
-      const clientData: ClientCreate = {
-        name,
-        contact_email: contactEmail,
-        contact_phone: contactPhone,
-        address,
-        industry,
-        kyc_verified: kycVerified,
-        notes,
-        client_type: clientType,
-        country: country
-      };
-      
-      console.log('Submitting client data:', clientData);
-      
-      const response = await createClient(clientData);
-      console.log('Client created successfully:', response);
-      
-      try {
-        const riskEvalResponse = await fetch(`${API_BASE_URL}/compliance/risk-evaluation`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            client_id: response.id,
-            client_data: {
-              client_type: clientType,
-              country: country,
-              industry: industry || 'other',
-              channel: 'presencial'
-            }
-          })
-        });
-        
-        if (riskEvalResponse.ok) {
-          const riskData = await riskEvalResponse.json();
-          setRiskLevel(riskData.risk_level);
-          console.log('Risk evaluation completed:', riskData);
-        }
-        
-        const verifyResponse = await fetch(`${API_BASE_URL}/legal/verify-client`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            client_id: response.id,
-            name: name,
-            country: country
-          })
-        });
-        
-        if (verifyResponse.ok) {
-          const verificationData = await verifyResponse.json();
-          setVerificationStatus(verificationData.status || 'completed');
-          console.log('Client verification completed:', verificationData);
-        }
-      } catch (complianceErr) {
-        console.error('Error during compliance checks:', complianceErr);
+      const riskEvalResponse = await fetch(`${API_BASE_URL}/compliance/risk-evaluation`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          client_id: response.id,
+          client_data: {
+            client_type: clientType,
+            country: country,
+            industry: industry || 'other',
+            channel: 'presencial'
+          }
+        })
+      });
+
+      if (riskEvalResponse.ok) {
+        const riskData = await riskEvalResponse.json();
+        setRiskLevel(riskData.risk_level);
+        console.log('Risk evaluation completed:', riskData);
       }
-      
-      setName('');
-      setIndustry('');
-      setContactEmail('');
-      setContactPhone('');
-      setAddress('');
-      setKycVerified(false);
-      setNotes('');
-      
-      setSuccess(true);
-      
-      setTimeout(() => {
-        navigate(`/legal/clients/${response.id}`);
-      }, 1500);
-    } catch (err) {
-      console.error('Error creating client:', err);
-      setError(t('Failed to create client. Please try again later.'));
-    } finally {
-      setLoading(false);
+
+      const verifyResponse = await fetch(`${API_BASE_URL}/legal/verify-client`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          client_id: response.id,
+          name: name,
+          country: country
+        })
+      });
+
+      if (verifyResponse.ok) {
+        const verificationData = await verifyResponse.json();
+        setVerificationStatus(verificationData.status || 'completed');
+        console.log('Client verification completed:', verificationData);
+      }
+    } catch (complianceErr) {
+      console.error('Error during compliance checks:', complianceErr);
     }
-  };
+
+    setName('');
+    setIndustry('');
+    setContactEmail('');
+    setContactPhone('');
+    setAddress('');
+    setKycVerified(false);
+    setNotes('');
+
+    setSuccess(true);
+
+    setTimeout(() => {
+      navigate(`/legal/clients/${response.id}`);
+    }, 1500);
+  } catch (err: any) {
+    console.error('Error creating client:', err);
+    if (err?.response?.data?.detail) {
+      setError(err.response.data.detail.toString());
+    } else {
+      setError(t('Failed to create client. Please try again later.'));
+    }
+  } finally {
+    setLoading(false);
+  }
+ };
   
   return (
     <ToastProvider>
