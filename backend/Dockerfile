@@ -27,8 +27,8 @@ RUN apt-get update && \
 RUN curl -sSL https://install.python-poetry.org | python3 - && \
     ln -s /opt/poetry/bin/poetry /usr/local/bin/poetry
 
-# Copia los archivos de dependencias primero
-COPY pyproject.toml poetry.lock ./
+# Copia todos los archivos antes de instalar
+COPY . .
 
 # Instala dependencias del proyecto (sin crear venv adicional)
 RUN poetry config virtualenvs.create false && \
