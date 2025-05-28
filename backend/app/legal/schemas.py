@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, EmailStr, Field
 
+
 class ClientBase(BaseModel):
     name: str
     contact_email: EmailStr
@@ -11,12 +12,16 @@ class ClientBase(BaseModel):
     kyc_verified: bool = False
     notes: Optional[str] = None
 
+
 class ClientCreate(ClientBase):
-    pass
+    client_type: Optional[str] = "individual"
+    country: Optional[str] = "PA"
+
 
 class ClientUpdate(ClientBase):
     name: Optional[str] = None
     contact_email: Optional[EmailStr] = None
+
 
 class ClientInDB(ClientBase):
     id: int
@@ -26,13 +31,17 @@ class ClientInDB(ClientBase):
     class Config:
         from_attributes = True
 
+
 class Client(ClientInDB):
     pass
+
 
 class ContractBase(BaseModel):
     title: str
     client_id: int
-    contract_type: str = Field(..., description="Type of contract (NDA, Service Agreement, etc.)")
+    contract_type: str = Field(
+        ..., description="Type of contract (NDA, Service Agreement, etc.)"
+    )
     start_date: datetime
     expiration_date: Optional[datetime] = None
     responsible_lawyer: str
@@ -40,8 +49,10 @@ class ContractBase(BaseModel):
     status: str = "draft"  # draft, active, expired, terminated
     metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)
 
+
 class ContractCreate(ContractBase):
     file_content: Optional[str] = None  # Base64 encoded file content
+
 
 class ContractUpdate(BaseModel):
     title: Optional[str] = None
@@ -55,6 +66,7 @@ class ContractUpdate(BaseModel):
     metadata: Optional[Dict[str, Any]] = None
     file_content: Optional[str] = None  # Base64 encoded file content
 
+
 class ContractVersion(BaseModel):
     id: int
     contract_id: int
@@ -67,6 +79,7 @@ class ContractVersion(BaseModel):
     class Config:
         from_attributes = True
 
+
 class ContractInDB(ContractBase):
     id: int
     file_path: str
@@ -77,8 +90,10 @@ class ContractInDB(ContractBase):
     class Config:
         from_attributes = True
 
+
 class Contract(ContractInDB):
     client_name: Optional[str] = None  # Added for convenience in API responses
+
 
 class ApprovalStep(BaseModel):
     step_id: str
@@ -88,6 +103,7 @@ class ApprovalStep(BaseModel):
     is_approved: bool = False
     approved_at: Optional[datetime] = None
     comments: Optional[str] = None
+
 
 class WorkflowTemplate(BaseModel):
     id: str
@@ -99,6 +115,7 @@ class WorkflowTemplate(BaseModel):
 
     class Config:
         from_attributes = True
+
 
 class WorkflowInstance(BaseModel):
     id: int
@@ -113,6 +130,7 @@ class WorkflowInstance(BaseModel):
     class Config:
         from_attributes = True
 
+
 class TaskBase(BaseModel):
     title: str
     description: Optional[str] = None
@@ -124,8 +142,10 @@ class TaskBase(BaseModel):
     priority: str = "medium"  # low, medium, high, urgent
     ai_generated: bool = False
 
+
 class TaskCreate(TaskBase):
     pass
+
 
 class TaskUpdate(BaseModel):
     title: Optional[str] = None
@@ -135,6 +155,7 @@ class TaskUpdate(BaseModel):
     status: Optional[str] = None
     priority: Optional[str] = None
 
+
 class TaskInDB(TaskBase):
     id: int
     created_at: datetime
@@ -143,9 +164,11 @@ class TaskInDB(TaskBase):
     class Config:
         from_attributes = True
 
+
 class Task(TaskInDB):
     contract_title: Optional[str] = None
     client_name: Optional[str] = None
+
 
 class AuditLogEntry(BaseModel):
     id: int
