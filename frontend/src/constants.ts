@@ -2,7 +2,7 @@
  * Application-wide constants
  */
 
-export const API_BASE_URL = '/api/v1';
+export const API_BASE_URL = import.meta.env.VITE_API_URL + '/api/v1';
 
 export const AUTH_TOKEN_KEY = 'cortana_auth_token';
 export const AUTH_USER_KEY = 'cortana_user';
