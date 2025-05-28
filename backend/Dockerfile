@@ -21,23 +21,6 @@ RUN apt-get update && \
       libffi-dev \
       libjpeg-dev \
       libopenjp2-7-dev \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Instala Poetry
-RUN curl -sSL https://install.python-poetry.org | python3 - && \
-    ln -s /opt/poetry/bin/poetry /usr/local/bin/poetry
-
-# Copia todos los archivos antes de instalar
-COPY . .
-
-# Instala dependencias del proyecto (sin crear venv adicional)
-RUN poetry config virtualenvs.create false && \
-    poetry install --no-interaction --no-ansi
-    
-# ➤ Instalación de Playwright y navegadores
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-      wget \
       libnss3 \
       libatk1.0-0 \
       libcups2 \
@@ -46,17 +29,28 @@ RUN apt-get update && \
       libx11-xcb1 \
       libxtst6 \
       libasound2 \
-    && rm -rf /var/lib/apt/lists/* \
-    && poetry run pip install playwright \
-    && poetry run playwright install --with-deps
+      wget \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Copia el resto del código fuente
+# Instala Poetry
+RUN curl -sSL https://install.python-poetry.org | python3 - && \
+    ln -s /opt/poetry/bin/poetry /usr/local/bin/poetry
+
+# Copia el código completo antes de instalar dependencias
 COPY . .
 
-# Descarga el modelo de spaCy para español
+# Instala dependencias del proyecto (sin crear virtualenv adicional)
+RUN poetry config virtualenvs.create false && \
+    poetry install --no-interaction --no-ansi
+
+# Instala Playwright y sus navegadores
+RUN poetry run pip install playwright && \
+    poetry run playwright install --with-deps
+
+# Descarga modelo spaCy en español
 RUN python3 -m spacy download es_core_news_md
 
-# Expone el puerto
+# Expone el puerto de la app
 EXPOSE 8000
 
 # Comando de ejecución
