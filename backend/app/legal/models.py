@@ -39,6 +39,7 @@ class Contract(TimestampModel):
     file_path: str
     metadata: Dict[str, Any] = {}
     client_name: Optional[str] = None
+    versions: List[Any] = []
 
 
 class ContractVersion(TimestampModel):
