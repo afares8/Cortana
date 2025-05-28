@@ -70,13 +70,53 @@ class UnifiedVerificationService:
                 f"Starting unified verification for customer: {request.customer.name}"
             )
 
-            customer_dict = request.customer.model_dump()
-            directors_dicts = (
-                [director.model_dump() for director in request.directors]
-                if request.directors
-                else []
-            )
-            ubos_dicts = [ubo.model_dump() for ubo in request.ubos] if request.ubos else []
+            if isinstance(request.customer, dict):
+                customer_dict = request.customer
+            else:
+                try:
+                    if hasattr(request.customer, "model_dump"):
+                        customer_dict = request.customer.model_dump()
+                    elif hasattr(request.customer, "dict"):
+                        customer_dict = request.customer.dict()
+                    else:
+                        customer_dict = {
+                            "name": getattr(request.customer, "name", "Unknown"),
+                            "country": getattr(request.customer, "country", ""),
+                            "type": getattr(request.customer, "type", "natural"),
+                        }
+                except Exception as e:
+                    logger.warning(f"Error converting customer to dict: {str(e)}")
+                    customer_dict = {
+                        "name": getattr(request.customer, "name", "Unknown"),
+                        "country": getattr(request.customer, "country", ""),
+                        "type": getattr(request.customer, "type", "natural"),
+                    }
+
+            directors_dicts = []
+            if request.directors:
+                for director in request.directors:
+                    try:
+                        if isinstance(director, dict):
+                            directors_dicts.append(director)
+                        elif hasattr(director, "model_dump"):
+                            directors_dicts.append(director.model_dump())
+                        elif hasattr(director, "dict"):
+                            directors_dicts.append(director.dict())
+                    except Exception as e:
+                        logger.warning(f"Error converting director to dict: {str(e)}")
+
+            ubos_dicts = []
+            if request.ubos:
+                for ubo in request.ubos:
+                    try:
+                        if isinstance(ubo, dict):
+                            ubos_dicts.append(ubo)
+                        elif hasattr(ubo, "model_dump"):
+                            ubos_dicts.append(ubo.model_dump())
+                        elif hasattr(ubo, "dict"):
+                            ubos_dicts.append(ubo.dict())
+                    except Exception as e:
+                        logger.warning(f"Error converting UBO to dict: {str(e)}")
 
             logger.info(f"Request data: {customer_dict}")
 
