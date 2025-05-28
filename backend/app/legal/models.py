@@ -4,6 +4,7 @@ from pydantic import BaseModel, EmailStr
 
 from app.models.base import TimestampModel
 
+
 class Client(TimestampModel):
     id: int
     name: str
@@ -24,6 +25,7 @@ class Client(TimestampModel):
     verification_date: Optional[datetime] = None
     verification_result: Optional[Dict[str, Any]] = None
 
+
 class Contract(TimestampModel):
     id: int
     title: str
@@ -36,6 +38,8 @@ class Contract(TimestampModel):
     status: str  # draft, active, expired, terminated
     file_path: str
     metadata: Dict[str, Any] = {}
+    client_name: Optional[str] = None
+
 
 class ContractVersion(TimestampModel):
     id: int
@@ -45,11 +49,13 @@ class ContractVersion(TimestampModel):
     changes_description: Optional[str] = None
     created_by: str
 
+
 class WorkflowTemplate(TimestampModel):
     id: str
     name: str
     description: Optional[str] = None
     steps: List[Dict[str, Any]]  # Serialized ApprovalStep objects
+
 
 class WorkflowInstance(TimestampModel):
     id: int
@@ -58,6 +64,7 @@ class WorkflowInstance(TimestampModel):
     current_step_id: str
     status: str  # pending, approved, rejected
     steps: List[Dict[str, Any]]  # Serialized ApprovalStep objects with approval status
+
 
 class Task(TimestampModel):
     id: int
@@ -70,6 +77,7 @@ class Task(TimestampModel):
     status: str  # pending, in_progress, completed, cancelled
     priority: str  # low, medium, high, urgent
     ai_generated: bool = False
+
 
 class AuditLog(TimestampModel):
     id: int
