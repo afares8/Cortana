@@ -503,3 +503,71 @@ async def download_report_endpoint(report_id: str = Path(...)):
         raise HTTPException(
             status_code=500,
             detail="Failed to download report. Please try again later.")
+
+
+@router.post("/uaf-reports", response_model=Dict[str, Any], status_code=201)
+async def generate_uaf_report_endpoint(
+    client_id: int = Body(..., embed=True),
+    start_date: str = Body(..., embed=True),
+    end_date: str = Body(..., embed=True),
+):
+    """
+    Generate a UAF (Unusual Activity Form) report for a client.
+    
+    This endpoint generates a UAF report for the specified client for the given date range.
+    The report includes:
+    - Client information
+    - Transaction history
+    - Risk assessment
+    - Compliance officer notes
+    
+    Returns the report ID and status, which can be used to download the report.
+    """
+    try:
+        from app.services.compliance.services.compliance_service import compliance_service
+        from app.legal.services import get_client
+        from datetime import datetime
+        import os
+        from pathlib import Path
+        
+        client = get_client(client_id)
+        if not client:
+            raise HTTPException(status_code=404, detail="Client not found")
+        
+        reports_dir = Path("data/uaf_reports")
+        reports_dir.mkdir(parents=True, exist_ok=True)
+        
+        report_data = {
+            "report_type": "UAF",
+            "entity_type": "client",
+            "entity_id": client_id,
+            "entity_name": client.name,
+            "start_date": start_date,
+            "end_date": end_date,
+            "status": "generated",
+            "generated_by": "system",
+            "report_path": str(reports_dir / f"uaf_report_{client_id}_{datetime.now().strftime('%Y%m%d%H%M%S')}.pdf"),
+            "metadata": {
+                "client_risk_level": getattr(client, "risk_level", "UNKNOWN"),
+                "client_risk_score": getattr(client, "risk_score", 0),
+                "client_country": getattr(client, "country", "PA"),
+                "client_industry": getattr(client, "industry", "other"),
+            }
+        }
+        
+        report = await compliance_service.create_compliance_report(report_data)
+        
+        from app.services.compliance.services.report_generator import generate_uaf_report_pdf
+        await generate_uaf_report_pdf(report)
+        
+        return {
+            "id": report.id,
+            "status": "generated",
+            "message": "UAF report generated successfully",
+            "download_url": f"/api/v1/compliance/reports/{report.id}/download"
+        }
+    except Exception as e:
+        logger.error(f"Error generating UAF report: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to generate UAF report. Please try again later.")

@@ -10,6 +10,16 @@ export interface Client {
   notes?: string;
   created_at: string;
   updated_at?: string;
+  client_type?: string;
+  country?: string;
+  risk_score?: number;
+  risk_level?: string;
+  risk_details?: Record<string, any>;
+  pep_screening_id?: number;
+  sanctions_screening_id?: number;
+  verification_status?: string;
+  verification_date?: string;
+  verification_result?: Record<string, any>;
 }
 
 export interface ClientCreate {
@@ -20,6 +30,8 @@ export interface ClientCreate {
   industry?: string;
   kyc_verified?: boolean;
   notes?: string;
+  client_type?: string;
+  country?: string;
 }
 
 export interface ClientUpdate {

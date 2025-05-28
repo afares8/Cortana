@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert } from "@/components/ui/alert";
-import { AlertCircle, AlertTriangle, Loader2 } from "lucide-react";
+import { AlertCircle, AlertTriangle, Loader2, FileDown } from "lucide-react";
+import { API_BASE_URL } from "../constants";
 
 interface RecentVerification {
   id: string;
@@ -65,20 +66,162 @@ const ComplianceDashboard: React.FC = () => {
     return () => clearInterval(intervalId);
   }, []);
 
-  const handleGenerateUAFReport = () => {
-    navigate('/compliance/uaf-report/new');
+  const [generatingReport, setGeneratingReport] = useState<boolean>(false);
+  const [verifyingCustomer, setVerifyingCustomer] = useState<boolean>(false);
+  const [runningPEPScreening, setRunningPEPScreening] = useState<boolean>(false);
+  const [runningSanctionsScreening, setRunningSanctionsScreening] = useState<boolean>(false);
+  
+  const handleGenerateUAFReport = async () => {
+    try {
+      setGeneratingReport(true);
+      
+      const response = await fetch(`${API_BASE_URL}/compliance/uaf-reports`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          client_id: 1, // Default to first client for dashboard action
+          start_date: new Date(Date.now() - 30*24*60*60*1000).toISOString(), // Last 30 days
+          end_date: new Date().toISOString()
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate UAF report');
+      }
+      
+      const report = await response.json();
+      
+      if (report.id) {
+        window.open(`${API_BASE_URL}/compliance/reports/${report.id}/download`, '_blank');
+      } else {
+        navigate('/compliance/uaf-report/new');
+      }
+    } catch (error) {
+      console.error('Error generating UAF report:', error);
+      navigate('/compliance/uaf-report/new');
+    } finally {
+      setGeneratingReport(false);
+    }
   };
 
-  const handleRunPEPScreening = () => {
-    navigate('/compliance/pep-screening/new');
+  const handleRunPEPScreening = async () => {
+    try {
+      setRunningPEPScreening(true);
+      
+      const response = await fetch(`${API_BASE_URL}/compliance/pep-screening`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: "Test Customer",
+          country: "PA"
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to run PEP screening');
+      }
+      
+      const result = await response.json();
+      console.log('PEP screening result:', result);
+      
+      const fetchDashboardData = async () => {
+        try {
+          const apiUrl = import.meta.env.VITE_API_URL || '';
+          const response = await axios.get(`${apiUrl}/api/v1/compliance/dashboard`);
+          setDashboardData(response.data);
+        } catch (err) {
+          console.error('Error refreshing dashboard data:', err);
+        }
+      };
+      fetchDashboardData();
+      
+    } catch (error) {
+      console.error('Error running PEP screening:', error);
+      navigate('/compliance/pep-screening/new');
+    } finally {
+      setRunningPEPScreening(false);
+    }
   };
 
-  const handleRunSanctionsScreening = () => {
-    navigate('/compliance/sanctions-screening/new');
+  const handleRunSanctionsScreening = async () => {
+    try {
+      setRunningSanctionsScreening(true);
+      
+      const response = await fetch(`${API_BASE_URL}/compliance/sanctions-screening`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: "Test Customer",
+          country: "PA"
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to run sanctions screening');
+      }
+      
+      const result = await response.json();
+      console.log('Sanctions screening result:', result);
+      
+      const fetchDashboardData = async () => {
+        try {
+          const apiUrl = import.meta.env.VITE_API_URL || '';
+          const response = await axios.get(`${apiUrl}/api/v1/compliance/dashboard`);
+          setDashboardData(response.data);
+        } catch (err) {
+          console.error('Error refreshing dashboard data:', err);
+        }
+      };
+      fetchDashboardData();
+      
+    } catch (error) {
+      console.error('Error running sanctions screening:', error);
+      navigate('/compliance/sanctions-screening/new');
+    } finally {
+      setRunningSanctionsScreening(false);
+    }
   };
 
-  const handleCustomerVerification = () => {
-    navigate('/compliance/verify-customer');
+  const handleCustomerVerification = async () => {
+    try {
+      setVerifyingCustomer(true);
+      
+      const response = await fetch(`${API_BASE_URL}/compliance/verify-customer`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customer: {
+            name: "Test Customer",
+            country: "PA",
+            type: "natural"
+          }
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to verify customer');
+      }
+      
+      const result = await response.json();
+      console.log('Verification result:', result);
+      
+      const fetchDashboardData = async () => {
+        try {
+          const apiUrl = import.meta.env.VITE_API_URL || '';
+          const response = await axios.get(`${apiUrl}/api/v1/compliance/dashboard`);
+          setDashboardData(response.data);
+        } catch (err) {
+          console.error('Error refreshing dashboard data:', err);
+        }
+      };
+      fetchDashboardData();
+      
+    } catch (error) {
+      console.error('Error verifying customer:', error);
+      navigate('/compliance/verify-customer');
+    } finally {
+      setVerifyingCustomer(false);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -92,28 +235,24 @@ const ComplianceDashboard: React.FC = () => {
     }).format(date);
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusBadgeVariant = (status: string) => {
     switch (status) {
-      case 'draft': return 'info';
+      case 'draft': return 'secondary';
       case 'submitted': return 'warning';
-      case 'approved': return 'success';
-      case 'rejected': return 'error';
-      case 'potential_match': return 'warning';
-      case 'confirmed_match': return 'error';
-      case 'no_match': return 'success';
-      default: return 'default';
+      case 'approved': return 'default';
+      case 'rejected': return 'destructive';
+      case 'potential_match': return 'secondary';
+      case 'confirmed_match': return 'destructive';
+      case 'no_match': return 'default';
+      default: return 'secondary';
     }
   };
-
-  const getActivityIcon = (type: string) => {
-    switch (type) {
-      case 'report': return '📄';
-      case 'pep_screening': return '🔍';
-      case 'sanctions_screening': return '⚠️';
-      case 'customer_verification': return '👤';
-      default: return '📋';
-    }
-  };
+  
+  const renderStatusBadge = (status: string) => (
+    <Badge variant={getStatusBadgeVariant(status) as "default" | "secondary" | "destructive" | "outline"}>
+      {status.replace('_', ' ')}
+    </Badge>
+  );
 
   if (loading) {
     return (
@@ -155,26 +294,61 @@ const ComplianceDashboard: React.FC = () => {
           <Button 
             variant="default"
             onClick={handleGenerateUAFReport}
+            disabled={generatingReport}
           >
-            {t('compliance.generateUAFReport')}
+            {generatingReport ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                {t('compliance.generating')}
+              </>
+            ) : (
+              <>
+                <FileDown className="h-4 w-4 mr-2" />
+                {t('compliance.generateUAFReport')}
+              </>
+            )}
           </Button>
           <Button 
             variant="outline"
             onClick={handleRunPEPScreening}
+            disabled={runningPEPScreening}
           >
-            {t('compliance.runPEPScreening')}
+            {runningPEPScreening ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                {t('compliance.running')}
+              </>
+            ) : (
+              t('compliance.runPEPScreening')
+            )}
           </Button>
           <Button 
             variant="outline"
             onClick={handleRunSanctionsScreening}
+            disabled={runningSanctionsScreening}
           >
-            {t('compliance.runSanctionsScreening')}
+            {runningSanctionsScreening ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                {t('compliance.running')}
+              </>
+            ) : (
+              t('compliance.runSanctionsScreening')
+            )}
           </Button>
           <Button 
             variant="outline"
             onClick={handleCustomerVerification}
+            disabled={verifyingCustomer}
           >
-            {t('compliance.verifyCustomer')}
+            {verifyingCustomer ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                {t('compliance.verifying')}
+              </>
+            ) : (
+              t('compliance.verifyCustomer')
+            )}
           </Button>
           <Button 
             variant="outline"
@@ -271,7 +445,7 @@ const ComplianceDashboard: React.FC = () => {
                         </div>
                         <div className="text-sm text-muted-foreground mt-1">
                           <span className="font-medium">
-                            {verification.result}
+                            {renderStatusBadge(verification.result)}
                           </span>
                           {" — "}
                           {formatDate(verification.verification_date)}

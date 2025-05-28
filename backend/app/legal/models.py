@@ -4,6 +4,7 @@ from pydantic import BaseModel, EmailStr
 
 from app.models.base import TimestampModel
 
+
 class Client(TimestampModel):
     id: int
     name: str
@@ -13,6 +14,17 @@ class Client(TimestampModel):
     industry: Optional[str] = None
     kyc_verified: bool = False
     notes: Optional[str] = None
+    client_type: Optional[str] = None
+    country: Optional[str] = None
+    risk_score: Optional[float] = None
+    risk_level: Optional[str] = None
+    risk_details: Optional[Dict[str, Any]] = None
+    pep_screening_id: Optional[int] = None
+    sanctions_screening_id: Optional[int] = None
+    verification_status: Optional[str] = None
+    verification_date: Optional[datetime] = None
+    verification_result: Optional[Dict[str, Any]] = None
+
 
 class Contract(TimestampModel):
     id: int
@@ -26,6 +38,9 @@ class Contract(TimestampModel):
     status: str  # draft, active, expired, terminated
     file_path: str
     metadata: Dict[str, Any] = {}
+    client_name: Optional[str] = None
+    versions: List[Any] = []
+
 
 class ContractVersion(TimestampModel):
     id: int
@@ -35,11 +50,13 @@ class ContractVersion(TimestampModel):
     changes_description: Optional[str] = None
     created_by: str
 
+
 class WorkflowTemplate(TimestampModel):
     id: str
     name: str
     description: Optional[str] = None
     steps: List[Dict[str, Any]]  # Serialized ApprovalStep objects
+
 
 class WorkflowInstance(TimestampModel):
     id: int
@@ -48,6 +65,7 @@ class WorkflowInstance(TimestampModel):
     current_step_id: str
     status: str  # pending, approved, rejected
     steps: List[Dict[str, Any]]  # Serialized ApprovalStep objects with approval status
+
 
 class Task(TimestampModel):
     id: int
@@ -60,6 +78,7 @@ class Task(TimestampModel):
     status: str  # pending, in_progress, completed, cancelled
     priority: str  # low, medium, high, urgent
     ai_generated: bool = False
+
 
 class AuditLog(TimestampModel):
     id: int

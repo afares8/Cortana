@@ -17,16 +17,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../components/ui
 import { Separator } from '../../../components/ui/separator';
 import { getClient, updateClient, deleteClient } from '../api/legalApi';
 import { Client, ClientUpdate } from '../types';
-import { Loader2, ArrowLeft, Save, Trash2, FileText, ClipboardList } from 'lucide-react';
+import { Loader2, ArrowLeft, Save, Trash2, FileText, ClipboardList, ShieldAlert, FileDown } from 'lucide-react';
+import { API_BASE_URL } from '../../../constants';
+import { useTranslation } from 'react-i18next';
 
 const ClientDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [client, setClient] = useState<Client | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
   const [formData, setFormData] = useState<ClientUpdate>({});
   const [activeTab, setActiveTab] = useState<string>('details');
+  const [generatingReport, setGeneratingReport] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchClient = async () => {
@@ -124,6 +128,37 @@ const ClientDetail: React.FC = () => {
       setSaving(false);
     }
   };
+  
+  const generateUAFReport = async (clientId: number) => {
+    try {
+      setGeneratingReport(true);
+      
+      const response = await fetch(`${API_BASE_URL}/compliance/uaf-reports`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          client_id: clientId,
+          start_date: new Date(Date.now() - 30*24*60*60*1000).toISOString(), // Last 30 days
+          end_date: new Date().toISOString()
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate UAF report');
+      }
+      
+      const report = await response.json();
+      
+      if (report.id) {
+        window.open(`${API_BASE_URL}/compliance/reports/${report.id}/download`, '_blank');
+      }
+      
+    } catch (error) {
+      console.error('Error generating UAF report:', error);
+    } finally {
+      setGeneratingReport(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -217,15 +252,31 @@ const ClientDetail: React.FC = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="industry">Industry</Label>
+                    <Label htmlFor="industry">{t('Industry')}</Label>
                     <Input 
                       id="industry" 
                       name="industry" 
                       value={formData.industry || ''} 
                       onChange={handleInputChange} 
-                      placeholder="e.g. Technology, Manufacturing, etc."
+                      placeholder={t('e.g. Technology, Manufacturing, etc.')}
                     />
                   </div>
+                  
+                  {/* Add Risk Level Display */}
+                  {client && client.risk_level && (
+                    <div className="space-y-2">
+                      <Label htmlFor="risk-level">{t('Risk Level')}</Label>
+                      <div className={`p-2 rounded flex items-center ${
+                        client.risk_level === 'HIGH' ? 'bg-red-100 text-red-800' :
+                        client.risk_level === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-green-100 text-green-800'
+                      }`}>
+                        <ShieldAlert className="h-4 w-4 mr-2" />
+                        {client.risk_level || t('Not Assessed')}
+                        {client.risk_score && ` (${client.risk_score})`}
+                      </div>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="space-y-4">
@@ -260,9 +311,55 @@ const ClientDetail: React.FC = () => {
                       onCheckedChange={handleCheckboxChange}
                     />
                     <Label htmlFor="kyc_verified" className="font-normal">
-                      KYC Verification Completed
+                      {t('KYC Verification Completed')}
                     </Label>
                   </div>
+                  
+                  {/* Add PEP/Sanctions Verification Status */}
+                  {client && (client.verification_status || client.verification_result) && (
+                    <div className="space-y-2 mt-4">
+                      <Label htmlFor="verification-status">{t('Verification Status')}</Label>
+                      <div className="space-y-2">
+                        <div className={`p-2 rounded ${
+                          client.verification_result?.pep_status === 'match' ? 'bg-red-100 text-red-800' :
+                          client.verification_result?.pep_status === 'no_match' ? 'bg-green-100 text-green-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {t('PEP Check')}: {client.verification_result?.pep_status || t('Pending')}
+                        </div>
+                        <div className={`p-2 rounded ${
+                          client.verification_result?.sanctions_status === 'match' ? 'bg-red-100 text-red-800' :
+                          client.verification_result?.sanctions_status === 'no_match' ? 'bg-green-100 text-green-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {t('Sanctions Check')}: {client.verification_result?.sanctions_status || t('Pending')}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Generate UAF Button - only for high-risk clients */}
+                  {client && client.risk_level === 'HIGH' && (
+                    <div className="mt-4">
+                      <Button 
+                        onClick={() => generateUAFReport(client.id)}
+                        disabled={generatingReport}
+                        className="w-full"
+                      >
+                        {generatingReport ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            {t('Generating...')}
+                          </>
+                        ) : (
+                          <>
+                            <FileDown className="h-4 w-4 mr-2" />
+                            {t('Generate UAF Report')}
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             </CardContent>

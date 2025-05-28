@@ -13,11 +13,12 @@ import { Label } from '../../../../components/ui/label';
 import { Textarea } from '../../../../components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../../components/ui/select';
 import { Alert } from '../../../../components/ui/alert';
-import { AlertCircle, Loader2, Save, ArrowLeft } from 'lucide-react';
+import { AlertCircle, Loader2, Save, ArrowLeft, ShieldAlert } from 'lucide-react';
 import { Toast, ToastProvider, ToastViewport, ToastTitle, ToastDescription } from '../../../../components/ui/toast';
 import { createClient } from '../../api/legalApi';
 import { ClientCreate } from '../../types';
 import { useTranslation } from 'react-i18next';
+import { API_BASE_URL } from '../../../../constants';
 
 const NewClient: React.FC = () => {
   const { t } = useTranslation();
@@ -30,10 +31,14 @@ const NewClient: React.FC = () => {
   const [address, setAddress] = useState('');
   const [kycVerified, setKycVerified] = useState(false);
   const [notes, setNotes] = useState('');
+  const [clientType, setClientType] = useState('individual');
+  const [country, setCountry] = useState('PA');
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [riskLevel, setRiskLevel] = useState<string | null>(null);
+  const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,13 +69,55 @@ const NewClient: React.FC = () => {
         address,
         industry,
         kyc_verified: kycVerified,
-        notes
+        notes,
+        client_type: clientType,
+        country: country
       };
       
       console.log('Submitting client data:', clientData);
       
       const response = await createClient(clientData);
       console.log('Client created successfully:', response);
+      
+      try {
+        const riskEvalResponse = await fetch(`${API_BASE_URL}/compliance/risk-evaluation`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            client_id: response.id,
+            client_data: {
+              client_type: clientType,
+              country: country,
+              industry: industry || 'other',
+              channel: 'presencial'
+            }
+          })
+        });
+        
+        if (riskEvalResponse.ok) {
+          const riskData = await riskEvalResponse.json();
+          setRiskLevel(riskData.risk_level);
+          console.log('Risk evaluation completed:', riskData);
+        }
+        
+        const verifyResponse = await fetch(`${API_BASE_URL}/legal/verify-client`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            client_id: response.id,
+            name: name,
+            country: country
+          })
+        });
+        
+        if (verifyResponse.ok) {
+          const verificationData = await verifyResponse.json();
+          setVerificationStatus(verificationData.status || 'completed');
+          console.log('Client verification completed:', verificationData);
+        }
+      } catch (complianceErr) {
+        console.error('Error during compliance checks:', complianceErr);
+      }
       
       setName('');
       setIndustry('');
@@ -83,7 +130,7 @@ const NewClient: React.FC = () => {
       setSuccess(true);
       
       setTimeout(() => {
-        navigate('/legal/clients');
+        navigate(`/legal/clients/${response.id}`);
       }, 1500);
     } catch (err) {
       console.error('Error creating client:', err);
@@ -136,21 +183,61 @@ const NewClient: React.FC = () => {
                 />
               </div>
               
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid w-full items-center gap-1.5">
+                  <Label htmlFor="industry">{t('Industry')}</Label>
+                  <Select value={industry} onValueChange={setIndustry} disabled={loading}>
+                    <SelectTrigger id="industry">
+                      <SelectValue placeholder={t('Select client industry')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="finance">{t('Finance')}</SelectItem>
+                      <SelectItem value="healthcare">{t('Healthcare')}</SelectItem>
+                      <SelectItem value="technology">{t('Technology')}</SelectItem>
+                      <SelectItem value="retail">{t('Retail')}</SelectItem>
+                      <SelectItem value="manufacturing">{t('Manufacturing')}</SelectItem>
+                      <SelectItem value="government">{t('Government')}</SelectItem>
+                      <SelectItem value="education">{t('Education')}</SelectItem>
+                      <SelectItem value="other">{t('Other')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="grid w-full items-center gap-1.5">
+                  <Label htmlFor="client-type">{t('Client Type')}</Label>
+                  <Select value={clientType} onValueChange={setClientType} disabled={loading}>
+                    <SelectTrigger id="client-type">
+                      <SelectValue placeholder={t('Select client type')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="individual">{t('Individual')}</SelectItem>
+                      <SelectItem value="empresa">{t('Company')}</SelectItem>
+                      <SelectItem value="gobierno">{t('Government')}</SelectItem>
+                      <SelectItem value="ong">{t('NGO')}</SelectItem>
+                      <SelectItem value="pep">{t('PEP')}</SelectItem>
+                      <SelectItem value="fideicomiso">{t('Trust')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
               <div className="grid w-full items-center gap-1.5">
-                <Label htmlFor="industry">{t('Industry')}</Label>
-                <Select value={industry} onValueChange={setIndustry} disabled={loading}>
-                  <SelectTrigger id="industry">
-                    <SelectValue placeholder={t('Select client industry')} />
+                <Label htmlFor="country">{t('Country')}</Label>
+                <Select value={country} onValueChange={setCountry} disabled={loading}>
+                  <SelectTrigger id="country">
+                    <SelectValue placeholder={t('Select country')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="finance">{t('Finance')}</SelectItem>
-                    <SelectItem value="healthcare">{t('Healthcare')}</SelectItem>
-                    <SelectItem value="technology">{t('Technology')}</SelectItem>
-                    <SelectItem value="retail">{t('Retail')}</SelectItem>
-                    <SelectItem value="manufacturing">{t('Manufacturing')}</SelectItem>
-                    <SelectItem value="government">{t('Government')}</SelectItem>
-                    <SelectItem value="education">{t('Education')}</SelectItem>
-                    <SelectItem value="other">{t('Other')}</SelectItem>
+                    <SelectItem value="PA">{t('Panama')}</SelectItem>
+                    <SelectItem value="US">{t('United States')}</SelectItem>
+                    <SelectItem value="CO">{t('Colombia')}</SelectItem>
+                    <SelectItem value="VE">{t('Venezuela')}</SelectItem>
+                    <SelectItem value="MX">{t('Mexico')}</SelectItem>
+                    <SelectItem value="BR">{t('Brazil')}</SelectItem>
+                    <SelectItem value="AR">{t('Argentina')}</SelectItem>
+                    <SelectItem value="CL">{t('Chile')}</SelectItem>
+                    <SelectItem value="PE">{t('Peru')}</SelectItem>
+                    <SelectItem value="EC">{t('Ecuador')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -247,8 +334,23 @@ const NewClient: React.FC = () => {
         {success && (
           <Toast>
             <ToastTitle>{t('Success')}</ToastTitle>
-            <ToastDescription>
-              {t('Client created successfully')}
+            <ToastDescription className="space-y-2">
+              <div>{t('Client created successfully')}</div>
+              {riskLevel && (
+                <div className={`p-1 rounded text-sm ${
+                  riskLevel === 'HIGH' ? 'bg-red-100 text-red-800' :
+                  riskLevel === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' :
+                  'bg-green-100 text-green-800'
+                }`}>
+                  <ShieldAlert className="h-4 w-4 inline mr-1" />
+                  {t('Risk Level')}: {riskLevel}
+                </div>
+              )}
+              {verificationStatus && (
+                <div className="bg-blue-100 text-blue-800 p-1 rounded text-sm">
+                  {t('Verification Status')}: {verificationStatus}
+                </div>
+              )}
             </ToastDescription>
           </Toast>
         )}
