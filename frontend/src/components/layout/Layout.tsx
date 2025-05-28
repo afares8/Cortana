@@ -82,9 +82,9 @@ export default function Layout({ children, title }: LayoutProps) {
         { path: 'legal/workflows', label: 'common.navigation.workflows', icon: <Activity className="h-4 w-4" /> },
         { path: 'legal/tasks', label: 'common.navigation.tasks', icon: <CheckSquare className="h-4 w-4" /> },
         { path: 'legal/audit-logs', label: 'common.navigation.auditLogs', icon: <Database className="h-4 w-4" /> },
-        { path: 'legal/compliance/pep', label: 'common.navigation.pepScreening', icon: <Users className="h-4 w-4" /> },
-        { path: 'legal/compliance/sanctions', label: 'common.navigation.sanctionsScreening', icon: <Shield className="h-4 w-4" /> },
-        { path: 'legal/compliance/uaf', label: 'common.navigation.uafReport', icon: <FileText className="h-4 w-4" /> },
+        //{ path: 'legal/compliance/pep', label: 'common.navigation.pepScreening', icon: <Users className="h-4 w-4" /> },
+        //{ path: 'legal/compliance/sanctions', label: 'common.navigation.sanctionsScreening', icon: <Shield className="h-4 w-4" /> },
+        //{ path: 'legal/compliance/uaf', label: 'common.navigation.uafReport', icon: <FileText className="h-4 w-4" /> },
         { path: 'ai-dashboard', label: 'common.navigation.legalAssistant', icon: <Brain className="h-4 w-4" /> }
       ]
     },
