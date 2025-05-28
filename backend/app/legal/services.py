@@ -20,6 +20,7 @@ from app.legal.models import (
     Task,
     AuditLog,
 )
+from app.legal.schemas import ClientCreate
 from app.db.base import InMemoryDB
 
 clients_db = InMemoryDB[Client](Client)
@@ -42,7 +43,14 @@ def create_client(client_data: Dict[str, Any]) -> Client:
     from app.services.compliance.services.compliance_service import compliance_service
     import asyncio
 
-    client = clients_db.create(obj_in=Client(**client_data))
+    client_create = ClientCreate(**client_data)
+    next_id = clients_db.counter
+    client_dict = client_create.model_dump()
+    client_dict["id"] = next_id
+    client_dict["created_at"] = datetime.now()
+    client = Client(**client_dict)
+    clients_db.data[next_id] = client
+    clients_db.counter += 1
 
     try:
         risk_evaluation = excel_risk_evaluator.calculate_risk(
