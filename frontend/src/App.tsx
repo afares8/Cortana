@@ -17,6 +17,7 @@ import ComplianceCheckPage from './pages/ComplianceCheckPage';
 import CountryRiskMap from './pages/CountryRiskMap';
 
 import ClientList from './modules/legal/pages/ClientList';
+import NewClient from './modules/legal/pages/clients/NewClient';
 import ClientDetail from './modules/legal/pages/ClientDetail';
 import LegalContractList from './modules/legal/pages/ContractList';
 import LegalContractDetail from './modules/legal/pages/ContractDetail';
@@ -106,6 +107,7 @@ function App() {
           {/* Legal Module Routes */}
           <Route path="legal/dashboard" element={<LegalDashboard />} />
           <Route path="legal/clients" element={<ClientList />} />
+          <Route path="legal/clients/new" element={<NewClient />} />
           <Route path="legal/clients/:id" element={<ClientDetail />} />
           <Route path="legal/contracts" element={<LegalContractList />} />
           <Route path="legal/contracts/:id" element={<LegalContractDetail />} />

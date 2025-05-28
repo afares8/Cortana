@@ -18,8 +18,7 @@ import {
   TaskUpdate,
   AuditLog,
   DueDiligenceResponse,
-  ContractAnalysisResult,
-  LegalQAResponse
+  ContractAnalysisResult
 } from '../types';
 
 export const getClients = async (params?: { 
