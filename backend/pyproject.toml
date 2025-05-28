@@ -42,6 +42,7 @@ symspellpy = "^6.9.0"
 pyotp = "^2.9.0"
 qrcode = "^8.2"
 openpyxl = "^3.1.5"
+pandas = "^2.2.2"
 bcrypt = "3.2.0"
 
 [tool.poetry.group.dev.dependencies]
