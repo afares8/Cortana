@@ -137,10 +137,19 @@ Each department has dedicated roles, functions, and AI profiles configured to su
 │   │   │   ├── ai/               # AI-specific components
 │   │   │   │   ├── AIContractAnalysis.tsx  # Contract analysis component
 │   │   │   │   └── AIContextualChat.tsx    # Contextual AI chat component
+│   │   │   ├── auth/             # Authentication components
+│   │   │   │   └── ProtectedRoute.tsx      # Route protection component
 │   │   │   ├── compliance/       # Compliance components
 │   │   │   │   ├── ComplianceDashboardWidget.tsx  # Dashboard widget
 │   │   │   │   └── ComplianceManualUploader.tsx   # Manual uploader
+│   │   │   ├── contracts/        # Contract components
+│   │   │   │   └── ContractList.tsx        # Unified contract list component
+│   │   │   ├── layout/           # Layout components
+│   │   │   │   ├── Layout.tsx              # Main application layout
+│   │   │   │   └── LogoutButton.tsx        # Authentication logout button
 │   │   │   └── ui/               # UI components
+│   │   ├── contexts/             # React contexts
+│   │   │   └── AuthContext.tsx   # Authentication context provider
 │   │   ├── lib/                  # Utility functions and API client
 │   │   ├── modules/              # Module-specific code
 │   │   │   ├── legal/            # Legal department module
@@ -159,6 +168,8 @@ Each department has dedicated roles, functions, and AI profiles configured to su
 │   │   │       └── types/        # User-specific types
 │   │   ├── pages/                # Page components
 │   │   │   ├── ComplianceDashboard.tsx  # Compliance dashboard
+│   │   │   ├── diagnostics/      # Diagnostics components
+│   │   │   │   └── DiagnosticsPanel.tsx  # System diagnostics panel (formerly ArturPanel)
 │   │   │   ├── UAFReportForm.tsx        # UAF report generation
 │   │   │   └── SanctionsScreeningForm.tsx  # Sanctions screening
 │   │   ├── types/                # TypeScript type definitions
@@ -771,6 +782,19 @@ Cortana supports multiple languages using i18next and react-i18next. The default
   - `systemStatus`: System status information
   - `lastUpdated`: Timestamp labels
 - `contracts`: Contract module content
+  - `title`: Contract management title
+  - `subtitle`: Contract management subtitle
+  - `addNew`: Add new contract button text
+  - `upload`: Upload contract button text
+  - `columns`: Table column headers
+  - `status`: Contract status labels
+  - `expires`: Expiration date label
+  - `filterDescription`: Filter description text
+  - `searchPlaceholder`: Search input placeholder
+  - `allTypes`: All contract types filter option
+  - `allStatuses`: All statuses filter option
+  - `allClients`: All clients filter option
+  - `noContractsFound`: Empty state message
 - `legal`: Legal module content
 - `compliance`: Compliance module content
 - `accounting`: Accounting module content

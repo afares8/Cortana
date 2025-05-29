@@ -8,7 +8,7 @@ import Login from './pages/Login';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
 import Dashboard from './pages/Dashboard';
-import ContractList from './pages/ContractList';
+import ContractListPage from './pages/ContractListPage';
 import ContractDetail from './pages/ContractDetail';
 import ContractUpload from './pages/ContractUpload';
 import AIDashboard from './pages/AIDashboard';
@@ -22,7 +22,7 @@ import CountryRiskMap from './pages/CountryRiskMap';
 import ClientList from './modules/legal/pages/ClientList';
 import NewClient from './modules/legal/pages/clients/NewClient';
 import ClientDetail from './modules/legal/pages/ClientDetail';
-import LegalContractList from './modules/legal/pages/ContractList';
+import LegalContractListPage from './modules/legal/pages/LegalContractListPage';
 import LegalContractDetail from './modules/legal/pages/ContractDetail';
 import WorkflowList from './modules/legal/pages/WorkflowList';
 import WorkflowDetail from './modules/legal/pages/WorkflowDetail';
@@ -91,7 +91,7 @@ function App() {
               } />
               <Route path="contracts" element={
                 <ProtectedRoute>
-                  <ContractList />
+                  <ContractListPage />
                 </ProtectedRoute>
               } />
               <Route path="contracts/upload" element={
@@ -187,7 +187,7 @@ function App() {
               } />
               <Route path="legal/contracts" element={
                 <ProtectedRoute>
-                  <LegalContractList />
+                  <LegalContractListPage />
                 </ProtectedRoute>
               } />
               <Route path="legal/contracts/:id" element={
