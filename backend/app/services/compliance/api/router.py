@@ -710,6 +710,8 @@ async def get_compliance_dashboard_endpoint():
         
         return {
             "total_screenings": 120,
+            "active_contracts": 42,
+            "pep_matches": 5,
             "flagged_clients": 8,
             "last_update": datetime.now().isoformat(),
             "sanction_sources": ["OFAC", "UN", "EU"]
@@ -718,6 +720,8 @@ async def get_compliance_dashboard_endpoint():
         logger.error(f"Error retrieving dashboard data: {str(e)}")
         return {
             "total_screenings": 0,
+            "active_contracts": 0,
+            "pep_matches": 0,
             "flagged_clients": 0,
             "last_update": datetime.now().isoformat(),
             "sanction_sources": []
