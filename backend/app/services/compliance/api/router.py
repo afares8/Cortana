@@ -1,7 +1,8 @@
 from app.services.compliance.api.endpoints import router as endpoints_router
 from app.services.compliance.services.verification_service import verification_service
 from app.services.compliance.services.compliance_service import compliance_service
-from app.services.compliance.schemas.verify import CustomerVerifyRequest, CustomerVerificationResponse
+from app.services.compliance.services.unified_verification_service import unified_verification_service
+from app.services.compliance.schemas.verify import CustomerVerifyRequest, CustomerVerificationResponse, EntityBase
 from app.services.compliance.schemas.compliance import (
     ComplianceReportCreate, ComplianceReportUpdate,
     PEPScreeningResultCreate, PEPScreeningResultUpdate,
@@ -10,9 +11,9 @@ from app.services.compliance.schemas.compliance import (
 )
 from app.services.compliance.models.compliance import ComplianceReport, PEPScreeningResult, SanctionsScreeningResult, DocumentRetentionPolicy
 from typing import List, Optional, Dict, Any
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import logging
-from fastapi import APIRouter, Depends, HTTPException, Path, Body, Query, File, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, Path, Body, Query, File, UploadFile, status
 from pydantic import EmailStr
 
 logger = logging.getLogger(__name__)
@@ -571,3 +572,99 @@ async def generate_uaf_report_endpoint(
         raise HTTPException(
             status_code=500,
             detail="Failed to generate UAF report. Please try again later.")
+
+@router.post("/verify-all", response_model=Dict[str, Any], status_code=status.HTTP_201_CREATED)
+async def verify_all_clients_endpoint():
+    """
+    Verify all clients against PEP and sanctions lists.
+    
+    This endpoint triggers verification for all clients in the system
+    that haven't been verified recently.
+    """
+    try:
+        from app.legal.services import get_clients
+        
+        clients = get_clients(limit=1000)  # Get all clients
+        results = []
+        
+        for client in clients:
+            try:
+                customer_data = {
+                    "name": client.name,
+                    "country": getattr(client, "country", "PA"),
+                    "type": getattr(client, "client_type", "natural"),
+                }
+                
+                request = CustomerVerifyRequest(customer=EntityBase(**customer_data))
+                verification_result = await unified_verification_service.verify_customer(request)
+                
+                results.append({
+                    "client_id": client.id,
+                    "client_name": client.name,
+                    "status": "verified",
+                    "verification_result": verification_result
+                })
+            except Exception as e:
+                logger.error(f"Error verifying client {client.id}: {str(e)}")
+                results.append({
+                    "client_id": client.id,
+                    "client_name": client.name,
+                    "status": "error",
+                    "error": str(e)
+                })
+        
+        return {
+            "status": "completed",
+            "total_clients": len(clients),
+            "verified_count": len([r for r in results if r["status"] == "verified"]),
+            "error_count": len([r for r in results if r["status"] == "error"]),
+            "results": results
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in batch verification: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to perform batch verification. Please try again later.")
+
+
+@router.get("/verification-status", response_model=Dict[str, Any])
+async def get_verification_status_endpoint(client_id: int = Query(...)):
+    """
+    Get verification status for a specific client.
+    
+    Returns the current verification status including PEP screening,
+    sanctions screening, and risk assessment results.
+    """
+    try:
+        from app.legal.services import get_client
+        
+        client = get_client(client_id)
+        if not client:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Client not found")
+        
+        verification_status = getattr(client, "verification_status", "not_verified")
+        verification_date = getattr(client, "verification_date", None)
+        verification_result = getattr(client, "verification_result", {})
+        
+        return {
+            "client_id": client_id,
+            "client_name": client.name,
+            "verification_status": verification_status,
+            "verification_date": verification_date.isoformat() if verification_date else None,
+            "verification_result": verification_result,
+            "risk_level": getattr(client, "risk_level", "unknown"),
+            "risk_score": getattr(client, "risk_score", 0),
+            "pep_screening_status": verification_result.get("customer", {}).get("pep_matches", []),
+            "sanctions_screening_status": verification_result.get("customer", {}).get("sanctions_matches", []),
+            "country_risk": verification_result.get("country_risk", {}),
+            "last_updated": verification_date.isoformat() if verification_date else None
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error retrieving verification status for client {client_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve verification status. Please try again later.")

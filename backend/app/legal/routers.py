@@ -491,7 +491,7 @@ async def verify_client_endpoint(
                 elif hasattr(result, "model_dump"):
                     result = result.model_dump()
                 else:
-                    logger.warning(f"Could not convert result to dict: {type(result)}")
+                    logger.warning("Could not convert result to dict")
                     result = {
                         "customer": {"name": customer_data["name"]},
                         "status": "error",
