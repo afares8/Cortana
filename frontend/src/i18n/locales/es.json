@@ -552,5 +552,18 @@
     "placeholder": "Escribe tu consulta aquí...",
     "send": "Enviar",
     "helpText": "Puedes preguntar sobre tareas pendientes, contratos, clientes, o reportes de cumplimiento."
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "empty": "No hay notificaciones",
+    "markAllAsRead": "Marcar todas como leídas",
+    "clearAll": "Borrar todas",
+    "all": "Todas",
+    "unread": "No leídas",
+    "legal": "Legal",
+    "compliance": "Cumplimiento",
+    "accounting": "Contabilidad",
+    "traffic": "Tráfico",
+    "admin": "Administración"
   }
 }

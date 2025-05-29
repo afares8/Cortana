@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { I18nextProvider } from 'react-i18next';
 import i18n from './i18n';
 import { AuthProvider } from './contexts/AuthContext';
+import { NotificationProvider } from './modules/notifications/context/NotificationContext';
 import Login from './pages/Login';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
@@ -78,7 +79,8 @@ function App() {
       <I18nextProvider i18n={i18n}>
         <Router>
           <AuthProvider>
-            <Routes>
+            <NotificationProvider>
+              <Routes>
               {/* Auth routes */}
               <Route path="/login" element={<Login onLoginSuccess={() => {}} />} />
               <Route path="/register" element={<Navigate to="/login" replace />} />
@@ -398,7 +400,8 @@ function App() {
               
               {/* Catch-all redirect to dashboard */}
               <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
+              </Routes>
+            </NotificationProvider>
           </AuthProvider>
         </Router>
       </I18nextProvider>

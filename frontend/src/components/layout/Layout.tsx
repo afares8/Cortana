@@ -2,10 +2,11 @@ import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Search, X, Menu, LogOut, ChevronRight, ChevronDown, Bell, Settings, Shield, FileText, Users, Activity, CheckSquare, Database, Brain, BarChart2, BarChart3, Truck, DollarSign, Mail, UserCog, Building2, GitBranch, Cpu } from 'lucide-react';
-import NotificationBadge from '../../modules/accounting/components/NotificationBadge';
+import NotificationCenter from '../../modules/notifications/components/NotificationCenter';
 import LanguageToggle from '../LanguageToggle';
 import SettingsPanel from '../settings/SettingsPanel';
-import { searchAll, SearchResult } from '../../modules/search/api/searchApi';
+import { searchAll } from '../../modules/search/api/searchApi';
+import type { SearchResult } from '../../modules/search/api/searchApi';
 
 interface LayoutProps {
   children: ReactNode;
@@ -18,14 +19,6 @@ interface NavItem {
   icon: ReactNode;
   section?: string;
   children?: NavItem[];
-}
-
-interface SearchResult {
-  id: string;
-  title: string;
-  type: string;
-  path: string;
-  excerpt: string;
 }
 
 export default function Layout({ children, title }: LayoutProps) {
@@ -424,7 +417,7 @@ export default function Layout({ children, title }: LayoutProps) {
           
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
-            <NotificationBadge />
+            <NotificationCenter />
             <LanguageToggle />
             <button 
               onClick={() => setSettingsPanelOpen(true)}
@@ -443,7 +436,7 @@ export default function Layout({ children, title }: LayoutProps) {
           
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center">
-            <NotificationBadge />
+            <NotificationCenter />
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none"
