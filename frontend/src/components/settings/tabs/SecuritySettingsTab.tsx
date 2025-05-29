@@ -86,6 +86,15 @@ const SecuritySettingsTab = ({ settings, updateSettings }: SecuritySettingsTabPr
     });
   };
   
+  const handleAuthorizationModeToggle = (enabled: boolean) => {
+    updateSettings({
+      security: {
+        ...settings.security,
+        production_auth_mode: enabled
+      }
+    });
+  };
+  
   return (
     <Card>
       <CardHeader>
@@ -95,6 +104,15 @@ const SecuritySettingsTab = ({ settings, updateSettings }: SecuritySettingsTabPr
       <CardContent className="space-y-6">
         <div className="space-y-4">
           <h3 className="text-lg font-medium">{t('settings.authenticationSettings')}</h3>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="auth-mode">{t('settings.productionAuthMode')}</Label>
+            <Switch
+              id="auth-mode"
+              checked={settings.security.production_auth_mode}
+              onCheckedChange={handleAuthorizationModeToggle}
+            />
+          </div>
+          
           <div className="flex items-center justify-between">
             <Label htmlFor="enforce-2fa">{t('settings.enforce2FA')}</Label>
             <Switch
