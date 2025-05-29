@@ -194,3 +194,5 @@ class SpanishInputPipeline:
             text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
         
         return text
+
+spanish_pipeline = SpanishInputPipeline()

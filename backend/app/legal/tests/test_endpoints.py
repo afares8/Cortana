@@ -13,7 +13,8 @@ def test_verify_client_endpoint():
         json={
             "full_name": "John Doe",
             "passport": "A123456",
-            "country": "US"
+            "country": "US",
+            "type": "natural"
         }
     )
     assert response.status_code == 200
