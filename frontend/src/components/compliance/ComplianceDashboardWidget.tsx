@@ -112,36 +112,10 @@ const ComplianceDashboardWidget: React.FC<ComplianceDashboardWidgetProps> = ({
         console.error('Error fetching compliance dashboard data:', err);
         setError(t('compliance.loadError'));
         
-        setMetrics([
-          { label: 'Active Contracts', value: 42, status: 'success', icon: '📄' },
-          { label: 'Expiring Soon', value: 7, status: 'warning', icon: '⏱️' },
-          { label: 'PEP Matches', value: 2, status: 'danger', icon: '👤' },
-          { label: 'Sanctions Matches', value: 1, status: 'danger', icon: '🚫' },
-          { label: 'Pending Reports', value: 5, status: 'warning', icon: '📊' },
-          { label: 'High Risk Clients', value: 12, status: 'danger', icon: '⚠️' }
-        ]);
-        
-        const mockVerifications = [
-          { id: '1', client_name: 'Acme Corp', verification_date: '2025-05-01T10:30:00Z', result: 'No Match', risk_level: 'LOW', report_path: '/reports/1.pdf' },
-          { id: '2', client_name: 'TechStart Inc', verification_date: '2025-05-02T14:15:00Z', result: 'Match Found', risk_level: 'HIGH', report_path: '/reports/2.pdf' },
-          { id: '3', client_name: 'Global Trading LLC', verification_date: '2025-05-03T09:45:00Z', result: 'No Match', risk_level: 'MEDIUM', report_path: '/reports/3.pdf' },
-          { id: '4', client_name: 'Nicolás Maduro Moros', verification_date: '2025-05-08T08:30:00Z', result: 'Match Found', risk_level: 'HIGH', report_path: '/reports/4.pdf' }
-        ];
-        
-        setRecentVerifications(mockVerifications);
-        
-        const highRiskItems = mockVerifications.filter(v => 
-          v.risk_level.toLowerCase() === 'high' || 
-          v.result.toLowerCase().includes('match')
-        );
-        setHighRiskAlerts(highRiskItems);
-        
-        setListUpdates([
-          { list_name: 'OFAC', update_date: '2025-05-01T00:00:00Z', status: 'Success' },
-          { list_name: 'EU Sanctions', update_date: '2025-05-01T00:00:00Z', status: 'Success' },
-          { list_name: 'UN Sanctions', update_date: '2025-05-01T00:00:00Z', status: 'Success' },
-          { list_name: 'OpenSanctions', update_date: '2025-05-01T00:00:00Z', status: 'Success' }
-        ]);
+        setMetrics([]);
+        setRecentVerifications([]);
+        setHighRiskAlerts([]);
+        setListUpdates([]);
       } finally {
         setLoading(false);
       }
