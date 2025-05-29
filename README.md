@@ -450,6 +450,38 @@ For the compliance automation features to work properly:
 - `GET /api/v1/compliance/monitoring/tasks` - Get status of all scheduled compliance tasks
 - `POST /api/v1/compliance/force-update/risk-matrix` - Force update of risk matrix
 - `POST /api/v1/compliance/force-update/sanctions` - Force update of all sanctions lists
+- `POST /api/v1/compliance/verify-all` - Verify all clients against PEP and sanctions lists
+  ```json
+  {
+    "status": "completed",
+    "total_clients": 10,
+    "verified_count": 9,
+    "error_count": 1,
+    "results": [
+      {
+        "client_id": 1,
+        "client_name": "Client Name",
+        "status": "verified",
+        "verification_result": {}
+      }
+    ]
+  }
+  ```
+- `GET /api/v1/compliance/verification-status?client_id=X` - Get verification status for a specific client
+  ```json
+  {
+    "client_id": 1,
+    "client_name": "Client Name",
+    "verification_status": "verified",
+    "verification_date": "2025-05-29T04:00:00Z",
+    "risk_level": "low",
+    "risk_score": 25,
+    "pep_screening_status": [],
+    "sanctions_screening_status": [],
+    "country_risk": {},
+    "last_updated": "2025-05-29T04:00:00Z"
+  }
+  ```
 
 ### Artur Dashboard 2.0 (Executive Intelligence UI)
 

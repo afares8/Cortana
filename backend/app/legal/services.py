@@ -41,6 +41,7 @@ def create_client(client_data: Dict[str, Any]) -> Client:
         excel_risk_evaluator,
     )
     from app.services.compliance.services.compliance_service import compliance_service
+    from app.services.compliance.schemas.compliance import PEPScreeningResultCreate, SanctionsScreeningResultCreate
     import asyncio
 
     client_create = ClientCreate(**client_data)
@@ -71,25 +72,25 @@ def create_client(client_data: Dict[str, Any]) -> Client:
 
         pep_result = loop.run_until_complete(
             compliance_service.create_pep_screening(
-                {
-                    "client_id": client.id,
-                    "match_status": "pending",
-                    "screened_by": "system",
-                    "risk_level": "unknown",
-                    "notes": "Automatic screening during client creation",
-                }
+                PEPScreeningResultCreate(
+                    client_id=client.id,
+                    match_status="pending",
+                    screened_by="system",
+                    risk_level="unknown",
+                    notes="Automatic screening during client creation"
+                )
             )
         )
 
         sanctions_result = loop.run_until_complete(
             compliance_service.create_sanctions_screening(
-                {
-                    "client_id": client.id,
-                    "match_status": "pending",
-                    "screened_by": "system",
-                    "risk_level": "unknown",
-                    "notes": "Automatic screening during client creation",
-                }
+                SanctionsScreeningResultCreate(
+                    client_id=client.id,
+                    match_status="pending",
+                    screened_by="system",
+                    risk_level="unknown",
+                    notes="Automatic screening during client creation"
+                )
             )
         )
 
@@ -125,10 +126,10 @@ def get_client(client_id: int) -> Optional[Client]:
 
 
 def get_clients(
-    skip: int = 0, limit: int = 100, filters: Dict[str, Any] = None
+    skip: int = 0, limit: int = 100, filters: Optional[Dict[str, Any]] = None
 ) -> List[Client]:
     """Get a list of clients with optional filtering."""
-    return clients_db.get_multi(skip=skip, limit=limit, filters=filters)
+    return clients_db.get_multi(skip=skip, limit=limit, filters=filters or {})
 
 
 def update_client(client_id: int, client_data: Dict[str, Any]) -> Optional[Client]:
@@ -160,7 +161,7 @@ def delete_client(client_id: int) -> bool:
     if client_contracts:
         return False
 
-    result = clients_db.remove(client_id)
+    result = clients_db.delete(client_id)
 
     create_audit_log(
         entity_type="client",
@@ -243,10 +244,10 @@ def get_contract(contract_id: int) -> Optional[Contract]:
 
 
 def get_contracts(
-    skip: int = 0, limit: int = 100, filters: Dict[str, Any] = None
+    skip: int = 0, limit: int = 100, filters: Optional[Dict[str, Any]] = None
 ) -> List[Contract]:
     """Get a list of contracts with optional filtering."""
-    contracts = contracts_db.get_multi(skip=skip, limit=limit, filters=filters)
+    contracts = contracts_db.get_multi(skip=skip, limit=limit, filters=filters or {})
 
     for contract in contracts:
         client = clients_db.get(contract.client_id)
@@ -310,7 +311,7 @@ def delete_contract(contract_id: int) -> bool:
 
     versions = contract_versions_db.get_multi(filters={"contract_id": contract_id})
     for version in versions:
-        contract_versions_db.remove(version.id)
+        contract_versions_db.delete(version.id)
 
         if version.file_path and os.path.exists(version.file_path):
             try:
@@ -318,7 +319,7 @@ def delete_contract(contract_id: int) -> bool:
             except Exception:
                 pass
 
-    result = contracts_db.remove(contract_id)
+    result = contracts_db.delete(contract_id)
 
     create_audit_log(
         entity_type="contract",
@@ -420,7 +421,7 @@ def delete_workflow_template(template_id: str) -> bool:
         return False
 
     template_idx = templates[0].id
-    result = workflow_templates_db.remove(template_idx)
+    result = workflow_templates_db.delete(template_idx)
 
     create_audit_log(
         entity_type="workflow_template",
@@ -473,10 +474,10 @@ def get_workflow_instance(instance_id: int) -> Optional[WorkflowInstance]:
 
 
 def get_workflow_instances(
-    skip: int = 0, limit: int = 100, filters: Dict[str, Any] = None
+    skip: int = 0, limit: int = 100, filters: Optional[Dict[str, Any]] = None
 ) -> List[WorkflowInstance]:
     """Get workflow instances with optional filtering."""
-    return workflow_instances_db.get_multi(skip=skip, limit=limit, filters=filters)
+    return workflow_instances_db.get_multi(skip=skip, limit=limit, filters=filters or {})
 
 
 def update_workflow_step(
@@ -572,10 +573,10 @@ def get_task(task_id: int) -> Optional[Task]:
 
 
 def get_tasks(
-    skip: int = 0, limit: int = 100, filters: Dict[str, Any] = None
+    skip: int = 0, limit: int = 100, filters: Optional[Dict[str, Any]] = None
 ) -> List[Task]:
     """Get tasks with optional filtering."""
-    tasks = tasks_db.get_multi(skip=skip, limit=limit, filters=filters)
+    tasks = tasks_db.get_multi(skip=skip, limit=limit, filters=filters or {})
 
     for task in tasks:
         if task.related_contract_id:
@@ -619,7 +620,7 @@ def delete_task(task_id: int) -> bool:
     if not task:
         return False
 
-    result = tasks_db.remove(task_id)
+    result = tasks_db.delete(task_id)
 
     create_audit_log(
         entity_type="task",
