@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { login } from '../lib/api';
 
 interface LoginProps {
@@ -7,6 +8,7 @@ interface LoginProps {
 }
 
 export default function Login({ onLoginSuccess }: LoginProps) {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -24,7 +26,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       onLoginSuccess();
       navigate('/');
     } catch (err) {
-      setError('Invalid email or password');
+      setError(t('auth.errors.invalidCredentials'));
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -35,14 +37,16 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="max-w-md w-full p-8 bg-white rounded-lg shadow-md">
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
-          Legal Contract Tracker
+          {t('common.enterpriseManagement')}
         </h2>
         <h3 className="text-xl font-medium text-center text-gray-600 mb-6">
-          Login to your account
+          {t('auth.login')}
         </h3>
         
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" 
+               role="alert" 
+               aria-live="assertive">
             {error}
           </div>
         )}
@@ -50,31 +54,33 @@ export default function Login({ onLoginSuccess }: LoginProps) {
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
-              Email
+              {t('auth.email')}
             </label>
             <input
               id="email"
               type="email"
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              placeholder="Email"
+              placeholder={t('auth.email')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              aria-required="true"
             />
           </div>
           
           <div className="mb-6">
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
-              Password
+              {t('auth.password')}
             </label>
             <input
               id="password"
               type="password"
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              placeholder="Password"
+              placeholder={t('auth.password')}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              aria-required="true"
             />
           </div>
           
@@ -85,8 +91,9 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                 isLoading ? 'opacity-50 cursor-not-allowed' : ''
               }`}
               disabled={isLoading}
+              aria-busy={isLoading}
             >
-              {isLoading ? 'Logging in...' : 'Sign In'}
+              {isLoading ? t('common.loading') : t('auth.login')}
             </button>
             <a
               className="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800"
@@ -96,7 +103,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                 navigate('/register');
               }}
             >
-              Register
+              {t('auth.register')}
             </a>
           </div>
         </form>

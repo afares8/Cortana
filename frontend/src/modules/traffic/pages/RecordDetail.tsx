@@ -117,7 +117,7 @@ const RecordDetail = () => {
       {error && (
         <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
           <div className="flex items-center">
-            <AlertCircle className="h-5 w-5 mr-2" />
+            <AlertCircle className="h-5 w-5 mr-2" aria-label="Error de carga" />
             <p>{error}</p>
           </div>
         </div>
@@ -125,7 +125,7 @@ const RecordDetail = () => {
       
       {isLoading ? (
         <div className="py-8 text-center text-gray-500">
-          <Clock className="h-8 w-8 mx-auto mb-2 animate-spin" />
+          <Clock className="h-8 w-8 mx-auto mb-2 animate-spin" aria-label="Cargando detalles del registro" />
           <p>Cargando detalles del registro...</p>
         </div>
       ) : record ? (
@@ -209,7 +209,7 @@ const RecordDetail = () => {
                     className="mt-2 text-sm font-medium text-yellow-700 hover:text-yellow-800 flex items-center"
                   >
                     Ver Registro Consolidado
-                    <ArrowRight className="h-4 w-4 ml-1" />
+                    <ArrowRight className="h-4 w-4 ml-1" aria-label="Ver registro consolidado" />
                   </button>
                 </div>
               )}
@@ -282,7 +282,7 @@ const RecordDetail = () => {
               {submitSuccess && (
                 <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6" role="alert">
                   <div className="flex items-center">
-                    <CheckCircle className="h-5 w-5 mr-2" />
+                    <CheckCircle className="h-5 w-5 mr-2" aria-label="Envío exitoso" />
                     <p>{submitSuccess}</p>
                   </div>
                 </div>
@@ -291,7 +291,7 @@ const RecordDetail = () => {
               {submitError && (
                 <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
                   <div className="flex items-center">
-                    <AlertCircle className="h-5 w-5 mr-2" />
+                    <AlertCircle className="h-5 w-5 mr-2" aria-label="Error de envío" />
                     <p>{submitError}</p>
                   </div>
                 </div>
@@ -314,7 +314,7 @@ const RecordDetail = () => {
                     </>
                   ) : (
                     <>
-                      <Truck className="h-5 w-5 mr-2" />
+                      <Truck className="h-5 w-5 mr-2" aria-label="Enviar al portal DMCE" />
                       Enviar al Portal DMCE
                     </>
                   )}
@@ -325,7 +325,7 @@ const RecordDetail = () => {
                     onClick={() => navigate(`/traffic/logs/${record.submission_id}`)}
                     className="w-full px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 flex items-center justify-center"
                   >
-                    <FileText className="h-5 w-5 mr-2" />
+                    <FileText className="h-5 w-5 mr-2" aria-label="Ver detalles de envío" />
                     Ver Detalles de Envío
                   </button>
                 )}
@@ -337,7 +337,7 @@ const RecordDetail = () => {
                 <div className="space-y-4">
                   <div className="flex items-center">
                     <div className="bg-blue-100 p-2 rounded-full mr-3">
-                      <Tag className="h-5 w-5 text-blue-600" />
+                      <Tag className="h-5 w-5 text-blue-600" aria-label="Total de artículos" />
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-700">Total de Artículos</p>
@@ -347,7 +347,7 @@ const RecordDetail = () => {
                   
                   <div className="flex items-center">
                     <div className="bg-green-100 p-2 rounded-full mr-3">
-                      <DollarSign className="h-5 w-5 text-green-600" />
+                      <DollarSign className="h-5 w-5 text-green-600" aria-label="Valor total" />
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-700">Valor Total</p>
@@ -357,7 +357,7 @@ const RecordDetail = () => {
                   
                   <div className="flex items-center">
                     <div className="bg-yellow-100 p-2 rounded-full mr-3">
-                      <Package className="h-5 w-5 text-yellow-600" />
+                      <Package className="h-5 w-5 text-yellow-600" aria-label="Peso total" />
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-700">Peso Total</p>
@@ -371,7 +371,7 @@ const RecordDetail = () => {
         </div>
       ) : (
         <div className="bg-white shadow-sm rounded-lg p-6 border border-gray-200 text-center">
-          <AlertCircle className="h-12 w-12 mx-auto mb-4 text-red-500" />
+          <AlertCircle className="h-12 w-12 mx-auto mb-4 text-red-500" aria-label="Registro no encontrado" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Registro No Encontrado</h2>
           <p className="text-gray-500 mb-4">
             No se pudo encontrar el registro solicitado. Es posible que haya sido eliminado o que no tenga permisos para verlo.

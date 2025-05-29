@@ -12,6 +12,7 @@ A specialized internal tool for a company in the Zona Libre de Colón perfumery 
 - Secure user authentication system
 - Comprehensive user management with role-based access control
 - DMCE portal automation for invoice processing
+- Accessibility features with WCAG-compliant contrast, aria-labels, and localized error messages
 
 ### Artur Autonomous Governance
 - **Self-Aware System Core**: Observes, analyzes, restructures, and evolves Cortana continuously
