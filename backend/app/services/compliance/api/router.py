@@ -13,6 +13,7 @@ from app.services.compliance.models.compliance import ComplianceReport, PEPScree
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta, timezone
 import logging
+import asyncio
 from fastapi import APIRouter, Depends, HTTPException, Path, Body, Query, File, UploadFile, status
 from pydantic import EmailStr
 
@@ -708,20 +709,87 @@ async def get_compliance_dashboard_endpoint():
     try:
         logger.info("Generating compliance dashboard data")
         
-        return {
+        dashboard_data = {
             "total_screenings": 120,
+            "active_contracts": 42,
+            "expiring_contracts": 3,
+            "pep_matches": 5,
+            "sanctions_matches": 1,
+            "pending_reports": 5,
+            "high_risk_clients": 3,
             "flagged_clients": 8,
             "last_update": datetime.now().isoformat(),
-            "sanction_sources": ["OFAC", "UN", "EU"]
+            "sanction_sources": ["OFAC", "UN", "EU"],
+            "recent_verifications": [
+                {
+                    "id": "v1",
+                    "client_name": "Acme Corp",
+                    "verification_date": datetime.now().isoformat(),
+                    "result": "no_match",
+                    "risk_level": "Low",
+                    "report_path": "/uploads/reports/acme_verification.pdf"
+                },
+                {
+                    "id": "v2",
+                    "client_name": "Global Industries",
+                    "verification_date": (datetime.now() - timedelta(days=1)).isoformat(),
+                    "result": "potential_match",
+                    "risk_level": "Medium",
+                    "report_path": "/uploads/reports/global_verification.pdf"
+                },
+                {
+                    "id": "v3",
+                    "client_name": "Oceanic Airlines",
+                    "verification_date": (datetime.now() - timedelta(days=2)).isoformat(),
+                    "result": "confirmed_match",
+                    "risk_level": "High",
+                    "report_path": "/uploads/reports/oceanic_verification.pdf"
+                }
+            ],
+            "recent_list_updates": [
+                {
+                    "list_name": "OFAC Sanctions List",
+                    "update_date": (datetime.now() - timedelta(days=1)).isoformat(),
+                    "status": "Success"
+                },
+                {
+                    "list_name": "EU Sanctions List",
+                    "update_date": (datetime.now() - timedelta(days=2)).isoformat(),
+                    "status": "Success"
+                },
+                {
+                    "list_name": "PEP Database",
+                    "update_date": (datetime.now() - timedelta(days=3)).isoformat(),
+                    "status": "Success"
+                }
+            ]
         }
+        
+        try:
+            from app.services.websocket import broadcast_dashboard_update
+            asyncio.create_task(broadcast_dashboard_update(dashboard_data))
+            logger.info("Dashboard update broadcasted to WebSocket clients")
+        except Exception as ws_error:
+            logger.error(f"Error broadcasting dashboard update: {str(ws_error)}")
+        
+        return dashboard_data
     except Exception as e:
         logger.error(f"Error retrieving dashboard data: {str(e)}")
-        return {
+        error_data = {
             "total_screenings": 0,
+            "active_contracts": 0,
+            "expiring_contracts": 0,
+            "pep_matches": 0,
+            "sanctions_matches": 0,
+            "pending_reports": 0,
+            "high_risk_clients": 0,
             "flagged_clients": 0,
             "last_update": datetime.now().isoformat(),
-            "sanction_sources": []
+            "sanction_sources": [],
+            "recent_verifications": [],
+            "recent_list_updates": []
         }
+        return error_data
 
 
 

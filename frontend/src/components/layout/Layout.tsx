@@ -2,9 +2,11 @@ import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Search, X, Menu, LogOut, ChevronRight, ChevronDown, Bell, Settings, Shield, FileText, Users, Activity, CheckSquare, Database, Brain, BarChart2, BarChart3, Truck, DollarSign, Mail, UserCog, Building2, GitBranch, Cpu } from 'lucide-react';
-import NotificationBadge from '../../modules/accounting/components/NotificationBadge';
+import NotificationCenter from '../../modules/notifications/components/NotificationCenter';
 import LanguageToggle from '../LanguageToggle';
 import SettingsPanel from '../settings/SettingsPanel';
+import { searchAll } from '../../modules/search/api/searchApi';
+import type { SearchResult } from '../../modules/search/api/searchApi';
 
 interface LayoutProps {
   children: ReactNode;
@@ -18,14 +20,6 @@ interface NavItem {
   section?: string;
   children?: NavItem[];
   comingSoon?: boolean;
-}
-
-interface SearchResult {
-  id: string;
-  title: string;
-  type: string;
-  path: string;
-  excerpt: string;
 }
 
 export default function Layout({ children, title }: LayoutProps) {
@@ -168,52 +162,8 @@ export default function Layout({ children, title }: LayoutProps) {
 
     setIsSearching(true);
     try {
-      // const apiUrl = import.meta.env.VITE_API_URL || '';
-      
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const mockResults: SearchResult[] = [
-        {
-          id: '1',
-          title: 'Contract with Global Fragrances Ltd.',
-          type: 'contract',
-          path: '/contracts/1',
-          excerpt: 'Supply agreement for perfume ingredients...'
-        },
-        {
-          id: '2',
-          title: 'TechStart Inc. NDA',
-          type: 'contract',
-          path: '/contracts/2',
-          excerpt: 'Non-disclosure agreement for software development...'
-        },
-        {
-          id: '3',
-          title: 'Acme Corp License Agreement',
-          type: 'contract',
-          path: '/contracts/3',
-          excerpt: 'License for use of proprietary fragrance formulas...'
-        },
-        {
-          id: '4',
-          title: 'UAF Report - Q1 2025',
-          type: 'compliance',
-          path: '/compliance/reports/1',
-          excerpt: 'Quarterly financial activity report...'
-        },
-        {
-          id: '5',
-          title: 'Client: Luxury Scents International',
-          type: 'client',
-          path: '/legal/clients/1',
-          excerpt: 'Major distributor of premium fragrances...'
-        }
-      ].filter(item => 
-        item.title.toLowerCase().includes(query.toLowerCase()) || 
-        item.excerpt.toLowerCase().includes(query.toLowerCase())
-      );
-      
-      setSearchResults(mockResults);
+      const results = await searchAll(query);
+      setSearchResults(results);
     } catch (error) {
       console.error('Search error:', error);
       setSearchResults([]);
@@ -468,7 +418,7 @@ export default function Layout({ children, title }: LayoutProps) {
           
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
-            <NotificationBadge />
+            <NotificationCenter />
             <LanguageToggle />
             <button 
               onClick={() => setSettingsPanelOpen(true)}
@@ -487,7 +437,7 @@ export default function Layout({ children, title }: LayoutProps) {
           
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center">
-            <NotificationBadge />
+            <NotificationCenter />
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none"

@@ -5,6 +5,7 @@ import os
 import logging
 import datetime
 from logging.handlers import RotatingFileHandler
+import asyncio
 
 from app.core.config import settings
 from app.db.init_db import init_db
@@ -25,6 +26,7 @@ from app.services.traffic import traffic_router
 
 from app.modules.admin.departments import router as departments_router
 from app.modules.admin.roles import router as roles_router
+from app.modules.admin.permissions import router as permissions_router
 from app.modules.admin.functions import router as functions_router
 from app.modules.admin.templates import router as templates_router
 from app.modules.admin.audit import router as admin_audit_router
@@ -68,6 +70,9 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
+from app.services.websocket import setup_socketio
+sio = setup_socketio(app)
+
 app.include_router(auth_router, prefix=f"{settings.API_V1_STR}/auth", tags=["auth"])
 app.include_router(legal_router, prefix=f"{settings.API_V1_STR}/legal", tags=["legal"])
 app.include_router(test_mistral_router, prefix=f"{settings.API_V1_STR}", tags=["test"])
@@ -86,6 +91,7 @@ app.include_router(diagnostics_router, prefix=f"{settings.API_V1_STR}/diagnostic
 
 app.include_router(departments_router, prefix=f"{settings.API_V1_STR}/admin/departments", tags=["admin", "departments"])
 app.include_router(roles_router, prefix=f"{settings.API_V1_STR}/admin/roles", tags=["admin", "roles"])
+app.include_router(permissions_router, prefix=f"{settings.API_V1_STR}/admin/permissions", tags=["admin", "permissions"])
 app.include_router(functions_router, prefix=f"{settings.API_V1_STR}/admin/functions", tags=["admin", "functions"])
 app.include_router(templates_router, prefix=f"{settings.API_V1_STR}/admin/templates", tags=["admin", "templates"])
 app.include_router(admin_audit_router, prefix=f"{settings.API_V1_STR}/admin/audit", tags=["admin", "audit"])

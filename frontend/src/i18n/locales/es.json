@@ -57,7 +57,14 @@
       "english": "Inglés",
       "spanish": "Español",
       "language": "Idioma",
-      "note": "Nota"
+      "note": "Nota",
+      "healthy": "Saludable",
+      "warning": "Advertencia",
+      "error": "Error",
+      "unknown": "Desconocido",
+      "cpuUsage": "Uso de CPU",
+      "memoryUsage": "Uso de Memoria",
+      "diskUsage": "Uso de Disco"
     },
     "messages": {
       "loading": "Cargando..."
@@ -319,6 +326,68 @@
     "traditionalNlp": "NLP Tradicional",
     "mistralAi": "Mistral AI"
   },
+  "artur": {
+    "suggestions": "Sugerencias Artur",
+    "runEvaluationCycle": "Ejecutar Ciclo de Evaluación",
+    "failedToLoadSuggestions": "Error al cargar sugerencias",
+    "confirmDeleteAccess": "¿Está seguro de que desea eliminar este acceso?",
+    "noSuggestionsAvailable": "No hay sugerencias disponibles"
+  },
+  "diagnostics": {
+    "title": "Panel de Diagnóstico",
+    "runDiagnostics": "Ejecutar Diagnóstico",
+    "systemStatus": "Estado del Sistema",
+    "lastUpdated": "Última actualización",
+    "statusHealthy": "Todos los sistemas operativos",
+    "statusWarning": "Sistema experimentando problemas",
+    "statusError": "Errores críticos del sistema detectados",
+    "aiExplanation": "Explicación de IA",
+    "components": "Componentes",
+    "suggestedActions": "Acciones Sugeridas",
+    "predictions": "Predicciones",
+    "componentStatus": "Estado de Componentes",
+    "suggestedAction": "Acción Sugerida",
+    "prediction": "Predicción",
+    "noActionsNeeded": "No se necesitan acciones en este momento",
+    "noPredictions": "No hay predicciones disponibles",
+    "statistics": "Estadísticas",
+    "totalRuns": "Total de Ejecuciones de Diagnóstico",
+    "componentsMonitored": "Componentes Monitoreados",
+    "lastRun": "Última Ejecución",
+    "error": "Error",
+    "fetchError": "Error al obtener datos de diagnóstico. Por favor, inténtelo de nuevo más tarde.",
+    "cpuUsage": "Uso de CPU",
+    "memoryUsage": "Uso de Memoria",
+    "diskUsage": "Uso de Disco"
+  },
+  "contracts": {
+    "title": "Gestión de Contratos",
+    "subtitle": "Administre sus contratos y acuerdos legales",
+    "addNew": "Añadir Nuevo Contrato",
+    "upload": "Subir Nuevo Contrato",
+    "filterDescription": "Buscar y filtrar contratos",
+    "searchPlaceholder": "Buscar por título o abogado...",
+    "allTypes": "Todos los Tipos de Contrato",
+    "allStatuses": "Todos los Estados",
+    "allClients": "Todos los Clientes",
+    "noContractsFound": "No se encontraron contratos. Ajuste los filtros o añada un nuevo contrato.",
+    "expires": "Vence",
+    "columns": {
+      "title": "Título",
+      "client": "Cliente",
+      "type": "Tipo",
+      "dates": "Fechas",
+      "status": "Estado",
+      "responsible": "Responsable"
+    },
+    "status": {
+      "active": "Activo",
+      "expired": "Vencido",
+      "draft": "Borrador",
+      "terminated": "Terminado",
+      "expiringSoon": "Vence Pronto"
+    }
+  },
   "traffic": {
     "actions": "Acciones de Tráfico",
     "uploadInvoice": "Cargar Factura",
@@ -485,6 +554,7 @@
     "send": "Enviar",
     "helpText": "Puedes preguntar sobre tareas pendientes, contratos, clientes, o reportes de cumplimiento."
   },
+
   "auth": {
     "login": "Iniciar sesión",
     "logout": "Cerrar sesión",
@@ -505,6 +575,7 @@
       "loggedOut": "Sesión cerrada correctamente"
     }
   },
+
   "notifications": {
     "title": "Notificaciones",
     "empty": "No hay notificaciones",

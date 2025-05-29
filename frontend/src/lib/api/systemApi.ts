@@ -80,6 +80,7 @@ export interface SecuritySettings {
   session_timeout_minutes: number;
   max_failed_logins: number;
   password_policy: PasswordPolicy;
+  production_auth_mode: boolean;
 }
 
 export interface DMCESettings {

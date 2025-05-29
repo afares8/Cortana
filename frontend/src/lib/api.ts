@@ -41,146 +41,101 @@ export const register = async (data: RegisterRequest): Promise<User> => {
 };
 
 export const getContracts = async (filters?: Record<string, string>): Promise<Contract[]> => {
-  console.log('Using mock contracts data');
-  
-  const mockContracts: Contract[] = [
-    {
-      id: 1,
-      title: 'Service Agreement with Acme Corp',
-      client_name: 'Acme Corporation',
-      contract_type: 'Service Agreement',
-      start_date: '2025-01-15',
-      expiration_date: '2026-01-14',
-      responsible_lawyer: 'Jane Smith',
-      description: 'Annual service agreement for IT consulting services',
-      status: 'active',
-      file_path: '/uploads/contract1.pdf',
-      created_at: '2025-01-10T10:30:00Z',
-      updated_at: '2025-01-10T10:30:00Z'
-    },
-    {
-      id: 2,
-      title: 'NDA with TechStart Inc',
-      client_name: 'TechStart Inc',
-      contract_type: 'Non-Disclosure Agreement',
-      start_date: '2025-02-01',
-      expiration_date: '2025-05-01',
-      responsible_lawyer: 'John Doe',
-      description: 'NDA for potential partnership discussions',
-      status: 'active',
-      file_path: '/uploads/contract2.pdf',
-      created_at: '2025-01-25T14:15:00Z',
-      updated_at: '2025-01-25T14:15:00Z'
-    },
-    {
-      id: 3,
-      title: 'Lease Agreement for Office Space',
-      client_name: 'Commercial Properties LLC',
-      contract_type: 'Lease Agreement',
-      start_date: '2024-12-01',
-      expiration_date: '2025-05-15',
-      responsible_lawyer: 'Jane Smith',
-      description: 'Lease for satellite office in downtown',
-      status: 'active',
-      file_path: '/uploads/contract3.pdf',
-      created_at: '2024-11-15T09:45:00Z',
-      updated_at: '2024-11-15T09:45:00Z'
-    }
-  ];
-  
-  let filteredContracts = [...mockContracts];
-  
-  if (filters) {
-    if (filters.client_name) {
-      filteredContracts = filteredContracts.filter(c => 
-        c.client_name.toLowerCase().includes(filters.client_name.toLowerCase())
-      );
+  try {
+    const queryParams = new URLSearchParams();
+    
+    if (filters) {
+      if (filters.client_name) {
+        queryParams.append('name', filters.client_name);
+      }
+      
+      if (filters.contract_type) {
+        queryParams.append('contract_type', filters.contract_type);
+      }
+      
+      if (filters.responsible_lawyer) {
+        queryParams.append('responsible_lawyer', filters.responsible_lawyer);
+      }
+      
+      if (filters.status) {
+        queryParams.append('status', filters.status);
+      }
     }
     
-    if (filters.contract_type) {
-      filteredContracts = filteredContracts.filter(c => 
-        c.contract_type.toLowerCase().includes(filters.contract_type.toLowerCase())
-      );
-    }
+    const queryString = queryParams.toString();
+    const url = `/legal/contracts${queryString ? `?${queryString}` : ''}`;
     
-    if (filters.responsible_lawyer) {
-      filteredContracts = filteredContracts.filter(c => 
-        c.responsible_lawyer.toLowerCase().includes(filters.responsible_lawyer.toLowerCase())
-      );
-    }
-    
-    if (filters.status) {
-      filteredContracts = filteredContracts.filter(c => c.status === filters.status);
-    }
+    const response = await api.get(url);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching contracts:', error);
+    throw error;
   }
-  
-  return filteredContracts;
 };
 
 export const getContract = async (id: number): Promise<Contract> => {
-  console.log(`Using mock contract data for ID: ${id}`);
-  
-  const mockContracts = await getContracts();
-  const contract = mockContracts.find(c => c.id === id);
-  
-  if (!contract) {
-    throw new Error('Contract not found');
+  try {
+    const response = await api.get(`/legal/contracts/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching contract with ID ${id}:`, error);
+    throw error;
   }
-  
-  return contract;
 };
 
 export const createContract = async (data: FormData): Promise<Contract> => {
-  console.log('Using mock create contract data');
-  
-  const mockContracts = await getContracts();
-  const newId = Math.max(...mockContracts.map(c => c.id)) + 1;
-  
-  const newContract: Contract = {
-    id: newId,
-    title: data.get('title') as string || 'New Contract',
-    client_name: data.get('client_name') as string || 'New Client',
-    contract_type: data.get('contract_type') as string || 'General Agreement',
-    start_date: data.get('start_date') as string || new Date().toISOString().split('T')[0],
-    expiration_date: data.get('expiration_date') as string || new Date(Date.now() + 31536000000).toISOString().split('T')[0],
-    responsible_lawyer: data.get('responsible_lawyer') as string || 'John Doe',
-    description: data.get('description') as string || '',
-    status: 'active',
-    file_path: '/uploads/new-contract.pdf',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  };
-  
-  return newContract;
+  try {
+    const contractData = {
+      title: data.get('title'),
+      client_id: parseInt(data.get('client_id') as string),
+      contract_type: data.get('contract_type'),
+      start_date: data.get('start_date'),
+      expiration_date: data.get('expiration_date'),
+      responsible_lawyer: data.get('responsible_lawyer'),
+      description: data.get('description'),
+      status: 'active'
+    };
+    
+    const response = await api.post('/legal/contracts', contractData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating contract:', error);
+    throw error;
+  }
 };
 
 export const updateContract = async (id: number, data: Partial<Contract>): Promise<Contract> => {
-  console.log(`Using mock update contract data for ID: ${id}`);
-  
-  const contract = await getContract(id);
-  
-  const updatedContract: Contract = {
-    ...contract,
-    ...data,
-    updated_at: new Date().toISOString()
-  };
-  
-  return updatedContract;
+  try {
+    const response = await api.put(`/legal/contracts/${id}`, data);
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating contract with ID ${id}:`, error);
+    throw error;
+  }
 };
 
-export const deleteContract = async (id: number): Promise<Contract> => {
-  console.log(`Using mock delete contract data for ID: ${id}`);
-  
-  const contract = await getContract(id);
-  return contract;
+export const deleteContract = async (id: number): Promise<{ success: boolean }> => {
+  try {
+    const response = await api.delete(`/legal/contracts/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error deleting contract with ID ${id}:`, error);
+    throw error;
+  }
 };
 
 export const getDashboardStats = async (): Promise<DashboardStats> => {
-  console.log('Using mock dashboard stats data');
-  return {
-    total_active_contracts: 12,
-    contracts_expiring_soon: 3,
-    overdue_contracts: 1,
-    total_contracts: 16
-  };
+  try {
+    const response = await api.get('/compliance/dashboard');
+    
+    return {
+      total_active_contracts: response.data.active_contracts || 0,
+      contracts_expiring_soon: response.data.expiring_contracts || 0,
+      overdue_contracts: response.data.flagged_clients || 0,
+      total_contracts: response.data.total_screenings || 0
+    };
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error);
+    throw error;
+  }
 };

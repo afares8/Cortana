@@ -9,6 +9,7 @@ import uuid
 
 from app.modules.admin.departments.models import Department
 from app.modules.admin.roles.models import Role
+from app.modules.admin.permissions.models import Permission, PermissionGroup
 from app.modules.admin.functions.models import Function
 from app.modules.ai.models import AIProfile
 from app.modules.admin.audit.models import AuditLog as AdminAuditLog, ActionType, TargetType
@@ -27,6 +28,8 @@ contract_anomalies_db = InMemoryDB[ContractAnomaly](ContractAnomaly)
 
 departments_db = InMemoryDB[Department](Department)
 roles_db = InMemoryDB[Role](Role)
+permissions_db = InMemoryDB[Permission](Permission)
+permission_groups_db = InMemoryDB[PermissionGroup](PermissionGroup)
 functions_db = InMemoryDB[Function](Function)
 ai_profiles_db = InMemoryDB[AIProfile](AIProfile)
 admin_audit_logs_db = InMemoryDB[AdminAuditLog](AdminAuditLog)
@@ -46,6 +49,72 @@ def init_db() -> None:
         
     from app.modules.admin.departments.services import department_service
     department_service.sync_with_global_db(departments_db)
+    
+    from app.modules.admin.permissions.services import sync_with_global_db
+    sync_with_global_db(permissions_db)
+    
+    if not permissions_db.get_multi():
+        permission_categories = {
+            "contract": "Legal contract management permissions",
+            "financial": "Financial and accounting permissions",
+            "compliance": "Regulatory compliance permissions",
+            "logistics": "Logistics and shipping permissions",
+            "hr": "Human resources permissions",
+            "marketing": "Marketing and content permissions",
+            "sales": "Sales and client management permissions",
+            "system": "System and IT permissions"
+        }
+        
+        permissions_list = [
+            {"id": 1, "name": "create_contract", "description": "Create new legal contracts", "category": "contract"},
+            {"id": 2, "name": "approve_contract", "description": "Approve legal contracts", "category": "contract"},
+            {"id": 3, "name": "view_all_contracts", "description": "View all contracts in the system", "category": "contract"},
+            
+            {"id": 4, "name": "create_invoice", "description": "Create new invoices", "category": "financial"},
+            {"id": 5, "name": "approve_payment", "description": "Approve financial payments", "category": "financial"},
+            {"id": 6, "name": "view_financial_reports", "description": "View financial reports", "category": "financial"},
+            
+            {"id": 7, "name": "run_compliance_check", "description": "Run compliance verification checks", "category": "compliance"},
+            {"id": 8, "name": "approve_policy", "description": "Approve compliance policies", "category": "compliance"},
+            {"id": 9, "name": "view_audit_logs", "description": "View system audit logs", "category": "compliance"},
+            
+            {"id": 10, "name": "create_shipment", "description": "Create new shipments", "category": "logistics"},
+            {"id": 11, "name": "approve_invoice", "description": "Approve shipping invoices", "category": "logistics"},
+            {"id": 12, "name": "view_logistics_reports", "description": "View logistics reports", "category": "logistics"},
+            
+            {"id": 13, "name": "create_employee", "description": "Create new employee records", "category": "hr"},
+            {"id": 14, "name": "approve_leave", "description": "Approve employee leave requests", "category": "hr"},
+            {"id": 15, "name": "view_personnel_records", "description": "View personnel records", "category": "hr"},
+            
+            {"id": 16, "name": "create_campaign", "description": "Create marketing campaigns", "category": "marketing"},
+            {"id": 17, "name": "approve_content", "description": "Approve marketing content", "category": "marketing"},
+            {"id": 18, "name": "view_analytics", "description": "View marketing analytics", "category": "marketing"},
+            
+            {"id": 19, "name": "create_opportunity", "description": "Create sales opportunities", "category": "sales"},
+            {"id": 20, "name": "approve_discount", "description": "Approve sales discounts", "category": "sales"},
+            {"id": 21, "name": "view_sales_reports", "description": "View sales reports", "category": "sales"},
+            
+            {"id": 22, "name": "create_user", "description": "Create system users", "category": "system"},
+            {"id": 23, "name": "approve_access", "description": "Approve system access requests", "category": "system"},
+            {"id": 24, "name": "view_system_logs", "description": "View system logs", "category": "system"}
+        ]
+        
+        for perm_data in permissions_list:
+            permissions_db.data[perm_data["id"]] = Permission(**perm_data)
+        
+        permission_groups_list = [
+            {"id": 1, "name": "Contract Management", "permissions": ["create_contract", "approve_contract", "view_all_contracts"]},
+            {"id": 2, "name": "Financial Management", "permissions": ["create_invoice", "approve_payment", "view_financial_reports"]},
+            {"id": 3, "name": "Compliance Management", "permissions": ["run_compliance_check", "approve_policy", "view_audit_logs"]},
+            {"id": 4, "name": "Logistics Management", "permissions": ["create_shipment", "approve_invoice", "view_logistics_reports"]},
+            {"id": 5, "name": "HR Management", "permissions": ["create_employee", "approve_leave", "view_personnel_records"]},
+            {"id": 6, "name": "Marketing Management", "permissions": ["create_campaign", "approve_content", "view_analytics"]},
+            {"id": 7, "name": "Sales Management", "permissions": ["create_opportunity", "approve_discount", "view_sales_reports"]},
+            {"id": 8, "name": "System Management", "permissions": ["create_user", "approve_access", "view_system_logs"]}
+        ]
+        
+        for group_data in permission_groups_list:
+            permission_groups_db.data[group_data["id"]] = PermissionGroup(**group_data)
     
     if not departments_db.get_multi():
         legal_dept = Department(

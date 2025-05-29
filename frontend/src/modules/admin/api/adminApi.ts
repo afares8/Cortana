@@ -51,10 +51,6 @@ export const createRole = async (role: Omit<Role, 'id'>): Promise<Role> => {
   return response.data;
 };
 
-export const assignRole = async (assignment: UserDepartmentRole): Promise<UserDepartmentRole> => {
-  const response = await axios.post(`${API_URL}/admin/roles/assign`, assignment);
-  return response.data;
-};
 
 export const getFunctions = async (): Promise<Function[]> => {
   const response = await axios.get(`${API_URL}/admin/functions`);
@@ -140,7 +136,7 @@ export const assignUserToDepartment = async (
   departmentId: number,
   roleId: number
 ): Promise<UserDepartmentRole> => {
-  const response = await axios.post(`${API_URL}/users/${userId}/assign-to-department`, {
+  const response = await axios.post(`${API_URL}/admin/departments/${departmentId}/users`, {
     user_id: userId,
     department_id: departmentId,
     role_id: roleId

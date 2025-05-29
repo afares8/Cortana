@@ -138,10 +138,19 @@ Each department has dedicated roles, functions, and AI profiles configured to su
 │   │   │   ├── ai/               # AI-specific components
 │   │   │   │   ├── AIContractAnalysis.tsx  # Contract analysis component
 │   │   │   │   └── AIContextualChat.tsx    # Contextual AI chat component
+│   │   │   ├── auth/             # Authentication components
+│   │   │   │   └── ProtectedRoute.tsx      # Route protection component
 │   │   │   ├── compliance/       # Compliance components
 │   │   │   │   ├── ComplianceDashboardWidget.tsx  # Dashboard widget
 │   │   │   │   └── ComplianceManualUploader.tsx   # Manual uploader
+│   │   │   ├── contracts/        # Contract components
+│   │   │   │   └── ContractList.tsx        # Unified contract list component
+│   │   │   ├── layout/           # Layout components
+│   │   │   │   ├── Layout.tsx              # Main application layout
+│   │   │   │   └── LogoutButton.tsx        # Authentication logout button
 │   │   │   └── ui/               # UI components
+│   │   ├── contexts/             # React contexts
+│   │   │   └── AuthContext.tsx   # Authentication context provider
 │   │   ├── lib/                  # Utility functions and API client
 │   │   ├── modules/              # Module-specific code
 │   │   │   ├── legal/            # Legal department module
@@ -160,6 +169,8 @@ Each department has dedicated roles, functions, and AI profiles configured to su
 │   │   │       └── types/        # User-specific types
 │   │   ├── pages/                # Page components
 │   │   │   ├── ComplianceDashboard.tsx  # Compliance dashboard
+│   │   │   ├── diagnostics/      # Diagnostics components
+│   │   │   │   └── DiagnosticsPanel.tsx  # System diagnostics panel (formerly ArturPanel)
 │   │   │   ├── UAFReportForm.tsx        # UAF report generation
 │   │   │   └── SanctionsScreeningForm.tsx  # Sanctions screening
 │   │   ├── types/                # TypeScript type definitions
@@ -772,6 +783,19 @@ Cortana supports multiple languages using i18next and react-i18next. The default
   - `systemStatus`: System status information
   - `lastUpdated`: Timestamp labels
 - `contracts`: Contract module content
+  - `title`: Contract management title
+  - `subtitle`: Contract management subtitle
+  - `addNew`: Add new contract button text
+  - `upload`: Upload contract button text
+  - `columns`: Table column headers
+  - `status`: Contract status labels
+  - `expires`: Expiration date label
+  - `filterDescription`: Filter description text
+  - `searchPlaceholder`: Search input placeholder
+  - `allTypes`: All contract types filter option
+  - `allStatuses`: All statuses filter option
+  - `allClients`: All clients filter option
+  - `noContractsFound`: Empty state message
 - `legal`: Legal module content
 - `compliance`: Compliance module content
 - `accounting`: Accounting module content
@@ -978,7 +1002,17 @@ tail -f ~/repos/Cortana/backend/logs/scheduler.log
   - Implemented local database of known sanctioned entities for faster matching
   - Added robust error handling in compliance verification service
   - Integrated Customer Verification with Compliance Dashboard
-  - **Accounting Module Enhancements**:
+  - **Notification System**:
+    - Implemented centralized UI Notification Center with filtering by type and department
+    - Created NotificationContext for global notification state management
+    - Added notification API endpoints for fetching, marking as read, and clearing notifications
+    - Integrated real-time notification updates via WebSockets
+    - Added comprehensive Spanish translations for all notification components
+    - Implemented notification badge with unread count indicator
+    - Added support for notification links to relevant application sections
+    - Categorized notifications by source (legal, compliance, accounting, traffic, admin)
+
+- **Accounting Module Enhancements**:
     - Fixed the "Pay" button functionality in the frontend to process payments
     - Implemented email generation for obligations with HTML templates
     - Added proper date logic for upcoming and overdue obligations

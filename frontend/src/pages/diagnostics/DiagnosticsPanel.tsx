@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-const useTranslation = () => ({ t: (key: string, fallback: string) => fallback });
+import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { 
   CheckCircle, 
@@ -47,7 +47,7 @@ interface DiagnosticsStats {
   history: Record<string, DiagnosticItem[]>;
 }
 
-const ArturPanel = () => {
+const DiagnosticsPanel = () => {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [diagnosticsData, setDiagnosticsData] = useState<DiagnosticsResponse | null>(null);
@@ -72,7 +72,7 @@ const ArturPanel = () => {
       setStatsData(statsResponse.data);
     } catch (err) {
       console.error('Error fetching diagnostics:', err);
-      setError('Failed to fetch diagnostics data. Please try again later.');
+      setError(t('diagnostics.fetchError', 'Failed to fetch diagnostics data. Please try again later.'));
       
       setDiagnosticsData({
         items: [
@@ -167,20 +167,20 @@ const ArturPanel = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'healthy':
-        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Healthy</span>;
+        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">{t('common.labels.healthy', 'Healthy')}</span>;
       case 'warning':
-        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-800">Warning</span>;
+        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-800">{t('common.labels.warning', 'Warning')}</span>;
       case 'error':
-        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Error</span>;
+        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">{t('common.labels.error', 'Error')}</span>;
       default:
-        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Unknown</span>;
+        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">{t('common.labels.unknown', 'Unknown')}</span>;
     }
   };
   
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">{t('diagnostics.title', 'Artur Diagnostics')}</h1>
+        <h1 className="text-2xl font-bold">{t('diagnostics.title', 'Diagnostics Panel')}</h1>
         <button 
           onClick={fetchReport} 
           disabled={loading}
@@ -195,7 +195,7 @@ const ArturPanel = () => {
           <div className="flex">
             <AlertCircle className="h-5 w-5 mr-2" />
             <div>
-              <p className="font-bold">Error</p>
+              <p className="font-bold">{t('diagnostics.error', 'Error')}</p>
               <p>{error}</p>
             </div>
           </div>
@@ -284,7 +284,7 @@ const ArturPanel = () => {
                       
                       {item.error_details && (
                         <div className="mt-2 text-sm text-red-600">
-                          <strong>Error:</strong> {item.error_details.error}
+                          <strong>{t('diagnostics.error', 'Error')}:</strong> {item.error_details.error}
                         </div>
                       )}
                       
@@ -292,7 +292,7 @@ const ArturPanel = () => {
                         <div className="mt-3 space-y-2">
                           <div>
                             <div className="flex justify-between text-sm mb-1">
-                              <span>CPU Usage</span>
+                              <span>{t('common.labels.cpuUsage', 'CPU Usage')}</span>
                               <span>{item.details.cpu_percent}%</span>
                             </div>
                             <div className="w-full bg-gray-200 rounded-full h-2">
@@ -307,7 +307,7 @@ const ArturPanel = () => {
                           </div>
                           <div>
                             <div className="flex justify-between text-sm mb-1">
-                              <span>Memory Usage</span>
+                              <span>{t('common.labels.memoryUsage', 'Memory Usage')}</span>
                               <span>{item.details.memory_percent}%</span>
                             </div>
                             <div className="w-full bg-gray-200 rounded-full h-2">
@@ -322,7 +322,7 @@ const ArturPanel = () => {
                           </div>
                           <div>
                             <div className="flex justify-between text-sm mb-1">
-                              <span>Disk Usage</span>
+                              <span>{t('common.labels.diskUsage', 'Disk Usage')}</span>
                               <span>{item.details.disk_percent}%</span>
                             </div>
                             <div className="w-full bg-gray-200 rounded-full h-2">
@@ -496,4 +496,4 @@ const ArturPanel = () => {
   );
 };
 
-export default ArturPanel;
+export default DiagnosticsPanel;
