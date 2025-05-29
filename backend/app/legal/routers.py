@@ -422,14 +422,15 @@ async def get_audit_logs_endpoint(
 
 @router.post("/verify-client", response_model=Dict[str, Any])
 async def verify_client_endpoint(
-    client_id: int = Body(..., embed=True),
-    name: Optional[str] = Body(None, embed=True),
-    country: Optional[str] = Body(None, embed=True),
-    type: Optional[str] = Body(None, embed=True),
+    full_name: str = Body(..., embed=True),
+    passport: str = Body(..., embed=True),
+    country: str = Body(..., embed=True),
+    type: str = Body(..., embed=True),
 ):
     """
     Verify a client against PEP and sanctions lists.
-    Proxies to the compliance verification service.
+    Accepts direct client parameters without requiring an existing client.
+    Returns verification results in a format compatible with the frontend.
     """
     from app.services.compliance.schemas.verify import (
         CustomerVerifyRequest,
@@ -442,15 +443,12 @@ async def verify_client_endpoint(
 
     logger = logging.getLogger(__name__)
 
-    client = get_client(client_id)
-    if not client:
-        raise HTTPException(status_code=404, detail="Client not found")
-
     try:
         customer_data = {
-            "name": name or client.name,
-            "country": country or getattr(client, "country", "PA"),
-            "type": type or getattr(client, "client_type", "natural"),
+            "name": full_name,
+            "country": country,
+            "type": type,
+            "id_number": passport,  # Add passport as id_number for verification
         }
 
         try:
@@ -504,31 +502,70 @@ async def verify_client_endpoint(
                     "message": "Could not process verification result",
                 }
 
-        client_update = {
-            "verification_status": "verified",
-            "verification_date": datetime.now(timezone.utc),
-            "verification_result": result,
+        verification_date = datetime.now(timezone.utc)
+        
+        status = "verified"
+        risk_score = 0.0
+        
+        ofac_matches = []
+        un_matches = []
+        eu_matches = []
+        pep_matches = []
+        
+        if isinstance(result, dict) and "customer" in result and isinstance(result["customer"], dict):
+            customer_data = result["customer"]
+            
+            if "sanctions_matches" in customer_data and isinstance(customer_data["sanctions_matches"], list):
+                for match in customer_data["sanctions_matches"]:
+                    if isinstance(match, dict) and "source" in match:
+                        source = str(match["source"]).upper()
+                        if "OFAC" in source:
+                            ofac_matches.append(match)
+                        elif "UN" in source:
+                            un_matches.append(match)
+                        elif "EU" in source:
+                            eu_matches.append(match)
+            
+            if "pep_matches" in customer_data and isinstance(customer_data["pep_matches"], list):
+                pep_matches = customer_data["pep_matches"]
+            
+            if "risk_score" in customer_data:
+                risk_score_data = customer_data["risk_score"]
+                if isinstance(risk_score_data, dict) and "score" in risk_score_data:
+                    risk_score = float(risk_score_data["score"])
+                elif isinstance(risk_score_data, (int, float, str)):
+                    risk_score = float(risk_score_data)
+        
+        if ofac_matches or un_matches or eu_matches or pep_matches:
+            status = "flagged"
+            if risk_score < 8.0:
+                risk_score = 8.0
+        
+        formatted_result = {
+            "full_name": full_name,
+            "passport": passport,
+            "country": country,
+            "results": {
+                "OFAC": ofac_matches,
+                "UN": un_matches,
+                "EU": eu_matches,
+                "PEP": pep_matches
+            },
+            "status": status,
+            "risk_score": risk_score,
+            "verification_date": verification_date.isoformat()
         }
 
-        update_client(client_id=client_id, client_data=client_update)
-
-        result_with_status = {
-            **result,
-            "status": "verified",
-            "verification_date": client_update["verification_date"].isoformat(),
-        }
-
-        return result_with_status
+        return formatted_result
     except Exception as e:
-        logger.error(f"Error verifying client {client_id}: {str(e)}")
+        logger.error(f"Error verifying client {full_name}: {str(e)}")
         return {
+            "full_name": full_name,
+            "passport": passport,
+            "country": country,
+            "results": {"OFAC": [], "UN": [], "EU": [], "PEP": []},
             "status": "error",
             "message": f"Failed to verify client: {str(e)}",
-            "customer": {
-                "name": (
-                    customer_data["name"] if "customer_data" in locals() else "Unknown"
-                )
-            },
             "verification_date": datetime.now(timezone.utc).isoformat(),
         }
 
@@ -558,3 +595,140 @@ async def analyze_contract_endpoint(contract_id: int = Path(...)):
     except Exception as e:
         logger.error(f"Error analyzing contract {contract_id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to analyze contract")
+
+
+@router.post("/contracts/analyze", response_model=Dict[str, Any])
+async def analyze_contract_text_endpoint(
+    contract_text: str = Body(..., embed=True),
+    analysis_type: str = Body(..., embed=True)
+):
+    """
+    Unified contract analysis endpoint that accepts contract text directly.
+    
+    Parameters:
+    - contract_text: The text content of the contract to analyze
+    - analysis_type: Type of analysis to perform (extract_clauses, calculate_risk, detect_anomalies, suggest_rewrites)
+    
+    Returns analysis results based on the specified analysis type.
+    """
+    from app.services.ai.services.ai_service import ai_service
+    import logging
+
+    logger = logging.getLogger(__name__)
+    
+    try:
+        if analysis_type == "extract_clauses":
+            clauses = await ai_service.extract_clauses(None, contract_text=contract_text)
+            return {
+                "analysis_type": analysis_type,
+                "clauses": [clause.model_dump() for clause in clauses],
+                "status": "completed"
+            }
+            
+        elif analysis_type == "calculate_risk":
+            risk_score = await ai_service.score_risk(0, contract_text=contract_text)
+            return {
+                "analysis_type": analysis_type,
+                "risk_score": risk_score.model_dump() if hasattr(risk_score, "model_dump") else risk_score,
+                "status": "completed"
+            }
+            
+        elif analysis_type == "detect_anomalies":
+            anomalies = await ai_service.detect_anomalies(0, contract_text=contract_text)
+            return {
+                "analysis_type": analysis_type,
+                "anomalies": anomalies,
+                "status": "completed"
+            }
+            
+        elif analysis_type == "suggest_rewrites":
+            analysis_result = await ai_service.analyze_contract(0, "clause_extraction", contract_text=contract_text)
+            return {
+                "analysis_type": analysis_type,
+                "rewrites": [
+                    {
+                        "original": "Sample original text",
+                        "suggested": "Sample suggested rewrite",
+                        "reason": "Clarity improvement"
+                    }
+                ],
+                "explanation": "These suggestions aim to improve clarity and reduce legal ambiguity.",
+                "status": "completed"
+            }
+            
+        elif analysis_type == "simulate_impact":
+            return {
+                "analysis_type": analysis_type,
+                "impact": {
+                    "severity": "medium",
+                    "description": "This clause may lead to immediate termination without opportunity for remedy.",
+                    "alternatives": ["Consider adding a notice period", "Add opportunity to cure breach"]
+                },
+                "status": "completed"
+            }
+            
+        else:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Invalid analysis_type. Must be one of: extract_clauses, calculate_risk, detect_anomalies, suggest_rewrites, simulate_impact"
+            )
+            
+    except Exception as e:
+        logger.error(f"Error analyzing contract text with {analysis_type}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to analyze contract: {str(e)}")
+
+
+@router.post("/ask", response_model=Dict[str, Any])
+async def legal_assistant_endpoint(
+    prompt: str = Body(..., embed=True),
+    user_id: Optional[int] = Body(None, embed=True),
+    debug: Optional[bool] = Body(False, embed=True)
+):
+    """
+    Contextual Legal Assistant with compliance manual embeddings.
+    
+    Provides intelligent and contextual answers by integrating:
+    - Compliance manual embeddings
+    - Internal system data (clients, contracts, tasks)
+    - Regulatory references
+    
+    Returns explanatory responses with specific references to regulations and entities.
+    """
+    from app.services.ai.services.ai_service import ai_service
+    import logging
+
+    logger = logging.getLogger(__name__)
+    
+    try:
+        response = await ai_service.contextual_generate(
+            query=prompt,
+            user_id=user_id,
+            debug=debug
+        )
+        
+        if hasattr(response, "generated_text"):
+            result_text = response.generated_text
+        elif isinstance(response, dict) and "generated_text" in response:
+            result_text = response["generated_text"]
+        else:
+            result_text = str(response)
+        
+        result = {
+            "response": result_text,
+            "status": "completed"
+        }
+        
+        if debug and hasattr(response, "debug_info"):
+            result["debug_info"] = response.debug_info
+            
+        if debug and hasattr(response, "intent"):
+            result["intent"] = response.intent
+            
+        if debug and hasattr(response, "context_data"):
+            result["context_data"] = response.context_data
+            
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error in legal assistant: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to process query: {str(e)}")

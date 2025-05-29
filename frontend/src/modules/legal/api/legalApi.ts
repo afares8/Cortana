@@ -99,7 +99,7 @@ export const getContractVersions = async (contractId: number): Promise<ContractV
 };
 
 export const getContractVersion = async (contractId: number, version: number): Promise<ContractVersion> => {
-  const response = await axios.get(`${API_URL}/legal/contracts/${contractId}/versions/${version}`);
+  const response = await axios.get(`${API_BASE}/legal/contracts/${contractId}/versions/${version}`);
   return response.data;
 };
 
