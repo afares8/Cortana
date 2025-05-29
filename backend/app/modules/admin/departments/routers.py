@@ -5,6 +5,8 @@ from uuid import UUID
 from app.core.config import settings
 from app.modules.admin.departments.schemas import DepartmentCreate, DepartmentUpdate, DepartmentOut
 from app.modules.admin.departments.services import create_department, get_department, get_departments, update_department, delete_department
+from app.modules.core.users.schemas import UserDepartmentAssignment, UserDepartmentAssignmentResponse
+from app.modules.core.users.services import assign_user_to_department
 
 router = APIRouter()
 
@@ -58,3 +60,21 @@ async def delete_department_endpoint(department_id: int = Path(...)):
     if not success:
         raise HTTPException(status_code=404, detail="Department not found")
     return {"success": True}
+
+@router.post("/{department_id}/users", response_model=UserDepartmentAssignmentResponse)
+async def assign_user_to_department_endpoint(
+    assignment: UserDepartmentAssignment,
+    department_id: int = Path(...)
+):
+    """Assign a user to a department with a specific role."""
+    if assignment.department_id != department_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Department ID in path must match department ID in request body"
+        )
+    
+    return assign_user_to_department(
+        user_id=assignment.user_id,
+        department_id=assignment.department_id,
+        role_id=assignment.role_id
+    )

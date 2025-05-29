@@ -63,20 +63,12 @@ async def delete_role_endpoint(role_id: int = Path(...)):
         raise HTTPException(status_code=404, detail="Role not found")
     return {"success": True}
 
-@router.post("/assign", response_model=RoleAssignmentOut, status_code=201)
-async def assign_role_endpoint(assignment: RoleAssignmentCreate):
-    """Assign a role to a user in a department."""
-    return assign_role(assignment.model_dump())
 
 @router.get("/by-department/{department_id}", response_model=List[RoleOut])
 async def get_department_roles_endpoint(department_id: int = Path(...)):
     """Get all roles for a department."""
     return get_department_roles(department_id)
 
-@router.get("/by-user/{user_id}", response_model=List[RoleAssignmentOut])
-async def get_user_roles_endpoint(user_id: int = Path(...)):
-    """Get all roles assigned to a user."""
-    return get_user_roles(user_id)
 
 @router.get("/by-user-department", response_model=List[RoleAssignmentOut])
 async def get_user_department_roles_endpoint(
