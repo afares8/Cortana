@@ -47,7 +47,7 @@ interface DiagnosticsStats {
   history: Record<string, DiagnosticItem[]>;
 }
 
-const ArturPanel = () => {
+const DiagnosticsPanel = () => {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [diagnosticsData, setDiagnosticsData] = useState<DiagnosticsResponse | null>(null);
@@ -496,4 +496,4 @@ const ArturPanel = () => {
   );
 };
 
-export default ArturPanel;
+export default DiagnosticsPanel;

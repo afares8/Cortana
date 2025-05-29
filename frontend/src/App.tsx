@@ -35,7 +35,7 @@ import UserList from './modules/users/pages/UserList';
 import UserForm from './modules/users/pages/UserForm';
 
 import AccountingDashboard from './modules/accounting/pages/AccountingDashboard';
-import UserAccessManagement from './modules/accounting/pages/UserAccessManagement';
+import UserCompanyAccessPage from './modules/accounting/pages/UserCompanyAccessPage';
 import NotificationsPage from './modules/accounting/pages/NotificationsPage';
 import AuditLogPage from './modules/accounting/pages/AuditLogPage';
 import DocumentGenerationPage from './modules/accounting/pages/DocumentGenerationPage';
@@ -48,14 +48,14 @@ import TrafficRecordDetail from './modules/traffic/pages/RecordDetail';
 import TrafficSubmissionLogs from './modules/traffic/pages/SubmissionLogs';
 import TrafficSubmissionDetail from './modules/traffic/pages/SubmissionDetail';
 
-import AdminDashboard from './modules/AdminControlPanel/pages/AdminDashboard';
-import DepartmentsPage from './modules/AdminControlPanel/pages/DepartmentsPage';
-import RolesPage from './modules/AdminControlPanel/pages/RolesPage';
-import FunctionsPage from './modules/AdminControlPanel/pages/FunctionsPage';
-import AutomationRulesPage from './modules/AdminControlPanel/pages/AutomationRulesPage';
-import AIProfilesPage from './modules/AdminControlPanel/pages/AIProfilesPage';
-import TemplatesPage from './modules/AdminControlPanel/pages/TemplatesPage';
-import AuditLogsPage from './modules/AdminControlPanel/pages/AuditLogsPage';
+import AdminDashboard from './modules/admin/pages/AdminDashboard';
+import DepartmentsPage from './modules/admin/pages/DepartmentsPage';
+import RolesPage from './modules/admin/pages/RolesPage';
+import FunctionsPage from './modules/admin/pages/FunctionsPage';
+import AutomationRulesPage from './modules/admin/pages/AutomationRulesPage';
+import AIProfilesPage from './modules/admin/pages/AIProfilesPage';
+import TemplatesPage from './modules/admin/pages/TemplatesPage';
+import AuditLogsPage from './modules/admin/pages/AuditLogsPage';
 
 import { 
   ArturDashboard, 
@@ -266,7 +266,7 @@ function App() {
               } />
               <Route path="accounting/admin/users" element={
                 <ProtectedRoute>
-                  <UserAccessManagement />
+                  <UserCompanyAccessPage />
                 </ProtectedRoute>
               } />
               <Route path="accounting/notifications" element={
