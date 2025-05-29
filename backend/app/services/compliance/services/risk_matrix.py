@@ -644,11 +644,18 @@ class RiskMatrix:
                                 if isinstance(country, dict):
                                     iso = country.get("iso")
                                     if iso:
+                                        basel_score = country.get("score", 0)
+                                        risk_level = "LOW"
+                                        if basel_score >= 8.0:
+                                            risk_level = "HIGH"
+                                        elif basel_score >= 5.0:
+                                            risk_level = "MEDIUM"
+                                            
                                         countries_risk[iso] = {
                                             "name": country.get("name", "Unknown"),
-                                            "basel_score": country.get("score", 0),
+                                            "basel_score": basel_score,
                                             "basel_rank": country.get("rank", 0),
-                                            "risk_level": RiskLevel.LOW,
+                                            "risk_level": risk_level,  # Already uppercase
                                             "sources": ["Basel AML Index"],
                                         }
                 except Exception as e:

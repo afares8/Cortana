@@ -4,16 +4,30 @@ import axios from 'axios';
 import { RefreshCw } from 'lucide-react';
 import Heatmap from '../components/maps/Heatmap';
 
+interface CountryRiskData {
+  name: string;
+  risk_level: 'LOW' | 'MEDIUM' | 'HIGH';
+  sources: string[];
+  basel_score?: number;
+  basel_rank?: number;
+  fatf_status?: string;
+  eu_high_risk?: boolean;
+  country_code?: string;
+  client_data?: {
+    total_clients: number;
+    high_risk_clients: number;
+    medium_risk_clients: number;
+    low_risk_clients: number;
+    clients: Array<{
+      id: number;
+      name: string;
+      risk_score: number;
+    }>;
+  };
+}
+
 interface CountryRisk {
-  countries: Record<string, {
-    name: string;
-    risk_level: string;
-    sources: string[];
-    basel_score?: number;
-    basel_rank?: number;
-    fatf_status?: string;
-    eu_high_risk?: boolean;
-  }>;
+  countries: Record<string, CountryRiskData>;
   metadata: {
     is_simulated: boolean;
     country_count: number;
@@ -138,19 +152,19 @@ const CountryRiskMap: React.FC = () => {
           </div>
           <div className="text-center p-2 border rounded">
             <div className="text-2xl font-bold text-red-600">
-              {Object.values(countryRiskData.countries).filter(c => c.risk_level === 'high').length}
+              {Object.values(countryRiskData.countries).filter(c => c.risk_level === 'HIGH').length}
             </div>
             <div className="text-sm text-gray-600">{t('compliance.highRiskCountries')}</div>
           </div>
           <div className="text-center p-2 border rounded">
             <div className="text-2xl font-bold text-yellow-600">
-              {Object.values(countryRiskData.countries).filter(c => c.risk_level === 'medium').length}
+              {Object.values(countryRiskData.countries).filter(c => c.risk_level === 'MEDIUM').length}
             </div>
             <div className="text-sm text-gray-600">{t('compliance.mediumRiskCountries')}</div>
           </div>
           <div className="text-center p-2 border rounded">
             <div className="text-2xl font-bold text-green-600">
-              {Object.values(countryRiskData.countries).filter(c => c.risk_level === 'low').length}
+              {Object.values(countryRiskData.countries).filter(c => c.risk_level === 'LOW').length}
             </div>
             <div className="text-sm text-gray-600">{t('compliance.lowRiskCountries')}</div>
           </div>
@@ -161,10 +175,19 @@ const CountryRiskMap: React.FC = () => {
         <Heatmap 
           data={countryRiskData ? {
             last_updated: countryRiskData.last_updated,
-            countries: countryRiskData.countries
+            countries: Object.entries(countryRiskData.countries).reduce((acc, [code, data]) => {
+              acc[code] = {
+                ...data,
+                country_code: code,
+                risk_level: (typeof data.risk_level === 'string' 
+                  ? data.risk_level.toUpperCase() 
+                  : data.risk_level) as 'LOW' | 'MEDIUM' | 'HIGH'
+              };
+              return acc;
+            }, {} as Record<string, any>)
           } : undefined}
           loading={loading}
-          error={error}
+          error={error ? error : undefined}
           height={600}
         />
       </div>
