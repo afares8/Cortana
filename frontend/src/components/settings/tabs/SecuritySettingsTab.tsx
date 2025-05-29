@@ -5,6 +5,7 @@ import { Switch } from '../../../components/ui/switch';
 import { Label } from '../../../components/ui/label';
 import { Input } from '../../../components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
+import axios from 'axios';
 
 interface SecuritySettingsTabProps {
   settings: SystemSettings;
@@ -86,13 +87,26 @@ const SecuritySettingsTab = ({ settings, updateSettings }: SecuritySettingsTabPr
     });
   };
   
-  const handleAuthorizationModeToggle = (enabled: boolean) => {
-    updateSettings({
-      security: {
-        ...settings.security,
-        production_auth_mode: enabled
-      }
-    });
+  const handleAuthorizationModeToggle = async (enabled: boolean) => {
+    try {
+      updateSettings({
+        security: {
+          ...settings.security,
+          production_auth_mode: enabled
+        }
+      });
+      
+      await axios.post('/api/v1/auth/auth-mode', { production_mode: enabled });
+      console.log(`Authentication mode ${enabled ? 'enabled' : 'disabled'}`);
+    } catch (error) {
+      console.error('Failed to update authentication mode:', error);
+      updateSettings({
+        security: {
+          ...settings.security,
+          production_auth_mode: !enabled
+        }
+      });
+    }
   };
   
   return (
