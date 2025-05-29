@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Any, TypeVar, Generic, Type
+from typing import Dict, List, Optional, Any, TypeVar, Generic, Type, Union
 from pydantic import BaseModel
 
 T = TypeVar('T', bound=BaseModel)
@@ -37,13 +37,17 @@ class InMemoryDB(Generic[T]):
         self.counter += 1
         return db_obj
 
-    def update(self, *, id: int, obj_in: BaseModel) -> Optional[T]:
+    def update(self, *, id: int, obj_in: Union[BaseModel, Dict[str, Any]]) -> Optional[T]:
         """Update an existing item."""
         db_obj = self.get(id)
         if db_obj is None:
             return None
         
-        update_data = obj_in.model_dump(exclude_unset=True)
+        if isinstance(obj_in, dict):
+            update_data = obj_in
+        else:
+            update_data = obj_in.model_dump(exclude_unset=True)
+            
         for field, value in update_data.items():
             setattr(db_obj, field, value)
         

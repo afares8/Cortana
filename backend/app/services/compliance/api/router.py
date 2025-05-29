@@ -311,7 +311,8 @@ async def verify_customer_endpoint(request: CustomerVerifyRequest = Body(...)):
 @router.get("/country-risk", response_model=Dict[str, Any])
 async def get_country_risk_endpoint():
     """
-    Get risk assessment for all countries for heatmap visualization.
+    Get risk assessment for all countries for heatmap visualization,
+    including client presence data.
 
     This endpoint returns a comprehensive risk assessment for all countries,
     including:
@@ -320,12 +321,71 @@ async def get_country_risk_endpoint():
     - EU High-Risk status
     - Basel AML Index score and rank
     - Last updated date
+    - Client data (total clients, risk breakdown)
 
-    The data is used to render the risk heatmap in the frontend.
+    The data is used to render the risk heatmap in the frontend, with
+    color-coding applied only to countries with registered clients.
     """
     try:
-        from app.services.compliance.services.unified_verification_service import unified_verification_service
-        return await unified_verification_service.get_all_countries_risk()
+        from app.services.compliance.services.risk_matrix import RiskMatrix
+        from app.legal.services import get_clients
+        
+        risk_matrix = RiskMatrix()
+        await risk_matrix.initialize()
+        
+        country_risk_data = await risk_matrix.get_all_countries_risk()
+        
+        from app.legal.services import get_clients
+        
+        clients = get_clients(skip=0, limit=1000)
+        client_countries = {}
+        
+        logger.info(f"Retrieved {len(clients)} clients")
+        for client in clients:
+            logger.info(f"Client: {client.id} - {client.name} - Country: {getattr(client, 'country', 'None')}")
+            
+            country = getattr(client, 'country', None)
+            if country and isinstance(country, str) and country.strip():
+                country_code = country.upper()
+                if country_code not in client_countries:
+                    client_countries[country_code] = {
+                        "total_clients": 0,
+                        "high_risk_clients": 0,
+                        "medium_risk_clients": 0,
+                        "low_risk_clients": 0,
+                        "clients": []
+                    }
+                
+                client_risk_score = getattr(client, "risk_score", 0)
+                client_countries[country_code]["total_clients"] += 1
+                client_countries[country_code]["clients"].append({
+                    "id": client.id,
+                    "name": client.name,
+                    "risk_score": client_risk_score
+                })
+                
+                country_data = country_risk_data.get("countries", {}).get(country_code, {})
+                country_risk_score = country_data.get("basel_score", 0)
+                country_risk_level = country_data.get("risk_level", "").upper()
+                
+                if country_risk_score >= 8.0 or country_risk_level == "HIGH":
+                    client_countries[country_code]["high_risk_clients"] += 1
+                elif country_risk_score >= 5.0 or country_risk_level == "MEDIUM":
+                    client_countries[country_code]["medium_risk_clients"] += 1
+                else:
+                    client_countries[country_code]["low_risk_clients"] += 1
+        
+        for country_code, country_data in country_risk_data.get("countries", {}).items():
+            country_data["client_data"] = client_countries.get(country_code, {
+                "total_clients": 0,
+                "high_risk_clients": 0,
+                "medium_risk_clients": 0,
+                "low_risk_clients": 0,
+                "clients": []
+            })
+        
+        return country_risk_data
+        
     except Exception as e:
         logger.error(f"Error retrieving country risk data: {str(e)}")
         raise HTTPException(
@@ -374,7 +434,7 @@ async def get_country_risk_analysis_endpoint(
         client_countries = {}
         
         for client in clients:
-            if client.country:
+            if hasattr(client, 'country') and client.country and client.country.strip():
                 country_code = client.country.upper()
                 if country_code not in client_countries:
                     client_countries[country_code] = []
@@ -475,16 +535,17 @@ async def get_country_risk_analysis_endpoint(
         Format the analysis in a clear, concise manner suitable for non-technical users.
         """
         
-        ai_response = await ai_service.contextual_generate(
-            query=query,
-            context_data=context_data,
-            user_id=user_id,
+        from app.services.ai.utils.prompt_builder import prompt_builder
+        enhanced_prompt = prompt_builder.build_prompt(query, "risk_analysis", context_data, "en")
+        
+        ai_response = await ai_service.generate(
+            inputs=enhanced_prompt,
             max_new_tokens=800,
             temperature=0.7,
             debug=True
         )
         
-        analysis_text = ai_response.generated_text
+        analysis_text = ai_response.generated_text if hasattr(ai_response, 'generated_text') else str(ai_response)
         
         timestamp = datetime.now(timezone.utc).isoformat()
         response = {
