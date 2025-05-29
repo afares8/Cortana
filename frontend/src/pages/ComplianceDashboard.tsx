@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
+import { io, Socket } from 'socket.io-client';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -45,6 +46,8 @@ const ComplianceDashboard: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    let socket: Socket | null = null;
+    
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
@@ -61,9 +64,42 @@ const ComplianceDashboard: React.FC = () => {
     };
 
     fetchDashboardData();
-    const intervalId = setInterval(fetchDashboardData, 300000);
     
-    return () => clearInterval(intervalId);
+    const setupWebSocket = () => {
+      const apiUrl = import.meta.env.VITE_API_URL || '';
+      const wsUrl = apiUrl.replace(/^http/, 'ws');
+      
+      socket = io(`${wsUrl}/ws`);
+      
+      socket.on('connect', () => {
+        console.log('WebSocket connected');
+        socket?.emit('subscribe_to_dashboard', {});
+      });
+      
+      socket.on('dashboard_update', (data) => {
+        console.log('Received dashboard update via WebSocket', data);
+        setDashboardData(data);
+      });
+      
+      socket.on('connect_error', (error) => {
+        console.error('WebSocket connection error:', error);
+        const intervalId = setInterval(fetchDashboardData, 300000);
+        return () => clearInterval(intervalId);
+      });
+      
+      socket.on('disconnect', () => {
+        console.log('WebSocket disconnected');
+      });
+    };
+    
+    setupWebSocket();
+    
+    return () => {
+      if (socket) {
+        socket.emit('unsubscribe_from_dashboard', {});
+        socket.disconnect();
+      }
+    };
   }, []);
 
   const [generatingReport, setGeneratingReport] = useState<boolean>(false);

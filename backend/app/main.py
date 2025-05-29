@@ -5,6 +5,7 @@ import os
 import logging
 import datetime
 from logging.handlers import RotatingFileHandler
+import asyncio
 
 from app.core.config import settings
 from app.db.init_db import init_db
@@ -68,6 +69,9 @@ app.add_middleware(
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers
 )
+
+from app.services.websocket import setup_socketio
+sio = setup_socketio(app)
 
 app.include_router(auth_router, prefix=f"{settings.API_V1_STR}/auth", tags=["auth"])
 app.include_router(legal_router, prefix=f"{settings.API_V1_STR}/legal", tags=["legal"])
