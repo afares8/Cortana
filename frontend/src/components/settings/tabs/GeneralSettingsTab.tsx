@@ -79,7 +79,8 @@ const GeneralSettingsTab = ({ settings, updateSettings }: GeneralSettingsTabProp
             {settings.general.logo_url && (
               <img 
                 src={settings.general.logo_url} 
-                alt="Logo" 
+                alt={`${settings.general.system_name} logo`}
+                aria-label={t('settings.companyLogo')}
                 className="h-12 w-auto object-contain"
               />
             )}

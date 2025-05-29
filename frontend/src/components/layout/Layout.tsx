@@ -66,13 +66,13 @@ export default function Layout({ children, title }: LayoutProps) {
     { 
       path: '', 
       label: 'common.navigation.dashboard', 
-      icon: <BarChart2 className="h-5 w-5" />, 
+      icon: <BarChart2 className="h-5 w-5" aria-label="Panel de control" />, 
       section: 'dashboard'
     },
     {
       path: 'legal',
       label: 'common.navigation.legalAndContracts',
-      icon: <Shield className="h-5 w-5" />,
+      icon: <Shield className="h-5 w-5" aria-label="Legal y contratos" />,
       section: 'legal',
       children: [
         { path: 'legal/dashboard', label: 'common.navigation.dashboard', icon: <BarChart2 className="h-4 w-4" /> },
@@ -92,7 +92,7 @@ export default function Layout({ children, title }: LayoutProps) {
     { 
       path: 'users', 
       label: 'common.navigation.userManagement', 
-      icon: <UserCog className="h-5 w-5" />, 
+      icon: <UserCog className="h-5 w-5" aria-label="Gestión de usuarios" />, 
       section: 'users',
       children: [
         { path: 'users', label: 'common.navigation.users', icon: <Users className="h-4 w-4" /> },
@@ -408,7 +408,7 @@ export default function Layout({ children, title }: LayoutProps) {
                 onFocus={() => setSearchOpen(true)}
               />
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" />
+                <Search className="h-5 w-5 text-gray-400" aria-label="Buscar" />
               </div>
               {searchQuery && (
                 <button
@@ -418,7 +418,7 @@ export default function Layout({ children, title }: LayoutProps) {
                     setSearchResults([]);
                   }}
                 >
-                  <X className="h-5 w-5 text-gray-400" />
+                  <X className="h-5 w-5 text-gray-400" aria-label="Limpiar búsqueda" />
                 </button>
               )}
             </div>
@@ -443,9 +443,9 @@ export default function Layout({ children, title }: LayoutProps) {
                         >
                           <div className="flex items-start">
                             <div className="flex-shrink-0 mt-1">
-                              {result.type === 'contract' && <FileText className="h-4 w-4 text-blue-500" />}
-                              {result.type === 'client' && <Users className="h-4 w-4 text-green-500" />}
-                              {result.type === 'compliance' && <Shield className="h-4 w-4 text-red-500" />}
+                              {result.type === 'contract' && <FileText className="h-4 w-4 text-blue-500" aria-label="Contrato" />}
+                              {result.type === 'client' && <Users className="h-4 w-4 text-green-500" aria-label="Cliente" />}
+                              {result.type === 'compliance' && <Shield className="h-4 w-4 text-red-500" aria-label="Cumplimiento" />}
                             </div>
                             <div className="ml-3">
                               <p className="text-sm font-medium text-gray-900">{result.title}</p>
@@ -474,13 +474,13 @@ export default function Layout({ children, title }: LayoutProps) {
               onClick={() => setSettingsPanelOpen(true)}
               className="text-gray-500 hover:text-gray-700"
             >
-              <Settings className="h-5 w-5" />
+              <Settings className="h-5 w-5" aria-label="Configuración" />
             </button>
             <button 
               onClick={handleLogout}
               className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
             >
-              <LogOut className="h-5 w-5 mr-2" />
+              <LogOut className="h-5 w-5 mr-2" aria-label="Cerrar sesión" />
               {t('common.logout')}
             </button>
           </div>
@@ -493,7 +493,7 @@ export default function Layout({ children, title }: LayoutProps) {
               className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none"
             >
               <span className="sr-only">{t('common.openMenu')}</span>
-              <Menu className="h-6 w-6" />
+              <Menu className="h-6 w-6" aria-label="Menú móvil" />
             </button>
           </div>
         </div>
@@ -515,9 +515,9 @@ export default function Layout({ children, title }: LayoutProps) {
                           <span className="ml-2">{t(item.label)}</span>
                         </div>
                         {expandedSections[item.section || ''] ? (
-                          <ChevronDown className="h-4 w-4" />
+                          <ChevronDown className="h-4 w-4" aria-label="Contraer sección" />
                         ) : (
-                          <ChevronRight className="h-4 w-4" />
+                          <ChevronRight className="h-4 w-4" aria-label="Expandir sección" />
                         )}
                       </button>
                       
@@ -597,9 +597,9 @@ export default function Layout({ children, title }: LayoutProps) {
                         <span className="ml-2">{t(item.label)}</span>
                       </div>
                       {expandedSections[item.section || ''] ? (
-                        <ChevronDown className="h-4 w-4" />
+                        <ChevronDown className="h-4 w-4" aria-label="Contraer sección" />
                       ) : (
-                        <ChevronRight className="h-4 w-4" />
+                        <ChevronRight className="h-4 w-4" aria-label="Expandir sección" />
                       )}
                     </button>
                     
