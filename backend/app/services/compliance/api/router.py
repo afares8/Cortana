@@ -333,6 +333,200 @@ async def get_country_risk_endpoint():
             detail="Failed to retrieve country risk data. Please try again later.")
 
 
+@router.post("/country-risk/analysis", response_model=Dict[str, Any])
+async def get_country_risk_analysis_endpoint(
+    user_id: Optional[int] = Body(None, embed=True),
+    user_email: Optional[str] = Body(None, embed=True),
+):
+    """
+    Generate an AI-powered analysis of country risk data and client distribution.
+    
+    This endpoint:
+    1. Retrieves country risk data from the compliance service
+    2. Retrieves client data to identify countries with clients
+    3. Uses the AI service to generate an analysis based on this data
+    4. Logs the analysis in the audit system
+    5. Returns the analysis with metadata
+    """
+    try:
+        from app.services.compliance.services.risk_matrix import RiskMatrix
+        from app.services.ai.services.ai_service import ai_service
+        from app.services.audit.services.audit_service import audit_service
+        from app.legal.services import get_clients
+        from datetime import datetime, timezone
+        from pydantic import BaseModel
+        
+        class RiskAnalysisResponse(BaseModel):
+            """Response model for risk analysis."""
+            analysis: str
+            global_risk_score: float
+            recommended_score: float
+            high_risk_countries_with_clients: List[str]
+            timestamp: str
+            data_sources: List[str]
+        
+        risk_matrix = RiskMatrix()
+        await risk_matrix.initialize()
+        
+        country_risk_data = await risk_matrix.get_all_countries_risk()
+        
+        clients = get_clients(skip=0, limit=1000)
+        client_countries = {}
+        
+        for client in clients:
+            if client.country:
+                country_code = client.country.upper()
+                if country_code not in client_countries:
+                    client_countries[country_code] = []
+                client_countries[country_code].append({
+                    "id": client.id,
+                    "name": client.name,
+                    "risk_score": getattr(client, "risk_score", None)
+                })
+        
+        high_risk_countries = []
+        high_risk_countries_with_clients = []
+        medium_risk_countries_with_clients = []
+        low_risk_countries_with_clients = []
+        
+        for country_code, country_data in country_risk_data.get("countries", {}).items():
+            risk_score = country_data.get("risk_score", 0)
+            country_name = country_data.get("country_name", "")
+            
+            if risk_score >= 8.0:
+                high_risk_countries.append(country_name)
+                if country_code in client_countries:
+                    high_risk_countries_with_clients.append(country_name)
+            elif risk_score >= 5.0 and country_code in client_countries:
+                medium_risk_countries_with_clients.append(country_name)
+            elif country_code in client_countries:
+                low_risk_countries_with_clients.append(country_name)
+        
+        total_countries = len(country_risk_data.get("countries", {}))
+        high_risk_count = len([c for c, data in country_risk_data.get("countries", {}).items() 
+                              if data.get("risk_score", 0) >= 8.0])
+        medium_risk_count = len([c for c, data in country_risk_data.get("countries", {}).items() 
+                                if 5.0 <= data.get("risk_score", 0) < 8.0])
+        low_risk_count = len([c for c, data in country_risk_data.get("countries", {}).items() 
+                             if data.get("risk_score", 0) < 5.0])
+        
+        total_risk_score = sum(data.get("risk_score", 0) for data in country_risk_data.get("countries", {}).values())
+        global_risk_score = total_risk_score / total_countries if total_countries > 0 else 0
+        
+        client_countries_risk = [
+            country_risk_data.get("countries", {}).get(country_code, {}).get("risk_score", 0)
+            for country_code in client_countries.keys()
+            if country_code in country_risk_data.get("countries", {})
+        ]
+        
+        client_weighted_risk = sum(client_countries_risk) / len(client_countries_risk) if client_countries_risk else 0
+        
+        context_data = {
+            "risk_data": {
+                "global_risk_score": round(global_risk_score, 2),
+                "client_weighted_risk": round(client_weighted_risk, 2),
+                "recommended_score": 3.0,
+                "high_risk_count": high_risk_count,
+                "medium_risk_count": medium_risk_count,
+                "low_risk_count": low_risk_count,
+                "total_countries": total_countries,
+                "high_risk_countries_with_clients": high_risk_countries_with_clients,
+                "medium_risk_countries_with_clients": medium_risk_countries_with_clients,
+                "low_risk_countries_with_clients": low_risk_countries_with_clients,
+                "fatf_blacklist": [
+                    country_data.get("country_name", code) 
+                    for code, country_data in country_risk_data.get("countries", {}).items()
+                    if country_data.get("fatf_status", "") == "blacklist"
+                ],
+                "fatf_greylist": [
+                    country_data.get("country_name", code) 
+                    for code, country_data in country_risk_data.get("countries", {}).items()
+                    if country_data.get("fatf_status", "") == "greylist"
+                ],
+                "basel_index_top10": sorted(
+                    [(code, data.get("country_name", ""), data.get("risk_score", 0)) 
+                     for code, data in country_risk_data.get("countries", {}).items()],
+                    key=lambda x: x[2], reverse=True
+                )[:10],
+                "data_sources": country_risk_data.get("sources", ["Basel AML Index", "FATF Lists"])
+            },
+            "client_data": {
+                "total_clients": len(clients),
+                "clients_by_country": {
+                    country: len(clients_list) for country, clients_list in client_countries.items()
+                },
+                "high_risk_clients_count": sum(
+                    len(clients_list) for country, clients_list in client_countries.items()
+                    if country in country_risk_data.get("countries", {}) and 
+                    country_risk_data.get("countries", {}).get(country, {}).get("risk_score", 0) >= 8.0
+                )
+            }
+        }
+        
+        query = """
+        Analyze the country risk data and client distribution to provide a comprehensive risk assessment.
+        Include:
+        1. A summary of the global risk situation
+        2. Identification of high-risk countries with clients
+        3. Comparison to FATF and Basel Index standards
+        4. A global risk score assessment (comparing actual vs. recommended)
+        5. Recommendations for risk mitigation
+        
+        Format the analysis in a clear, concise manner suitable for non-technical users.
+        """
+        
+        ai_response = await ai_service.contextual_generate(
+            query=query,
+            context_data=context_data,
+            user_id=user_id,
+            max_new_tokens=800,
+            temperature=0.7,
+            debug=True
+        )
+        
+        analysis_text = ai_response.generated_text
+        
+        timestamp = datetime.now(timezone.utc).isoformat()
+        response = {
+            "analysis": analysis_text,
+            "global_risk_score": round(client_weighted_risk, 2),
+            "recommended_score": 3.0,
+            "high_risk_countries_with_clients": high_risk_countries_with_clients,
+            "timestamp": timestamp,
+            "data_sources": country_risk_data.get("sources", ["Basel AML Index", "FATF Lists"])
+        }
+        
+        from app.services.audit.schemas.audit import AuditLogCreate
+        
+        audit_log = AuditLogCreate(
+            user_id=user_id,
+            user_email=user_email,
+            action="generate",
+            entity_type="risk_analysis",
+            entity_id=f"risk_analysis_{timestamp}",
+            details={
+                "analysis": analysis_text,
+                "global_risk_score": round(client_weighted_risk, 2),
+                "high_risk_countries_with_clients": high_risk_countries_with_clients,
+                "data_sources": country_risk_data.get("sources", ["Basel AML Index", "FATF Lists"])
+            },
+            ip_address=None
+        )
+        
+        await audit_service.create_audit_log(audit_log)
+        
+        return response
+        
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error generating risk analysis: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error generating risk analysis: {str(e)}"
+        )
+
+
 @router.post("/force-update-risk-matrix", response_model=Dict[str, Any])
 async def force_update_risk_matrix_endpoint():
     """
