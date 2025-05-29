@@ -17,6 +17,7 @@ interface NavItem {
   icon: ReactNode;
   section?: string;
   children?: NavItem[];
+  comingSoon?: boolean;
 }
 
 interface SearchResult {
@@ -134,14 +135,14 @@ export default function Layout({ children, title }: LayoutProps) {
         { path: 'admin', label: 'common.navigation.dashboard', icon: <BarChart2 className="h-4 w-4" /> },
         { path: 'admin/departments', label: 'common.navigation.departments', icon: <Building2 className="h-4 w-4" /> },
         { path: 'admin/roles', label: 'common.navigation.roles', icon: <UserCog className="h-4 w-4" /> },
-        { path: 'admin/automation', label: 'common.navigation.automation', icon: <GitBranch className="h-4 w-4" /> },
-        { path: 'admin/ai-profiles', label: 'common.navigation.aiProfiles', icon: <Cpu className="h-4 w-4" /> },
+        { path: 'admin/automation', label: 'common.navigation.automation', icon: <GitBranch className="h-4 w-4" />, comingSoon: true },
+        { path: 'admin/ai-profiles', label: 'common.navigation.aiProfiles', icon: <Cpu className="h-4 w-4" />, comingSoon: true },
         { path: 'admin/audit', label: 'common.navigation.auditLogs', icon: <BarChart3 className="h-4 w-4" /> },
         { path: 'admin/artur', label: 'common.navigation.arturDashboard', icon: <Brain className="h-4 w-4" /> },
         { path: 'admin/artur/suggestions', label: 'common.navigation.arturSuggestions', icon: <Brain className="h-4 w-4" /> },
-        { path: 'admin/artur/simulation', label: 'common.navigation.arturSimulation', icon: <Brain className="h-4 w-4" /> },
-        { path: 'admin/artur/interventions', label: 'common.navigation.arturInterventions', icon: <Brain className="h-4 w-4" /> },
-        { path: 'admin/artur/kpi', label: 'common.navigation.arturKPI', icon: <Brain className="h-4 w-4" /> }
+        { path: 'admin/artur/simulation', label: 'common.navigation.arturSimulation', icon: <Brain className="h-4 w-4" />, comingSoon: true },
+        { path: 'admin/artur/interventions', label: 'common.navigation.arturInterventions', icon: <Brain className="h-4 w-4" />, comingSoon: true },
+        { path: 'admin/artur/kpi', label: 'common.navigation.arturKPI', icon: <Brain className="h-4 w-4" />, comingSoon: true }
       ]
     }
   ];
@@ -528,9 +529,15 @@ export default function Layout({ children, title }: LayoutProps) {
                             setMobileMenuOpen(false);
                           }}
                           className="flex w-full items-center px-3 py-2 pl-8 text-sm font-medium rounded-md text-left text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                          aria-disabled={child.comingSoon}
                         >
                           {child.icon}
                           <span className="ml-2">{t(child.label)}</span>
+                          {child.comingSoon && (
+                            <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-500 rounded-full" aria-label={t('common.navigation.comingSoon')}>
+                              {t('common.navigation.comingSoon')}
+                            </span>
+                          )}
                         </button>
                       ))}
                     </div>
@@ -607,9 +614,15 @@ export default function Layout({ children, title }: LayoutProps) {
                                 ? 'bg-gray-100 text-gray-900'
                                 : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                             }`}
+                            aria-disabled={child.comingSoon}
                           >
                             {child.icon}
                             <span className="ml-2">{t(child.label)}</span>
+                            {child.comingSoon && (
+                              <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-500 rounded-full" aria-label={t('common.navigation.comingSoon')}>
+                                {t('common.navigation.comingSoon')}
+                              </span>
+                            )}
                           </button>
                         ))}
                       </div>
