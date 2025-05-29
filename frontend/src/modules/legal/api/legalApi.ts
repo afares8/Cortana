@@ -267,3 +267,16 @@ export const downloadUAFReport = async (reportId: number): Promise<Blob> => {
   });
   return response.data;
 };
+
+export const generateRiskAnalysis = async (
+  userId?: number,
+  userEmail?: string
+): Promise<RiskAnalysis> => {
+  const payload = {
+    user_id: userId,
+    user_email: userEmail
+  };
+  
+  const response = await axios.post(`${API_BASE}/legal/risk-analysis`, payload);
+  return response.data;
+};

@@ -251,3 +251,12 @@ export interface LegalQAResponse {
   response: string;
   error?: string;
 }
+
+export interface RiskAnalysis {
+  analysis: string;
+  global_risk_score: number;
+  recommended_score: number;
+  high_risk_countries_with_clients: string[];
+  timestamp: string;
+  data_sources: string[];
+}

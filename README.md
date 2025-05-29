@@ -447,6 +447,7 @@ For the compliance automation features to work properly:
   }
   ```
 - `GET /api/v1/compliance/country-risk` - Get country risk matrix data
+- `POST /api/v1/compliance/country-risk/analysis` - Generate AI-powered analysis of country risk data and client distribution
 - `GET /api/v1/compliance/monitoring/tasks` - Get status of all scheduled compliance tasks
 - `POST /api/v1/compliance/force-update/risk-matrix` - Force update of risk matrix
 - `POST /api/v1/compliance/force-update/sanctions` - Force update of all sanctions lists
