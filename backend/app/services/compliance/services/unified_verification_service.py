@@ -286,6 +286,9 @@ class UnifiedVerificationService:
 
                 matches = []
                 for result in results:
+                    if not isinstance(result, dict):
+                        continue
+                        
                     if (
                         result.get("score", 0) > 0.6
                     ):  # Threshold for considering a match
@@ -437,6 +440,9 @@ class UnifiedVerificationService:
 
                 matches = []
                 for result in results:
+                    if not isinstance(result, dict):
+                        continue
+                        
                     if result.get("score", 0) > 0.7:  # Higher threshold for sanctions
                         matches.append(
                             {

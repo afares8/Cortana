@@ -41,6 +41,7 @@ def create_client(client_data: Dict[str, Any]) -> Client:
         excel_risk_evaluator,
     )
     from app.services.compliance.services.compliance_service import compliance_service
+    from app.services.compliance.schemas.compliance import PEPScreeningResultCreate, SanctionsScreeningResultCreate
     import asyncio
 
     client_create = ClientCreate(**client_data)
@@ -71,25 +72,25 @@ def create_client(client_data: Dict[str, Any]) -> Client:
 
         pep_result = loop.run_until_complete(
             compliance_service.create_pep_screening(
-                {
-                    "client_id": client.id,
-                    "match_status": "pending",
-                    "screened_by": "system",
-                    "risk_level": "unknown",
-                    "notes": "Automatic screening during client creation",
-                }
+                PEPScreeningResultCreate(
+                    client_id=client.id,
+                    match_status="pending",
+                    screened_by="system",
+                    risk_level="unknown",
+                    notes="Automatic screening during client creation"
+                )
             )
         )
 
         sanctions_result = loop.run_until_complete(
             compliance_service.create_sanctions_screening(
-                {
-                    "client_id": client.id,
-                    "match_status": "pending",
-                    "screened_by": "system",
-                    "risk_level": "unknown",
-                    "notes": "Automatic screening during client creation",
-                }
+                SanctionsScreeningResultCreate(
+                    client_id=client.id,
+                    match_status="pending",
+                    screened_by="system",
+                    risk_level="unknown",
+                    notes="Automatic screening during client creation"
+                )
             )
         )
 
@@ -619,7 +620,7 @@ def delete_task(task_id: int) -> bool:
     if not task:
         return False
 
-    result = tasks_db.remove(task_id)
+    result = tasks_db.delete(task_id)
 
     create_audit_log(
         entity_type="task",
