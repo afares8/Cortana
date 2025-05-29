@@ -56,7 +56,14 @@
       "english": "Inglés",
       "spanish": "Español",
       "language": "Idioma",
-      "note": "Nota"
+      "note": "Nota",
+      "healthy": "Saludable",
+      "warning": "Advertencia",
+      "error": "Error",
+      "unknown": "Desconocido",
+      "cpuUsage": "Uso de CPU",
+      "memoryUsage": "Uso de Memoria",
+      "diskUsage": "Uso de Disco"
     },
     "messages": {
       "loading": "Cargando..."
@@ -317,6 +324,40 @@
     "inputPlaceholder": "ej., 'Muéstrame todos los contratos que vencen el próximo trimestre' o '¿Qué contratos carecen de cláusulas de indemnización?'",
     "traditionalNlp": "NLP Tradicional",
     "mistralAi": "Mistral AI"
+  },
+  "artur": {
+    "suggestions": "Sugerencias Artur",
+    "runEvaluationCycle": "Ejecutar Ciclo de Evaluación",
+    "failedToLoadSuggestions": "Error al cargar sugerencias",
+    "confirmDeleteAccess": "¿Está seguro de que desea eliminar este acceso?",
+    "noSuggestionsAvailable": "No hay sugerencias disponibles"
+  },
+  "diagnostics": {
+    "title": "Panel de Diagnóstico",
+    "runDiagnostics": "Ejecutar Diagnóstico",
+    "systemStatus": "Estado del Sistema",
+    "lastUpdated": "Última actualización",
+    "statusHealthy": "Todos los sistemas operativos",
+    "statusWarning": "Sistema experimentando problemas",
+    "statusError": "Errores críticos del sistema detectados",
+    "aiExplanation": "Explicación de IA",
+    "components": "Componentes",
+    "suggestedActions": "Acciones Sugeridas",
+    "predictions": "Predicciones",
+    "componentStatus": "Estado de Componentes",
+    "suggestedAction": "Acción Sugerida",
+    "prediction": "Predicción",
+    "noActionsNeeded": "No se necesitan acciones en este momento",
+    "noPredictions": "No hay predicciones disponibles",
+    "statistics": "Estadísticas",
+    "totalRuns": "Total de Ejecuciones de Diagnóstico",
+    "componentsMonitored": "Componentes Monitoreados",
+    "lastRun": "Última Ejecución",
+    "error": "Error",
+    "fetchError": "Error al obtener datos de diagnóstico. Por favor, inténtelo de nuevo más tarde.",
+    "cpuUsage": "Uso de CPU",
+    "memoryUsage": "Uso de Memoria",
+    "diskUsage": "Uso de Disco"
   },
   "traffic": {
     "actions": "Acciones de Tráfico",
