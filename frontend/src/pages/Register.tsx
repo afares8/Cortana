@@ -1,22 +1,26 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { register } from '../lib/api';
 
 export default function Register() {
+  const { t } = useTranslation();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccessMessage('');
     
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('auth.errors.passwordsDoNotMatch', 'Passwords do not match'));
       return;
     }
     
@@ -28,9 +32,16 @@ export default function Register() {
         password,
         full_name: fullName,
       });
-      navigate('/login');
+      setSuccessMessage(t('auth.success.userCreated'));
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000); // Show success message for 2 seconds before redirecting
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Registration failed');
+      if (err.response?.status === 409 || err.response?.data?.detail?.includes('already exists')) {
+        setError(t('auth.errors.emailExists'));
+      } else {
+        setError(t('auth.errors.registrationFailed'));
+      }
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -48,8 +59,18 @@ export default function Register() {
         </h3>
         
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" 
+               role="alert" 
+               aria-live="assertive">
             {error}
+          </div>
+        )}
+        
+        {successMessage && (
+          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4"
+               role="status"
+               aria-live="polite">
+            {successMessage}
           </div>
         )}
         

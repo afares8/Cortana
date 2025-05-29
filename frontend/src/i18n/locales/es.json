@@ -49,7 +49,8 @@
       "arturSimulation": "Simulación Artur",
       "arturInterventions": "Intervenciones Artur",
       "arturKPI": "KPI Artur",
-      "legalAssistant": "Asistente Legal"
+      "legalAssistant": "Asistente Legal",
+      "comingSoon": "Próximamente"
     },
     "searchPlaceholder": "Buscar...",
     "labels": {
@@ -483,5 +484,38 @@
     "placeholder": "Escribe tu consulta aquí...",
     "send": "Enviar",
     "helpText": "Puedes preguntar sobre tareas pendientes, contratos, clientes, o reportes de cumplimiento."
+  },
+  "auth": {
+    "login": "Iniciar sesión",
+    "logout": "Cerrar sesión",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "register": "Registrarse",
+    "forgotPassword": "Olvidé mi contraseña",
+    "errors": {
+      "invalidCredentials": "Correo o contraseña incorrectos",
+      "emailExists": "Ya existe usuario con ese correo",
+      "registrationFailed": "Error al registrar usuario",
+      "loginFailed": "Error al iniciar sesión",
+      "serverError": "Error del servidor, intente más tarde"
+    },
+    "success": {
+      "userCreated": "Usuario creado correctamente",
+      "passwordReset": "Contraseña restablecida correctamente",
+      "loggedOut": "Sesión cerrada correctamente"
+    }
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "empty": "No hay notificaciones",
+    "markAllAsRead": "Marcar todas como leídas",
+    "clearAll": "Borrar todas",
+    "all": "Todas",
+    "unread": "No leídas",
+    "legal": "Legal",
+    "compliance": "Cumplimiento",
+    "accounting": "Contabilidad",
+    "traffic": "Tráfico",
+    "admin": "Administración"
   }
 }

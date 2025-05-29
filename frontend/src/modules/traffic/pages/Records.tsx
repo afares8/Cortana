@@ -217,7 +217,7 @@ const Records = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
+              <Search className="h-5 w-5 text-gray-400" aria-label="Buscar registros" />
             </div>
           </div>
           
@@ -260,7 +260,7 @@ const Records = () => {
               onClick={fetchRecords}
               className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 flex items-center"
             >
-              <RefreshCw className="h-4 w-4 mr-1" />
+              <RefreshCw className="h-4 w-4 mr-1" aria-label="Actualizar registros" />
               Actualizar
             </button>
           </div>
@@ -300,7 +300,7 @@ const Records = () => {
         
         {isLoading ? (
           <div className="py-8 text-center text-gray-500">
-            <Clock className="h-8 w-8 mx-auto mb-2 animate-spin" />
+            <Clock className="h-8 w-8 mx-auto mb-2 animate-spin" aria-label="Cargando" />
             <p>Cargando registros...</p>
           </div>
         ) : filteredRecords.length > 0 ? (
@@ -365,9 +365,9 @@ const Records = () => {
                         onClick={() => navigate(`/traffic/record/${record.id}`)}
                         className="text-blue-600 hover:text-blue-800 flex items-center"
                       >
-                        <FileText className="h-4 w-4 mr-1" />
+                        <FileText className="h-4 w-4 mr-1" aria-label="Ver registro" />
                         Ver
-                        <ChevronRight className="h-4 w-4" />
+                        <ChevronRight className="h-4 w-4" aria-label="Ir a detalles" />
                       </button>
                     </td>
                   </tr>
@@ -377,7 +377,7 @@ const Records = () => {
           </div>
         ) : (
           <div className="py-8 text-center text-gray-500">
-            <AlertCircle className="h-8 w-8 mx-auto mb-2" />
+            <AlertCircle className="h-8 w-8 mx-auto mb-2" aria-label="No hay registros" />
             <p>No se encontraron registros</p>
             <button 
               className="mt-2 text-blue-600 hover:text-blue-800 text-sm font-medium"

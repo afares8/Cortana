@@ -121,7 +121,7 @@ const UserList: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="mb-4 relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" aria-label="Buscar usuarios" />
             <Input
               type="text"
               placeholder={t('Search users...')}
@@ -187,29 +187,29 @@ const UserList: React.FC = () => {
                           <DropdownMenuLabel>{t('Actions')}</DropdownMenuLabel>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => navigate(`/users/${user.id}`)}>
-                            <Eye className="mr-2 h-4 w-4" />
+                            <Eye className="mr-2 h-4 w-4" aria-label="Ver detalles" />
                             {t('View Details')}
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => navigate(`/users/${user.id}/edit`)}>
-                            <Edit className="mr-2 h-4 w-4" />
+                            <Edit className="mr-2 h-4 w-4" aria-label="Editar usuario" />
                             {t('Edit')}
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => navigate(`/users/${user.id}/reset-password`)}>
-                            <Key className="mr-2 h-4 w-4" />
+                            <Key className="mr-2 h-4 w-4" aria-label="Restablecer contraseña" />
                             {t('Reset Password')}
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem 
                             onClick={() => user.active ? navigate(`/users/${user.id}/lock`) : navigate(`/users/${user.id}/unlock`)}
                           >
-                            <Lock className="mr-2 h-4 w-4" />
+                            <Lock className="mr-2 h-4 w-4" aria-label="Bloquear o desbloquear cuenta" />
                             {user.active ? t('Lock Account') : t('Unlock Account')}
                           </DropdownMenuItem>
                           <DropdownMenuItem 
                             className="text-red-600 focus:text-red-600" 
                             onClick={() => setUserToDelete(user)}
                           >
-                            <Trash className="mr-2 h-4 w-4" />
+                            <Trash className="mr-2 h-4 w-4" aria-label="Eliminar usuario" />
                             {t('Delete')}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
