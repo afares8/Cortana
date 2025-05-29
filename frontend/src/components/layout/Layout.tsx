@@ -5,6 +5,7 @@ import { Search, X, Menu, LogOut, ChevronRight, ChevronDown, Bell, Settings, Shi
 import NotificationBadge from '../../modules/accounting/components/NotificationBadge';
 import LanguageToggle from '../LanguageToggle';
 import SettingsPanel from '../settings/SettingsPanel';
+import { searchAll, SearchResult } from '../../modules/search/api/searchApi';
 
 interface LayoutProps {
   children: ReactNode;
@@ -167,52 +168,8 @@ export default function Layout({ children, title }: LayoutProps) {
 
     setIsSearching(true);
     try {
-      // const apiUrl = import.meta.env.VITE_API_URL || '';
-      
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const mockResults: SearchResult[] = [
-        {
-          id: '1',
-          title: 'Contract with Global Fragrances Ltd.',
-          type: 'contract',
-          path: '/contracts/1',
-          excerpt: 'Supply agreement for perfume ingredients...'
-        },
-        {
-          id: '2',
-          title: 'TechStart Inc. NDA',
-          type: 'contract',
-          path: '/contracts/2',
-          excerpt: 'Non-disclosure agreement for software development...'
-        },
-        {
-          id: '3',
-          title: 'Acme Corp License Agreement',
-          type: 'contract',
-          path: '/contracts/3',
-          excerpt: 'License for use of proprietary fragrance formulas...'
-        },
-        {
-          id: '4',
-          title: 'UAF Report - Q1 2025',
-          type: 'compliance',
-          path: '/compliance/reports/1',
-          excerpt: 'Quarterly financial activity report...'
-        },
-        {
-          id: '5',
-          title: 'Client: Luxury Scents International',
-          type: 'client',
-          path: '/legal/clients/1',
-          excerpt: 'Major distributor of premium fragrances...'
-        }
-      ].filter(item => 
-        item.title.toLowerCase().includes(query.toLowerCase()) || 
-        item.excerpt.toLowerCase().includes(query.toLowerCase())
-      );
-      
-      setSearchResults(mockResults);
+      const results = await searchAll(query);
+      setSearchResults(results);
     } catch (error) {
       console.error('Search error:', error);
       setSearchResults([]);
