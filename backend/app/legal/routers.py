@@ -632,7 +632,9 @@ async def verify_client_endpoint(
     import logging
 
     logger = logging.getLogger(__name__)
-
+    
+    logger.info(f"Received verification request - full_name: {full_name}, passport: {passport}, country: {country}, type: {type}")
+    
     try:
         customer_data = {
             "name": full_name,
@@ -640,11 +642,16 @@ async def verify_client_endpoint(
             "type": type,
             "id_number": passport,  # Add passport as id_number for verification
         }
+        
+        logger.info(f"Constructed customer_data: {customer_data}")
 
         try:
+            logger.info(f"Creating CustomerVerifyRequest with customer data")
             request = CustomerVerifyRequest(customer=Customer(**customer_data))
+            logger.info("CustomerVerifyRequest created successfully")
         except Exception as e:
             logger.error(f"Error creating verification request: {str(e)}")
+            logger.error(f"Customer data that failed validation: {customer_data}")
             raise HTTPException(
                 status_code=400, detail=f"Invalid customer data: {str(e)}"
             )
