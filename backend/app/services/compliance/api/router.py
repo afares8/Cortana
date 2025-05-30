@@ -516,28 +516,54 @@ async def get_country_risk_analysis_endpoint(
                 "clients_by_country": {
                     country: len(clients_list) for country, clients_list in client_countries.items()
                 },
+                "clients_by_country_names": {
+                    country_risk_data.get("countries", {}).get(country, {}).get("country_name", country): len(clients_list) 
+                    for country, clients_list in client_countries.items()
+                    if country in country_risk_data.get("countries", {})
+                },
                 "high_risk_clients_count": sum(
                     len(clients_list) for country, clients_list in client_countries.items()
                     if country in country_risk_data.get("countries", {}) and 
                     country_risk_data.get("countries", {}).get(country, {}).get("risk_score", 0) >= 8.0
-                )
+                ),
+                "risk_summary_spanish": f"Panamá: {client_countries.get('PA', []).__len__()} cliente — Riesgo Bajo, Brasil: {client_countries.get('BR', []).__len__()} clientes — Riesgo Bajo, México: {client_countries.get('MX', []).__len__()} clientes — Riesgo Medio, Colombia: {client_countries.get('CO', []).__len__()} clientes — Riesgo Alto"
             }
         }
         
         query = """
-        Analyze the country risk data and client distribution to provide a comprehensive risk assessment.
-        Include:
-        1. A summary of the global risk situation
-        2. Identification of high-risk countries with clients
-        3. Comparison to FATF and Basel Index standards
-        4. A global risk score assessment (comparing actual vs. recommended)
-        5. Recommendations for risk mitigation
-        
-        Format the analysis in a clear, concise manner suitable for non-technical users.
+        Eres un analista experto en cumplimiento normativo internacional. Basado en los siguientes datos de riesgo por país y distribución de clientes, genera un análisis de cumplimiento enfocado en identificar amenazas, oportunidades de mejora en la gestión de riesgo y recomendaciones claras. El análisis debe ser profesional, detallado y redactado completamente en español. No resumas la data, interprétala y emite juicio experto.
+
+        Clientes por país:
+        - Panamá: 1 cliente — Riesgo Bajo
+        - Brasil: 10 clientes — Riesgo Bajo
+        - México: 3 clientes — Riesgo Medio
+        - Colombia: 2 clientes — Riesgo Alto
+
+        Índices utilizados:
+        - Basel AML Index
+        - FATF Lists
+        - EU High-Risk Third Countries
+
+        Estructura esperada del análisis:
+        1. Evaluación del riesgo actual de nuestros clientes según su país.
+        2. Comparación con estándares FATF y Basel.
+        3. Implicaciones para nuestra política de cumplimiento.
+        4. Recomendaciones para mitigar riesgos y priorizar acciones.
+        El análisis debe ser claro, sin lenguaje genérico, sin repetir que "el riesgo global es cambiante" y sin hablar de temas geopolíticos irrelevantes. Usa los datos entregados y genera conocimiento útil.
+
+        ✅ ¿Qué debe hacer Mistral?
+        🔍 Evaluar la exposición al riesgo de la empresa según sus clientes.
+
+        📊 Comparar esa exposición con estándares de riesgo internacional.
+
+        🧠 Ofrecer ideas concretas: por ejemplo, "se recomienda suspender onboarding en Colombia hasta nueva evaluación" o "establecer límites de exposición en México".
+
+        ✍️ Usar un estilo profesional en español, como un informe ejecutivo de cumplimiento.
         """
         
         from app.services.ai.utils.prompt_builder import prompt_builder
-        enhanced_prompt = prompt_builder.build_prompt(query, "risk_analysis", context_data, "en")
+        from app.services.ai.utils.intent_classifier import IntentType
+        enhanced_prompt = prompt_builder.build_prompt(query, IntentType.COMPLIANCE, context_data, "es")
         
         ai_response = await ai_service.generate(
             inputs=enhanced_prompt,

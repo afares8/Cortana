@@ -54,25 +54,31 @@ const CountryRiskMap: React.FC = () => {
   const [analysis, setAnalysis] = useState<RiskAnalysis | null>(null);
   const [analysisLoading, setAnalysisLoading] = useState<boolean>(false);
 
-  useEffect(() => {
-    const fetchCountryRiskData = async () => {
-      try {
-        setLoading(true);
-        const apiUrl = 'http://localhost:8000';
-        const response = await axios.get(`${apiUrl}/api/v1/compliance/country-risk`);
-        setCountryRiskData(response.data);
-        setError(null);
-        
-        await generateAnalysis();
-      } catch (err) {
-        console.error('Error fetching country risk data:', err);
-        setError('Failed to load country risk data. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchCountryRiskData = async () => {
+    try {
+      setLoading(true);
+      const apiUrl = 'http://localhost:8000';
+      const response = await axios.get(`${apiUrl}/api/v1/compliance/country-risk`);
+      setCountryRiskData(response.data);
+      setError(null);
+      
+      await generateAnalysis();
+    } catch (err) {
+      console.error('Error fetching country risk data:', err);
+      setError('Failed to load country risk data. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchCountryRiskData();
+    
+    const refreshInterval = setInterval(() => {
+      fetchCountryRiskData();
+    }, 30000);
+    
+    return () => clearInterval(refreshInterval);
   }, []);
   
   const generateAnalysis = async () => {
