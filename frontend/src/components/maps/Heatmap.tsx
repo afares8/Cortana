@@ -87,6 +87,28 @@ const Heatmap: React.FC<HeatmapProps> = ({
             style: (feature) => {
               const isoMapping: Record<string, string> = {
                 'VEN': 'VE',  // Venezuela
+                'COL': 'CO',  // Colombia
+                'PAN': 'PA',  // Panama
+                'BOL': 'BO',  // Bolivia
+                'ARG': 'AR',  // Argentina
+                'CHL': 'CL',  // Chile
+                'PER': 'PE',  // Peru
+                'ECU': 'EC',  // Ecuador
+                'URY': 'UY',  // Uruguay
+                'PRY': 'PY',  // Paraguay
+                'CRI': 'CR',  // Costa Rica
+                'GTM': 'GT',  // Guatemala
+                'HND': 'HN',  // Honduras
+                'SLV': 'SV',  // El Salvador
+                'NIC': 'NI',  // Nicaragua
+                'DOM': 'DO',  // Dominican Republic
+                'HTI': 'HT',  // Haiti
+                'JAM': 'JM',  // Jamaica
+                'CUB': 'CU',  // Cuba
+                'BRA': 'BR',  // Brazil
+                'MEX': 'MX',  // Mexico
+                'USA': 'US',  // United States
+                'CAN': 'CA',  // Canada
                 'RUS': 'RU',  // Russia
                 'IRN': 'IR',  // Iran
                 'PRK': 'KP',  // North Korea
@@ -112,8 +134,12 @@ const Heatmap: React.FC<HeatmapProps> = ({
                 });
               }
               
-              if (countryData && countryData.client_data && countryData.client_data.total_clients > 0) {
-                console.log(`Country ${countryCode} has ${countryData.client_data.total_clients} clients with risk level ${countryData.risk_level}`);
+              if (countryData) {
+                let hasClients = countryData.client_data && countryData.client_data.total_clients > 0;
+                
+                if (hasClients) {
+                  console.log(`Country ${countryCode} has ${countryData.client_data?.total_clients} clients with risk level ${countryData.risk_level}`);
+                }
                 
                 if (countryData.basel_score) {
                   if (countryData.basel_score >= 8.0) {
@@ -141,26 +167,62 @@ const Heatmap: React.FC<HeatmapProps> = ({
                       break;
                   }
                 }
+                
+                if (hasClients) {
+                  return {
+                    fillColor,
+                    weight: 2,
+                    opacity: 1,
+                    color: 'black',
+                    fillOpacity: 0.8,
+                    dashArray: '3'
+                  };
+                }
               }
               
+              // Default return for all countries
               return {
                 fillColor,
                 weight: 1,
                 opacity: 1,
                 color: 'white',
-                fillOpacity: 0.7
+                fillOpacity: countryData ? 0.7 : 0.3
               };
             },
             onEachFeature: (feature, layer) => {
               const tooltipIsoMapping: Record<string, string> = {
                 'VEN': 'VE',  // Venezuela
+                'COL': 'CO',  // Colombia
+                'PAN': 'PA',  // Panama
+                'BOL': 'BO',  // Bolivia
+                'ARG': 'AR',  // Argentina
+                'CHL': 'CL',  // Chile
+                'PER': 'PE',  // Peru
+                'ECU': 'EC',  // Ecuador
+                'URY': 'UY',  // Uruguay
+                'PRY': 'PY',  // Paraguay
+                'CRI': 'CR',  // Costa Rica
+                'GTM': 'GT',  // Guatemala
+                'HND': 'HN',  // Honduras
+                'SLV': 'SV',  // El Salvador
+                'NIC': 'NI',  // Nicaragua
+                'DOM': 'DO',  // Dominican Republic
+                'HTI': 'HT',  // Haiti
+                'JAM': 'JM',  // Jamaica
+                'CUB': 'CU',  // Cuba
+                'BRA': 'BR',  // Brazil
+                'MEX': 'MX',  // Mexico
+                'USA': 'US',  // United States
+                'CAN': 'CA',  // Canada
+                'GUY': 'GY',  // Guyana
+                'SUR': 'SR',  // Suriname
+                'BLZ': 'BZ',  // Belize
                 'RUS': 'RU',  // Russia
                 'IRN': 'IR',  // Iran
                 'PRK': 'KP',  // North Korea
                 'SYR': 'SY',  // Syria
                 'BLR': 'BY',  // Belarus
                 'IDN': 'ID',  // Indonesia
-                'USA': 'US',  // United States
                 'GBR': 'GB',  // United Kingdom
                 'DEU': 'DE',  // Germany
                 'FRA': 'FR',  // France
@@ -168,11 +230,8 @@ const Heatmap: React.FC<HeatmapProps> = ({
                 'ITA': 'IT',  // Italy
                 'CHN': 'CN',  // China
                 'JPN': 'JP',  // Japan
-                'CAN': 'CA',  // Canada
                 'AUS': 'AU',  // Australia
-                'BRA': 'BR',  // Brazil
                 'IND': 'IN',  // India
-                'MEX': 'MX',  // Mexico
               };
               
               const geoJsonCode = feature?.properties?.['ISO3166-1-Alpha-3'] || feature?.properties?.['ISO3166-1-Alpha-2'];
