@@ -331,7 +331,8 @@ For the compliance automation features to work properly:
   {
     "full_name": "John Doe",
     "passport": "A123456",
-    "country": "US"
+    "country": "US",
+    "type": "natural"
   }
   ```
 - `POST /api/v1/legal/ask` - Conversational legal assistant for legal queries
