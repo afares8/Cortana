@@ -56,6 +56,7 @@ class Settings(BaseSettings):
     DMCE_PASSWORD: str = os.getenv("DMCE_PASSWORD", "")
     
     SLACK_WEBHOOK_URL: Optional[str] = os.getenv("SLACK_WEBHOOK_URL", None)
+    PRODUCTION_AUTH_MODE: bool = os.getenv("PRODUCTION_AUTH_MODE", "false").lower() == "true"
 
     model_config = {
         "case_sensitive": True,

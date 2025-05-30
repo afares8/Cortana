@@ -37,11 +37,11 @@ insights_db = InMemoryDB[ArturInsight](ArturInsight)
 
 def init_db() -> None:
     """Initialize the database with some sample data."""
-    if not users_db.get_multi(filters={"email": "admin@legalcontracttracker.com"}):
+    if not users_db.get_multi(filters={"email": "admin@example.com"}):
         users_db.create(
             obj_in=UserInDB(
-                email="admin@legalcontracttracker.com",
-                hashed_password=get_password_hash("admin"),
+                email="admin@example.com",
+                hashed_password=get_password_hash("password"),
                 full_name="Admin User",
                 is_superuser=True,
             )

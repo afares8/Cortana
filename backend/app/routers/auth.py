@@ -1,3 +1,4 @@
+import os
 from datetime import timedelta
 from typing import Any, Dict
 
@@ -34,7 +35,9 @@ async def login_access_token(form_data: OAuth2PasswordRequestForm = Depends()) -
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     return {
         "access_token": create_access_token(
-            subject=user.id, expires_delta=access_token_expires
+            subject=user.id, 
+            expires_delta=access_token_expires,
+            scopes=["admin"] if user.is_superuser else ["user"]
         ),
         "token_type": "bearer",
     }
@@ -102,3 +105,30 @@ async def register_user(
     )
     
     return user
+
+
+@router.get("/auth-mode", response_model=Dict[str, bool])
+async def get_auth_mode() -> Dict[str, bool]:
+    """
+    Get current authentication mode.
+    
+    Returns whether the system is using production authentication mode or testing mode.
+    """
+    return {"production_auth_mode": settings.PRODUCTION_AUTH_MODE}
+
+
+@router.post("/auth-mode", response_model=Dict[str, bool])
+async def set_auth_mode(production_mode: bool) -> Dict[str, bool]:
+    """
+    Set authentication mode (for development/testing).
+    
+    This endpoint allows toggling between production authentication (with real JWT verification)
+    and testing mode (which bypasses authentication for development purposes).
+    
+    In a production environment, this would update a persistent setting.
+    """
+    os.environ["PRODUCTION_AUTH_MODE"] = str(production_mode).lower()
+    
+    settings.PRODUCTION_AUTH_MODE = production_mode
+    
+    return {"production_auth_mode": settings.PRODUCTION_AUTH_MODE}
