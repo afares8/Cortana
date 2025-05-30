@@ -950,6 +950,14 @@ tail -f ~/repos/Cortana/backend/logs/scheduler.log
 - Added test client (Nicolás Maduro) to verify PEP and sanctions detection functionality
 - Improved frontend API response handling for compliance verification
 
+### May 30, 2025
+- Improved Risk Map AI integration with Spanish compliance analysis
+- Enhanced country risk map with auto-refresh functionality (30-second intervals)
+- Updated AI prompt to generate strategic compliance analysis in Spanish
+- Fixed type handling for intent parameter in compliance analysis
+- Enhanced context data with Spanish-formatted client information
+- Ensured comprehensive risk data coverage for all American countries
+
 ### May 24, 2025
 - Implemented Cortana Legal 2.0 with AI-powered contract analysis and unified verification
 - Enhanced existing legal module with AI-first principles and modular architecture
