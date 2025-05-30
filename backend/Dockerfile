@@ -7,7 +7,9 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
-# Instala dependencias del sistema
+# Instala dependencias del sistema necesarias para:
+# - WeasyPrint (cairo, pango, gobject, gdk-pixbuf, glib)
+# - base del sistema (git, curl, jre)
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
       build-essential \
@@ -29,29 +31,35 @@ RUN apt-get update && \
       libx11-xcb1 \
       libxtst6 \
       libasound2 \
-      wget \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+      libgdk-pixbuf2.0-0 \
+      shared-mime-info \
+      libxml2 \
+      libxslt1.1 \
+      libglib2.0-0 \
+      libgirepository1.0-dev \
+      wget && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Instala Poetry
 RUN curl -sSL https://install.python-poetry.org | python3 - && \
     ln -s /opt/poetry/bin/poetry /usr/local/bin/poetry
 
-# Copia el código completo antes de instalar dependencias
+# Copia el código completo
 COPY . .
 
-# Instala dependencias del proyecto (sin crear virtualenv adicional)
+# Instala dependencias del proyecto (sin crear virtualenv)
 RUN poetry config virtualenvs.create false && \
     poetry install --no-interaction --no-ansi
 
-# Instala Playwright y sus navegadores
+# Instala Playwright y navegadores necesarios
 RUN poetry run pip install playwright && \
     poetry run playwright install --with-deps
 
-# Descarga modelo spaCy en español
+# Descarga el modelo de spaCy en español
 RUN python3 -m spacy download es_core_news_md
 
-# Expone el puerto de la app
+# Expone el puerto del backend
 EXPOSE 8000
 
-# Comando de ejecución
+# Comando por defecto al ejecutar el contenedor
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
