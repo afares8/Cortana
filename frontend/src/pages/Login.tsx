@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { login } from '../lib/api';
+import { login as apiLogin } from '../lib/api';
+import { useAuth } from '../contexts/AuthContext';
 
 interface LoginProps {
   onLoginSuccess: () => void;
@@ -9,11 +10,46 @@ interface LoginProps {
 
 export default function Login({ onLoginSuccess }: LoginProps) {
   const { t } = useTranslation();
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const bypassAuth = import.meta.env.VITE_BYPASS_AUTH === 'true';
+    
+    if (bypassAuth) {
+      console.log('Development mode: Bypassing authentication');
+      
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      
+      localStorage.setItem('token', 'fake-token');
+      
+      const adminUser = {
+        id: 1,
+        email: 'admin@example.com',
+        name: 'Admin Test',
+        role: 'superadmin',
+        permissions: ['*'],
+        is_active: true
+      };
+      
+      localStorage.setItem('user', JSON.stringify(adminUser));
+      
+      console.log('Bypass auth: Token and user set directly in localStorage');
+      console.log('Token:', localStorage.getItem('token'));
+      console.log('User object:', localStorage.getItem('user'));
+      
+      login('fake-token', adminUser);
+      
+      onLoginSuccess();
+      
+      navigate('/');
+    }
+  }, [navigate, onLoginSuccess, login]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,8 +57,8 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     setIsLoading(true);
 
     try {
-      const response = await login({ username: email, password });
-      localStorage.setItem('token', response.access_token);
+      const response = await apiLogin({ username: email, password });
+      login(response.access_token); // Use AuthContext login method
       onLoginSuccess();
       navigate('/');
     } catch (err) {
@@ -32,6 +68,19 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       setIsLoading(false);
     }
   };
+
+  if (import.meta.env.VITE_BYPASS_AUTH === 'true') {
+    return <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="max-w-md w-full p-8 bg-white rounded-lg shadow-md text-center">
+        <h2 className="text-xl font-medium text-gray-600">
+          {t('auth.bypassingLogin')}
+        </h2>
+        <p className="mt-2 text-gray-500">
+          {t('auth.redirectingToDashboard')}
+        </p>
+      </div>
+    </div>;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -87,9 +136,9 @@ export default function Login({ onLoginSuccess }: LoginProps) {
           <div className="flex items-center justify-between">
             <button
               type="submit"
-              className={bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ${
+              className={`bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ${
                 isLoading ? 'opacity-50 cursor-not-allowed' : ''
-              }}
+              }`}
               disabled={isLoading}
               aria-busy={isLoading}
             >
