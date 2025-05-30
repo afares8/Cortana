@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { RefreshCw } from 'lucide-react';
@@ -53,20 +53,29 @@ const CountryRiskMap: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<RiskAnalysis | null>(null);
   const [analysisLoading, setAnalysisLoading] = useState<boolean>(false);
+  const [autoRefresh, setAutoRefresh] = useState<boolean>(true);
+  const lastDataRef = useRef<CountryRisk | null>(null);
 
   const fetchCountryRiskData = async () => {
     try {
       setLoading(true);
       const apiUrl = 'http://localhost:8000';
       const response = await axios.get(`${apiUrl}/api/v1/compliance/country-risk`);
-      setCountryRiskData(response.data);
-      setError(null);
+      const newData = response.data;
       
-      await generateAnalysis();
+      if (!lastDataRef.current || JSON.stringify(newData) !== JSON.stringify(lastDataRef.current)) {
+        console.log('Country risk data changed, updating and triggering analysis');
+        setCountryRiskData(newData);
+        lastDataRef.current = newData;
+        setError(null);
+        await generateAnalysis();
+      } else {
+        console.log('Country risk data unchanged, skipping analysis');
+        setLoading(false);
+      }
     } catch (err) {
       console.error('Error fetching country risk data:', err);
       setError('Failed to load country risk data. Please try again later.');
-    } finally {
       setLoading(false);
     }
   };
@@ -75,11 +84,13 @@ const CountryRiskMap: React.FC = () => {
     fetchCountryRiskData();
     
     const refreshInterval = setInterval(() => {
-      fetchCountryRiskData();
+      if (autoRefresh) {
+        fetchCountryRiskData();
+      }
     }, 30000);
     
     return () => clearInterval(refreshInterval);
-  }, []);
+  }, [autoRefresh]);
   
   const generateAnalysis = async () => {
     try {
@@ -207,15 +218,32 @@ const CountryRiskMap: React.FC = () => {
       <div className="mt-8 bg-white shadow rounded-lg p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">{t('compliance.aiAnalysis')}</h2>
-          <button 
-            onClick={generateAnalysis}
-            disabled={analysisLoading}
-            className="flex items-center space-x-2 px-3 py-2 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors disabled:opacity-50"
-            aria-label={t('compliance.refreshAnalysis')}
-          >
-            <RefreshCw size={16} className={analysisLoading ? 'animate-spin' : ''} />
-            <span>{t('compliance.refreshAnalysis')}</span>
-          </button>
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <label className="text-sm font-medium text-gray-700">Auto-refresh:</label>
+              <button
+                onClick={() => setAutoRefresh(!autoRefresh)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                  autoRefresh ? 'bg-blue-600' : 'bg-gray-200'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    autoRefresh ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+            <button 
+              onClick={generateAnalysis}
+              disabled={analysisLoading}
+              className="flex items-center space-x-2 px-3 py-2 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors disabled:opacity-50"
+              aria-label={t('compliance.refreshAnalysis')}
+            >
+              <RefreshCw size={16} className={analysisLoading ? 'animate-spin' : ''} />
+              <span>{t('compliance.refreshAnalysis')}</span>
+            </button>
+          </div>
         </div>
         
         {analysisLoading ? (
