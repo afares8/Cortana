@@ -588,6 +588,7 @@ The application supports different environments through environment variables:
 - `VITE_ENABLE_AI_FEATURES` - Enable/disable AI features in UI
 - `VITE_ENABLE_COMPLIANCE_FEATURES` - Enable/disable compliance features in UI
 - `VITE_DEFAULT_LANGUAGE` - Default language for UI (en/es)
+- `VITE_BYPASS_AUTH` - Enable development mode login bypass (true/false)
 
 ## AI Integration
 
