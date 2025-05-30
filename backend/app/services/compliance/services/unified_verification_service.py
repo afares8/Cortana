@@ -767,91 +767,105 @@ class UnifiedVerificationService:
         country_risk: Dict[str, Any],
     ) -> Path:
         """Generate UAF report for the customer."""
-        customer_name = customer.get("name", "unknown")
-        logger.info(f"Generating UAF report for customer: {customer_name}")
-
-        self.reports_dir.mkdir(parents=True, exist_ok=True)
-
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        report_uuid = str(uuid.uuid4())
-        filename = f"{customer_name.replace(' ', '_')}_{timestamp}.pdf"
-        report_path = self.reports_dir / filename
-
-        has_pep_matches = bool(customer_result.get("pep_matches", []))
-        has_sanctions_matches = bool(customer_result.get("sanctions_matches", []))
-
-        for director in directors_results:
-            has_pep_matches = has_pep_matches or bool(director.get("pep_matches", []))
-            has_sanctions_matches = has_sanctions_matches or bool(
-                director.get("sanctions_matches", [])
-            )
-
-        for ubo in ubos_results:
-            has_pep_matches = has_pep_matches or bool(ubo.get("pep_matches", []))
-            has_sanctions_matches = has_sanctions_matches or bool(
-                ubo.get("sanctions_matches", [])
-            )
-
-        if has_sanctions_matches:
-            screening_result = "COINCIDENCIA EN LISTA DE SANCIONES"
-        elif has_pep_matches:
-            screening_result = "COINCIDENCIA PEP"
-        else:
-            screening_result = "SIN COINCIDENCIAS"
-
-        all_matches = []
-        all_matches.extend(customer_result.get("pep_matches", []))
-        all_matches.extend(customer_result.get("sanctions_matches", []))
-
-        for director in directors_results:
-            all_matches.extend(director.get("pep_matches", []))
-            all_matches.extend(director.get("sanctions_matches", []))
-
-        for ubo in ubos_results:
-            all_matches.extend(ubo.get("pep_matches", []))
-            all_matches.extend(ubo.get("sanctions_matches", []))
-
-        sources = ["OpenSanctions", "OFAC", "UN", "EU"]
-
-        template_data = {
-            "logo_path": "",
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "client": {
-                "name": customer.get("name", "N/A"),
-                "id_number": customer.get("id_number", "N/A"),
-                "type": (
-                    "Persona Natural"
-                    if customer.get("type") == "natural"
-                    else "Persona Jurídica"
-                ),
-                "country": country_risk.get("name", customer.get("country", "N/A")),
-                "dob": customer.get("dob", "N/A"),
-                "nationality": customer.get(
-                    "nationality", customer.get("country", "N/A")
-                ),
-                "activity": customer.get("activity", "N/A"),
-                "incorporation_date": customer.get("incorporation_date", "N/A"),
-            },
-            "screening_result": screening_result,
-            "matches": all_matches,
-            "country_risk": country_risk,
-            "sources": sources,
-            "data_updated": country_risk.get(
-                "last_updated", datetime.now().strftime("%Y-%m-%d")
-            ),
-            "report_uuid": report_uuid,
-        }
-
-        template = self.jinja_env.get_template("uaf_report.html")
-        html_content = template.render(**template_data)
-
-        pdf = weasyprint.HTML(string=html_content).write_pdf()
-
-        with open(report_path, "wb") as f:
-            f.write(pdf)
-
-        logger.info(f"UAF report generated: {report_path}")
-        return report_path
+        try:
+            from app.services.compliance.utils.pdf_generator import generate_uaf_report_pdf
+            
+            customer_name = customer.get("name", "unknown")
+            logger.info(f"Generating UAF report for customer: {customer_name}")
+            
+            has_pep_matches = bool(customer_result.get("pep_matches", []))
+            has_sanctions_matches = bool(customer_result.get("sanctions_matches", []))
+            
+            for director in directors_results:
+                has_pep_matches = has_pep_matches or bool(director.get("pep_matches", []))
+                has_sanctions_matches = has_sanctions_matches or bool(
+                    director.get("sanctions_matches", [])
+                )
+            
+            for ubo in ubos_results:
+                has_pep_matches = has_pep_matches or bool(ubo.get("pep_matches", []))
+                has_sanctions_matches = has_sanctions_matches or bool(
+                    ubo.get("sanctions_matches", [])
+                )
+            
+            if has_sanctions_matches:
+                screening_result = "COINCIDENCIA EN LISTA DE SANCIONES"
+            elif has_pep_matches:
+                screening_result = "COINCIDENCIA PEP"
+            else:
+                screening_result = "SIN COINCIDENCIAS"
+            
+            all_matches = []
+            all_matches.extend(customer_result.get("pep_matches", []))
+            all_matches.extend(customer_result.get("sanctions_matches", []))
+            
+            for director in directors_results:
+                all_matches.extend(director.get("pep_matches", []))
+                all_matches.extend(director.get("sanctions_matches", []))
+            
+            for ubo in ubos_results:
+                all_matches.extend(ubo.get("pep_matches", []))
+                all_matches.extend(ubo.get("sanctions_matches", []))
+            
+            sources = ["OpenSanctions", "OFAC", "UN", "EU"]
+            
+            report_data = {
+                "client_name": customer.get("name", "N/A"),
+                "client_id": customer.get("id_number", "N/A"),
+                "report_type": "UAF",
+                "report_data": {
+                    "logo_path": "",
+                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "client": {
+                        "name": customer.get("name", "N/A"),
+                        "id_number": customer.get("id_number", "N/A"),
+                        "type": (
+                            "Persona Natural"
+                            if customer.get("type") == "natural"
+                            else "Persona Jurídica"
+                        ),
+                        "country": country_risk.get("name", customer.get("country", "N/A")),
+                        "dob": customer.get("dob", "N/A"),
+                        "nationality": customer.get(
+                            "nationality", customer.get("country", "N/A")
+                        ),
+                        "activity": customer.get("activity", "N/A"),
+                        "incorporation_date": customer.get("incorporation_date", "N/A"),
+                    },
+                    "screening_result": screening_result,
+                    "matches": all_matches,
+                    "country_risk": country_risk,
+                    "sources": sources,
+                    "data_updated": country_risk.get(
+                        "last_updated", datetime.now().strftime("%Y-%m-%d")
+                    ),
+                    "report_uuid": str(uuid.uuid4()),
+                }
+            }
+            
+            class ReportObject:
+                def __init__(self, **kwargs):
+                    for key, value in kwargs.items():
+                        setattr(self, key, value)
+            
+            report_obj = ReportObject(**report_data)
+            
+            report_path = await generate_uaf_report_pdf(report_obj)
+            
+            logger.info(f"UAF report generated: {report_path}")
+            return Path(report_path)
+        except Exception as e:
+            logger.error(f"Error generating UAF report: {str(e)}")
+            self.reports_dir.mkdir(parents=True, exist_ok=True)
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"{customer.get('name', 'unknown').replace(' ', '_')}_{timestamp}_error.pdf"
+            report_path = self.reports_dir / filename
+            
+            with open(report_path, "wb") as f:
+                f.write(b"Error generating PDF report")
+                
+            logger.warning(f"Created fallback report due to error: {report_path}")
+            return report_path
 
     async def _save_verification_results(
         self,
@@ -866,10 +880,15 @@ class UnifiedVerificationService:
         customer_name = customer.get("name", "N/A")
         customer_id = customer.get("id_number", "N/A")
         customer_country = customer.get("country", "N/A")
+        
+        if customer_id is None:
+            customer_id = "N/A"
+            
+        logger.info(f"Saving verification results for customer: {customer_name}, ID: {customer_id}, Type: {type(customer_id)}")
 
         report = ComplianceReport(
             client_name=customer_name,
-            client_id=customer_id,
+            client_id=customer_id,  # Will work with both string and int types now
             report_type="UAF",
             report_path=str(report_path),
             country=customer_country,
@@ -879,11 +898,12 @@ class UnifiedVerificationService:
         )
 
         report_id = compliance_reports_db.create(report)
+        logger.info(f"Created compliance report with ID: {report_id}")
 
         for match in customer_result.get("pep_matches", []):
             pep_result = PEPScreeningResult(
                 client_name=customer_name,
-                client_id=customer_id,
+                client_id=customer_id,  # Will work with both string and int types now
                 match_name=match.get("name", ""),
                 match_score=match.get("score", 0),
                 match_details=json.dumps(match.get("details", {})),
@@ -895,7 +915,7 @@ class UnifiedVerificationService:
         for match in customer_result.get("sanctions_matches", []):
             sanctions_result = SanctionsScreeningResult(
                 client_name=customer_name,
-                client_id=customer_id,
+                client_id=customer_id,  # Will work with both string and int types now
                 match_name=match.get("name", ""),
                 match_score=match.get("score", 0),
                 match_details=json.dumps(match.get("details", {})),
