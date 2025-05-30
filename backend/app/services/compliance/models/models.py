@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 from enum import Enum
 from pydantic import BaseModel, Field
 
@@ -12,7 +12,7 @@ class Entity(BaseModel):
     country: str
     type: EntityType
     dob: Optional[str] = None
-    id_number: Optional[str] = None
+    id_number: Optional[Union[int, str]] = None
     nationality: Optional[str] = None
     activity: Optional[str] = None
     incorporation_date: Optional[str] = None

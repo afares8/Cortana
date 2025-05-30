@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Union
 from pydantic import BaseModel
 
 class ComplianceReportBase(BaseModel):
@@ -38,7 +38,7 @@ class ComplianceReport(ComplianceReportInDBBase):
     pass
 
 class PEPScreeningResultBase(BaseModel):
-    client_id: int
+    client_id: Union[int, str]
     match_status: str  # no_match, potential_match, confirmed_match
     match_details: Optional[Dict[str, Any]] = None
     screened_by: Optional[int] = None  # user_id
@@ -68,7 +68,7 @@ class PEPScreeningResult(PEPScreeningResultInDBBase):
     pass
 
 class SanctionsScreeningResultBase(BaseModel):
-    client_id: int
+    client_id: Union[int, str]
     match_status: str  # no_match, potential_match, confirmed_match
     match_details: Optional[Dict[str, Any]] = None
     screened_by: Optional[int] = None  # user_id

@@ -735,60 +735,100 @@ async def get_compliance_dashboard_endpoint():
     try:
         logger.info("Generating compliance dashboard data")
         
+        from app.db.in_memory import (
+            compliance_reports_db,
+            pep_screening_results_db,
+            sanctions_screening_results_db
+        )
+        from app.legal.services import get_clients, get_contracts
+        
+        clients = get_clients(limit=1000)
+        compliance_reports = compliance_reports_db.get_multi()
+        pep_screenings = pep_screening_results_db.get_multi()
+        sanctions_screenings = sanctions_screening_results_db.get_multi()
+        
+        total_screenings = len(pep_screenings) + len(sanctions_screenings)
+        
+        active_contracts = 0
+        expiring_contracts = 0
+        now = datetime.now()
+        expiring_threshold = now + timedelta(days=30)
+        
+        contracts = get_contracts(limit=1000)
+        for contract in contracts:
+            if getattr(contract, "status", "") == "active":
+                active_contracts += 1
+                expiry_date = getattr(contract, "expiry_date", None)
+                if expiry_date and expiry_date <= expiring_threshold:
+                    expiring_contracts += 1
+        
+        pep_matches = len([p for p in pep_screenings if getattr(p, "match_status", "") in ["potential_match", "confirmed_match"]])
+        sanctions_matches = len([s for s in sanctions_screenings if getattr(s, "match_status", "") in ["potential_match", "confirmed_match"]])
+        
+        pending_reports = len([r for r in compliance_reports if getattr(r, "status", "") == "pending"])
+        
+        high_risk_clients = 0
+        flagged_clients = 0
+        
+        for client in clients:
+            risk_level = getattr(client, "risk_level", "").upper()
+            if risk_level == "HIGH":
+                high_risk_clients += 1
+            
+            is_flagged = getattr(client, "is_flagged", False)
+            if is_flagged:
+                flagged_clients += 1
+        
+        recent_verifications = []
+        for report in sorted(compliance_reports, key=lambda r: getattr(r, "created_at", datetime.min), reverse=True)[:5]:
+            client_id = getattr(report, "client_id", None)
+            client_name = "Unknown"
+            
+            for client in clients:
+                if getattr(client, "id", None) == client_id:
+                    client_name = getattr(client, "name", "Unknown")
+                    break
+            
+            recent_verifications.append({
+                "id": getattr(report, "id", ""),
+                "client_name": client_name,
+                "verification_date": getattr(report, "created_at", datetime.now()).isoformat(),
+                "result": getattr(report, "status", "unknown"),
+                "risk_level": getattr(report, "risk_level", "Unknown"),
+                "report_path": getattr(report, "report_path", "")
+            })
+        
+        recent_list_updates = [
+            {
+                "list_name": "OFAC Sanctions List",
+                "update_date": (datetime.now() - timedelta(days=1)).isoformat(),
+                "status": "Success"
+            },
+            {
+                "list_name": "EU Sanctions List",
+                "update_date": (datetime.now() - timedelta(days=2)).isoformat(),
+                "status": "Success"
+            },
+            {
+                "list_name": "PEP Database",
+                "update_date": (datetime.now() - timedelta(days=3)).isoformat(),
+                "status": "Success"
+            }
+        ]
+        
         dashboard_data = {
-            "total_screenings": 120,
-            "active_contracts": 42,
-            "expiring_contracts": 3,
-            "pep_matches": 5,
-            "sanctions_matches": 1,
-            "pending_reports": 5,
-            "high_risk_clients": 3,
-            "flagged_clients": 8,
+            "total_screenings": total_screenings,
+            "active_contracts": active_contracts,
+            "expiring_contracts": expiring_contracts,
+            "pep_matches": pep_matches,
+            "sanctions_matches": sanctions_matches,
+            "pending_reports": pending_reports,
+            "high_risk_clients": high_risk_clients,
+            "flagged_clients": flagged_clients,
             "last_update": datetime.now().isoformat(),
             "sanction_sources": ["OFAC", "UN", "EU"],
-            "recent_verifications": [
-                {
-                    "id": "v1",
-                    "client_name": "Acme Corp",
-                    "verification_date": datetime.now().isoformat(),
-                    "result": "no_match",
-                    "risk_level": "Low",
-                    "report_path": "/uploads/reports/acme_verification.pdf"
-                },
-                {
-                    "id": "v2",
-                    "client_name": "Global Industries",
-                    "verification_date": (datetime.now() - timedelta(days=1)).isoformat(),
-                    "result": "potential_match",
-                    "risk_level": "Medium",
-                    "report_path": "/uploads/reports/global_verification.pdf"
-                },
-                {
-                    "id": "v3",
-                    "client_name": "Oceanic Airlines",
-                    "verification_date": (datetime.now() - timedelta(days=2)).isoformat(),
-                    "result": "confirmed_match",
-                    "risk_level": "High",
-                    "report_path": "/uploads/reports/oceanic_verification.pdf"
-                }
-            ],
-            "recent_list_updates": [
-                {
-                    "list_name": "OFAC Sanctions List",
-                    "update_date": (datetime.now() - timedelta(days=1)).isoformat(),
-                    "status": "Success"
-                },
-                {
-                    "list_name": "EU Sanctions List",
-                    "update_date": (datetime.now() - timedelta(days=2)).isoformat(),
-                    "status": "Success"
-                },
-                {
-                    "list_name": "PEP Database",
-                    "update_date": (datetime.now() - timedelta(days=3)).isoformat(),
-                    "status": "Success"
-                }
-            ]
+            "recent_verifications": recent_verifications,
+            "recent_list_updates": recent_list_updates
         }
         
         try:
@@ -905,7 +945,7 @@ async def generate_uaf_report_endpoint(
             }
         }
         
-        report = await compliance_service.create_compliance_report(report_data)
+        report = await compliance_service.create_compliance_report(ComplianceReportCreate(**report_data))
         
         from app.services.compliance.services.report_generator import generate_uaf_report_pdf
         await generate_uaf_report_pdf(report)
