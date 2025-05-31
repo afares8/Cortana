@@ -14,7 +14,7 @@ class PDFGenerator:
     
     def __init__(self):
         self.templates_dir = Path(__file__).parent.parent / "templates"
-        self.reports_dir = Path("/app/generated_reports")
+        self.reports_dir = Path.home() / "repos" / "Cortana" / "backend" / "data" / "uaf_reports"
         self.reports_dir.mkdir(parents=True, exist_ok=True)
         
         self.jinja_env = jinja2.Environment(
@@ -39,7 +39,6 @@ class PDFGenerator:
             html_content = template.render(**context)
             
             html = HTML(string=html_content)
-            
             html.write_pdf(output_path)
             
             logger.info(f"PDF generated successfully at {output_path}")
@@ -50,12 +49,13 @@ class PDFGenerator:
 
 pdf_generator = PDFGenerator()
 
-async def generate_uaf_report_pdf(report):
+async def generate_uaf_report_pdf(report, pdf_output_path=None):
     """
     Generate a UAF (Ultimate Beneficial Owner) report PDF.
     
     Args:
         report: ComplianceReport object containing report data
+        pdf_output_path: Optional path where the PDF should be saved
         
     Returns:
         Path to the generated PDF file
@@ -65,21 +65,33 @@ async def generate_uaf_report_pdf(report):
         client_id = report.client_id if hasattr(report, "client_id") else "unknown"
         client_name = report.client_name if hasattr(report, "client_name") else "Unknown Client"
         
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"uaf_client_{client_id}_{timestamp}.pdf"
-        output_dir = Path("/app/generated_reports")
-        output_dir.mkdir(parents=True, exist_ok=True)
-        output_path = output_dir / filename
+        if pdf_output_path:
+            output_path = Path(pdf_output_path)
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+        else:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"uaf_client_{client_id}_{timestamp}.pdf"
+            output_dir = Path.home() / "repos" / "Cortana" / "backend" / "data" / "uaf_reports"
+            output_dir.mkdir(parents=True, exist_ok=True)
+            output_path = output_dir / filename
         
         context = {
-            "report": report_data,
+            **report_data,
+            "client": report_data.get("client"),
+            "timestamp": report_data.get("timestamp"),
+            "screening_result": report_data.get("screening_result"),
+            "matches": report_data.get("matches"),
+            "country_risk": report_data.get("country_risk"),
+            "sources": report_data.get("sources"),
+            "data_updated": report_data.get("data_updated"),
+            "report_uuid": report_data.get("report_uuid"),
             "client_name": client_name,
             "client_id": client_id,
             "generated_at": datetime.now().isoformat(),
             "report_type": "UAF Report",
         }
         
-        pdf_path = pdf_generator.generate_pdf("uaf_report.html", context, output_path)
+        pdf_path = pdf_generator.generate_pdf("uaf_report.html", context, str(output_path))
         
         if hasattr(report, "report_path"):
             report.report_path = str(pdf_path)
