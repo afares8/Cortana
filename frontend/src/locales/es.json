@@ -143,6 +143,28 @@
     "pepScreening": "Verificación PEP",
     "sanctionsScreening": "Verificación de Sanciones"
   },
+  "heatmap": {
+    "riskLevel": "Nivel de Riesgo",
+    "clientInfo": "Información del Cliente:",
+    "totalClients": "Total de Clientes:",
+    "riskClientBreakdown": "Clientes de Alto/Medio/Bajo Riesgo",
+    "highRiskClients": "Clientes de Alto Riesgo",
+    "mediumRiskClients": "Clientes de Riesgo Medio",
+    "lowRiskClients": "Clientes de Bajo Riesgo", 
+    "riskScore": "Puntuación de Riesgo:",
+    "fatfStatus": "Estado FATF:",
+    "euHighRisk": "Alto Riesgo UE:",
+    "baselRank": "Ranking Basel:",
+    "lastUpdated": "Última Actualización:",
+    "noData": "No hay datos de riesgo disponibles"
+  },
+  "legal": {
+    "riskLevel": "Nivel de Riesgo",
+    "clientInfo": "Información del Cliente",
+    "calculateRiskScore": "Calcular Puntuación de Riesgo",
+    "clientCreatedSuccess": "Cliente creado exitosamente",
+    "enterClientDetails": "Ingrese los detalles del cliente a continuación"
+  },
   "accounting": {
     "dashboard": {
       "title": "Panel de Contabilidad",
@@ -248,6 +270,9 @@
       "status": "Estado",
       "notes": "Notas",
       "receipt": "Recibo",
+      "success": "Pago registrado exitosamente",
+      "failure": "Error al procesar el pago",
+      "error": "Ocurrió un error al procesar el pago",
       "methods": {
         "cash": "Efectivo",
         "check": "Cheque",
@@ -321,6 +346,8 @@
       "user": "Usuario",
       "company": "Empresa",
       "permission": "Permiso",
+      "noAccessRecords": "No se encontraron registros de acceso",
+      "confirmDelete": "¿Está seguro de que desea eliminar este acceso?",
       "permissions": {
         "read": "Solo Lectura",
         "write": "Lectura y Escritura"
@@ -338,6 +365,19 @@
       "analyzing": "Analizando...",
       "results": "Resultados del Análisis",
       "error": "Error analizando obligaciones"
+    },
+    "stats": {
+      "noData": "No hay datos disponibles",
+      "title": "Estadísticas de Obligaciones",
+      "trends": "Tendencias de Pagos",
+      "loadingData": "Cargando datos de tendencias...",
+      "totalObligations": "Total de Obligaciones",
+      "totalPaid": "Total Pagado",
+      "totalAmount": "Monto Total",
+      "paidAmount": "Monto Pagado",
+      "monthlyTrends": "Tendencias Mensuales",
+      "distribution": "Distribución de Obligaciones",
+      "byCompany": "Por Empresa"
     }
   }
 }

@@ -242,8 +242,8 @@ const NewClient: React.FC = () => {
         <form onSubmit={handleSubmit}>
           <Card>
             <CardHeader>
-              <CardTitle>{t('Client Information')}</CardTitle>
-              <CardDescription>{t('Enter the client details below')}</CardDescription>
+              <CardTitle>{t('legal.clientInfo')}</CardTitle>
+              <CardDescription>{t('legal.enterClientDetails')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* OCR Document Upload */}
@@ -688,7 +688,7 @@ const NewClient: React.FC = () => {
           <Toast>
             <ToastTitle>{t('Success')}</ToastTitle>
             <ToastDescription className="space-y-2">
-              <div>{t('Client created successfully')}</div>
+              <div>{t('legal.clientCreatedSuccess')}</div>
               {riskLevel && (
                 <div className={`p-1 rounded text-sm ${
                   riskLevel === 'HIGH' ? 'bg-red-100 text-red-800' :
@@ -696,7 +696,7 @@ const NewClient: React.FC = () => {
                   'bg-green-100 text-green-800'
                 }`}>
                   <ShieldAlert className="h-4 w-4 inline mr-1" />
-                  {t('Risk Level')}: {riskLevel}
+                  {t('legal.riskLevel')}: {riskLevel}
                 </div>
               )}
               {verificationStatus && (

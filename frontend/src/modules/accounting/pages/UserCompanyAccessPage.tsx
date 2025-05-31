@@ -87,18 +87,18 @@ const UserCompanyAccessPage: React.FC = () => {
   };
 
   const handleDeleteAccess = (accessId: number) => {
-    if (confirm(t('artur.confirmDeleteAccess', 'Are you sure you want to delete this access?'))) {
+    if (confirm(t('accounting.access.confirmDelete'))) {
       deleteAccessMutation.mutate(accessId);
     }
   };
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">{t('accounting.userAccessManagement', 'User Access Management')}</h1>
+      <h1 className="text-2xl font-bold mb-6">{t('accounting.access.title')}</h1>
 
       {/* Add Access Form */}
       <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <h2 className="text-xl font-semibold mb-4">{t('accounting.addCompanyAccess', 'Add Company Access')}</h2>
+        <h2 className="text-xl font-semibold mb-4">{t('accounting.access.addAccess')}</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
@@ -138,14 +138,14 @@ const UserCompanyAccessPage: React.FC = () => {
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{t('accounting.permission', 'Permission')}</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('accounting.access.permission')}</label>
             <select
               className="w-full px-3 py-2 border rounded-md"
               value={selectedPermission}
               onChange={(e) => setSelectedPermission(e.target.value as 'read' | 'write')}
             >
-              <option value="read">{t('accounting.readOnly', 'Read Only')}</option>
-              <option value="write">{t('accounting.readWrite', 'Read & Write')}</option>
+              <option value="read">{t('accounting.access.permissions.read')}</option>
+              <option value="write">{t('accounting.access.permissions.write')}</option>
             </select>
           </div>
           
@@ -167,7 +167,7 @@ const UserCompanyAccessPage: React.FC = () => {
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('common.labels.user', 'User')}</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('common.labels.company', 'Company')}</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('accounting.permission', 'Permission')}</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('accounting.access.permission')}</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('common.labels.actions', 'Actions')}</th>
             </tr>
           </thead>
@@ -178,7 +178,7 @@ const UserCompanyAccessPage: React.FC = () => {
               </tr>
             ) : accesses.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-6 py-4 text-center">{t('accounting.noAccessRecords', 'No access records found')}</td>
+                <td colSpan={4} className="px-6 py-4 text-center">{t('accounting.access.noAccessRecords')}</td>
               </tr>
             ) : (
               accesses.map(access => (
@@ -187,7 +187,7 @@ const UserCompanyAccessPage: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap">{access.company_name || `Company #${access.company_id}`}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 py-1 rounded-full text-xs ${access.permissions === 'write' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
-                      {access.permissions === 'write' ? t('accounting.readWrite', 'Read & Write') : t('accounting.readOnly', 'Read Only')}
+                      {access.permissions === 'write' ? t('accounting.access.permissions.write') : t('accounting.access.permissions.read')}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">

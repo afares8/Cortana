@@ -68,6 +68,28 @@
       "auditLogs": "Audit Logs"
     }
   },
+  "heatmap": {
+    "riskLevel": "Risk Level",
+    "clientInfo": "Client Information:",
+    "totalClients": "Total Clients:",
+    "riskClientBreakdown": "High/Medium/Low Risk Clients",
+    "highRiskClients": "High Risk Clients",
+    "mediumRiskClients": "Medium Risk Clients", 
+    "lowRiskClients": "Low Risk Clients",
+    "riskScore": "Risk Score:",
+    "fatfStatus": "FATF Status:",
+    "euHighRisk": "EU High-Risk:",
+    "baselRank": "Basel Rank:",
+    "lastUpdated": "Last Updated:",
+    "noData": "No risk data available"
+  },
+  "legal": {
+    "riskLevel": "Risk Level",
+    "clientInfo": "Client Information",
+    "calculateRiskScore": "Calculate Risk Score",
+    "clientCreatedSuccess": "Client created successfully",
+    "enterClientDetails": "Enter the client details below"
+  },
   "accounting": {
     "dashboard": {
       "title": "Accounting Dashboard",
@@ -173,6 +195,9 @@
       "status": "Status",
       "notes": "Notes",
       "receipt": "Receipt",
+      "success": "Payment registered successfully",
+      "failure": "Failed to process payment",
+      "error": "An error occurred while processing the payment",
       "methods": {
         "cash": "Cash",
         "check": "Check",
@@ -246,6 +271,8 @@
       "user": "User",
       "company": "Company",
       "permission": "Permission",
+      "noAccessRecords": "No access records found",
+      "confirmDelete": "Are you sure you want to delete this access?",
       "permissions": {
         "read": "Read Only",
         "write": "Read & Write"
@@ -263,6 +290,19 @@
       "analyzing": "Analyzing...",
       "results": "Analysis Results",
       "error": "Error analyzing obligations"
+    },
+    "stats": {
+      "noData": "No data available",
+      "title": "Obligation Statistics",
+      "trends": "Payment Trends",
+      "loadingData": "Loading trend data...",
+      "totalObligations": "Total Obligations",
+      "totalPaid": "Total Paid",
+      "totalAmount": "Total Amount",
+      "paidAmount": "Paid Amount",
+      "monthlyTrends": "Monthly Trends",
+      "distribution": "Obligation Distribution",
+      "byCompany": "By Company"
     }
   }
 }

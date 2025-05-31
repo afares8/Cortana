@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -42,6 +43,7 @@ const Heatmap: React.FC<HeatmapProps> = ({
   error = '', 
   height = 400 
 }) => {
+  const { t } = useTranslation();
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMap = useRef<L.Map | null>(null);
 
@@ -242,38 +244,38 @@ const Heatmap: React.FC<HeatmapProps> = ({
               let popupContent = `<b>${countryName}</b>`;
               
               if (countryData) {
-                popupContent += `<br>Risk Level: <b>${countryData.risk_level}</b>`;
+                popupContent += `<br>${t('heatmap.riskLevel')}: <b>${countryData.risk_level}</b>`;
                 
                 if (countryData.client_data) {
                   const clientData = countryData.client_data;
-                  popupContent += `<br><br><b>Client Information:</b>`;
-                  popupContent += `<br>Total Clients: <b>${clientData.total_clients}</b>`;
+                  popupContent += `<br><br><b>${t('heatmap.clientInfo')}</b>`;
+                  popupContent += `<br>${t('heatmap.totalClients')}: <b>${clientData.total_clients}</b>`;
                   
                   if (clientData.total_clients > 0) {
-                    popupContent += `<br>High Risk Clients: ${clientData.high_risk_clients}`;
-                    popupContent += `<br>Medium Risk Clients: ${clientData.medium_risk_clients}`;
-                    popupContent += `<br>Low Risk Clients: ${clientData.low_risk_clients}`;
+                    popupContent += `<br>${t('heatmap.highRiskClients')}: ${clientData.high_risk_clients}`;
+                    popupContent += `<br>${t('heatmap.mediumRiskClients')}: ${clientData.medium_risk_clients}`;
+                    popupContent += `<br>${t('heatmap.lowRiskClients')}: ${clientData.low_risk_clients}`;
                     
                     if (countryData.basel_score) {
-                      popupContent += `<br>Risk Score: ${countryData.basel_score}`;
+                      popupContent += `<br>${t('heatmap.riskScore')}: ${countryData.basel_score}`;
                     }
                   }
                 }
                 
                 if (countryData.fatf_status) {
-                  popupContent += `<br>FATF Status: ${countryData.fatf_status}`;
+                  popupContent += `<br>${t('heatmap.fatfStatus')}: ${countryData.fatf_status}`;
                 }
                 if (countryData.eu_high_risk) {
-                  popupContent += '<br>EU High-Risk: Yes';
+                  popupContent += `<br>${t('heatmap.euHighRisk')}: Yes`;
                 }
                 if (countryData.basel_rank) {
-                  popupContent += `<br>Basel Rank: ${countryData.basel_rank}`;
+                  popupContent += `<br>${t('heatmap.baselRank')}: ${countryData.basel_rank}`;
                 }
                 if (countryData.last_updated) {
-                  popupContent += `<br>Last Updated: ${new Date(countryData.last_updated).toLocaleDateString()}`;
+                  popupContent += `<br>${t('heatmap.lastUpdated')}: ${new Date(countryData.last_updated).toLocaleDateString()}`;
                 }
               } else {
-                popupContent += '<br>No risk data available';
+                popupContent += `<br>${t('heatmap.noData')}`;
               }
               
               layer.bindPopup(popupContent);
