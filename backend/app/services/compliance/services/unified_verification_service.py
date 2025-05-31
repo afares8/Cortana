@@ -861,7 +861,11 @@ class UnifiedVerificationService:
             
             report_obj = ReportObject(**report_data)
             
-            report_path = await generate_uaf_report_pdf(report_obj)
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"{customer.get('name', 'unknown').replace(' ', '_')}_{timestamp}.pdf"
+            pdf_output_path = self.reports_dir / filename
+            
+            report_path = await generate_uaf_report_pdf(report_obj, str(pdf_output_path))
             
             logger.info(f"UAF report generated: {report_path}")
             return Path(report_path)
@@ -872,11 +876,8 @@ class UnifiedVerificationService:
             filename = f"{customer.get('name', 'unknown').replace(' ', '_')}_{timestamp}_error.pdf"
             report_path = self.reports_dir / filename
             
-            with open(report_path, "wb") as f:
-                f.write(b"Error generating PDF report")
-                
-            logger.warning(f"Created fallback report due to error: {report_path}")
-            return report_path
+            logger.error("UAF report generation failed")
+            raise RuntimeError("UAF report PDF generation failed.")
 
     async def _save_verification_results(
         self,

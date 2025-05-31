@@ -51,6 +51,11 @@ A specialized internal tool for a company in the Zona Libre de Colón perfumery 
 - **Compliance Monitoring Tasks**: Automated daily risk recalculation and document expiry monitoring
 - **Law 23 (2015) Compliance**: Full adherence to Panamanian UAF regulations for Colon Free Zone operations
 
+#### Recent UAF Report Generation Fixes
+- **Template Context Mismatch Resolution**: Fixed context flattening in `pdf_generator.py` to ensure all data fields (client, timestamp, screening_result, matches, country_risk) are accessible at the top level of Jinja templates, resolving blank PDF content issues
+- **Invalid PDF Fallback Prevention**: Replaced text-based error file creation with proper exception handling in `unified_verification_service.py` to prevent corrupted PDF files from being saved and served to the compliance dashboard
+- **Consistent PDF Output Paths**: Implemented configurable PDF output paths to ensure generated reports are saved to the correct directory structure, eliminating download mismatches between generation and storage locations
+
 ### Modular Architecture
 - Legal & Contracts module with client management, contract analysis, and compliance features
 - User Management module with role-based access control
