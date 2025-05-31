@@ -1,8 +1,21 @@
-from datetime import datetime
+from datetime import datetime, date
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, EmailStr
 
 from app.models.base import TimestampModel
+
+
+class Director(BaseModel):
+    name: str
+    dob: Optional[date] = None
+    country: str
+
+
+class UBO(BaseModel):
+    name: str
+    dob: Optional[date] = None
+    country: str
+    percentage_ownership: float
 
 
 class Client(TimestampModel):
@@ -16,6 +29,13 @@ class Client(TimestampModel):
     notes: Optional[str] = None
     client_type: Optional[str] = None
     country: Optional[str] = None
+    dob: Optional[date] = None
+    nationality: Optional[str] = None
+    registration_number: Optional[str] = None
+    incorporation_date: Optional[date] = None
+    incorporation_country: Optional[str] = None
+    directors: List[Dict[str, Any]] = []
+    ubos: List[Dict[str, Any]] = []
     risk_score: Optional[float] = None
     risk_level: Optional[str] = None
     risk_details: Optional[Dict[str, Any]] = None

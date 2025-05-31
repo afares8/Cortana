@@ -1,4 +1,29 @@
 
+export interface Director {
+  name: string;
+  dob: string;
+  country: string;
+}
+
+export interface UBO {
+  name: string;
+  dob: string;
+  country: string;
+  percentage_ownership: number;
+}
+
+export interface ClientDocument {
+  id: number;
+  client_id: number;
+  type: string;
+  file_path: string;
+  received_date: string;
+  expiry_date?: string;
+  is_validated: boolean;
+  created_at: string;
+  updated_at?: string;
+}
+
 export interface Client {
   id: number;
   name: string;
@@ -12,6 +37,13 @@ export interface Client {
   updated_at?: string;
   client_type?: string;
   country?: string;
+  dob?: string;
+  nationality?: string;
+  registration_number?: string;
+  incorporation_date?: string;
+  incorporation_country?: string;
+  directors?: Director[];
+  ubos?: UBO[];
   risk_score?: number;
   risk_level?: string;
   risk_details?: Record<string, any>;
@@ -32,6 +64,13 @@ export interface ClientCreate {
   notes?: string;
   client_type?: string;
   country?: string;
+  dob?: string;
+  nationality?: string;
+  registration_number?: string;
+  incorporation_date?: string;
+  incorporation_country?: string;
+  directors?: Director[];
+  ubos?: UBO[];
 }
 
 export interface ClientUpdate {
@@ -42,6 +81,15 @@ export interface ClientUpdate {
   industry?: string;
   kyc_verified?: boolean;
   notes?: string;
+  client_type?: string;
+  country?: string;
+  dob?: string;
+  nationality?: string;
+  registration_number?: string;
+  incorporation_date?: string;
+  incorporation_country?: string;
+  directors?: Director[];
+  ubos?: UBO[];
 }
 
 export interface Contract {

@@ -1,7 +1,12 @@
 from typing import List, Optional, Dict, Any
+import logging
 from app.services.clients.models.client import Client
 from app.services.clients.schemas.client import ClientCreate, ClientUpdate
 from app.db.in_memory import InMemoryDB
+from app.services.compliance.services.unified_verification_service import unified_verification_service
+from app.services.compliance.models.models import CustomerVerifyRequest, Entity
+
+logger = logging.getLogger(__name__)
 
 class ClientService:
     """
@@ -25,8 +30,17 @@ class ClientService:
             address=getattr(legal_client, 'address', None),
             industry=getattr(legal_client, 'industry', None),
             kyc_verified=getattr(legal_client, 'kyc_verified', False),
-            notes=getattr(legal_client, 'notes', None)
+            notes=getattr(legal_client, 'notes', None),
+            dob=getattr(legal_client, 'dob', None),
+            nationality=getattr(legal_client, 'nationality', None),
+            registration_number=getattr(legal_client, 'registration_number', None),
+            incorporation_date=getattr(legal_client, 'incorporation_date', None),
+            incorporation_country=getattr(legal_client, 'incorporation_country', None),
+            directors=getattr(legal_client, 'directors', []),
+            ubos=getattr(legal_client, 'ubos', [])
         )
+        
+        await self._trigger_compliance_verification(client)
         
         return client
     
@@ -53,7 +67,14 @@ class ClientService:
                 address=getattr(legal_client, 'address', None),
                 industry=getattr(legal_client, 'industry', None),
                 kyc_verified=getattr(legal_client, 'kyc_verified', False),
-                notes=getattr(legal_client, 'notes', None)
+                notes=getattr(legal_client, 'notes', None),
+                dob=getattr(legal_client, 'dob', None),
+                nationality=getattr(legal_client, 'nationality', None),
+                registration_number=getattr(legal_client, 'registration_number', None),
+                incorporation_date=getattr(legal_client, 'incorporation_date', None),
+                incorporation_country=getattr(legal_client, 'incorporation_country', None),
+                directors=getattr(legal_client, 'directors', []),
+                ubos=getattr(legal_client, 'ubos', [])
             )
             clients.append(client)
         
@@ -77,7 +98,14 @@ class ClientService:
             address=getattr(legal_client, 'address', None),
             industry=getattr(legal_client, 'industry', None),
             kyc_verified=getattr(legal_client, 'kyc_verified', False),
-            notes=getattr(legal_client, 'notes', None)
+            notes=getattr(legal_client, 'notes', None),
+            dob=getattr(legal_client, 'dob', None),
+            nationality=getattr(legal_client, 'nationality', None),
+            registration_number=getattr(legal_client, 'registration_number', None),
+            incorporation_date=getattr(legal_client, 'incorporation_date', None),
+            incorporation_country=getattr(legal_client, 'incorporation_country', None),
+            directors=getattr(legal_client, 'directors', []),
+            ubos=getattr(legal_client, 'ubos', [])
         )
     
     async def update_client(
@@ -104,7 +132,14 @@ class ClientService:
             address=getattr(legal_client, 'address', None),
             industry=getattr(legal_client, 'industry', None),
             kyc_verified=getattr(legal_client, 'kyc_verified', False),
-            notes=getattr(legal_client, 'notes', None)
+            notes=getattr(legal_client, 'notes', None),
+            dob=getattr(legal_client, 'dob', None),
+            nationality=getattr(legal_client, 'nationality', None),
+            registration_number=getattr(legal_client, 'registration_number', None),
+            incorporation_date=getattr(legal_client, 'incorporation_date', None),
+            incorporation_country=getattr(legal_client, 'incorporation_country', None),
+            directors=getattr(legal_client, 'directors', []),
+            ubos=getattr(legal_client, 'ubos', [])
         )
     
     async def delete_client(self, client_id: int) -> bool:
@@ -114,5 +149,56 @@ class ClientService:
         from app.legal.services import delete_client
         
         return delete_client(client_id)
+    
+    async def _trigger_compliance_verification(self, client: Client) -> None:
+        """
+        Trigger compliance verification for a client including directors and UBOs.
+        """
+        try:
+            logger.info(f"Triggering compliance verification for client: {client.name}")
+            
+            customer_entity = Entity(
+                name=client.name,
+                country=getattr(client, 'country', ''),
+                type='individual' if getattr(client, 'client_type') == 'individual' else 'legal',
+                dob=client.dob,
+                id_number=getattr(client, 'registration_number', None) or str(client.id)
+            )
+            
+            directors_entities = []
+            for director_data in client.directors:
+                if isinstance(director_data, dict):
+                    director_entity = Entity(
+                        name=director_data.get('name', ''),
+                        country=director_data.get('country', ''),
+                        type='individual',
+                        dob=director_data.get('dob')
+                    )
+                    directors_entities.append(director_entity)
+            
+            ubos_entities = []
+            for ubo_data in client.ubos:
+                if isinstance(ubo_data, dict):
+                    ubo_entity = Entity(
+                        name=ubo_data.get('name', ''),
+                        country=ubo_data.get('country', ''),
+                        type='individual',
+                        dob=ubo_data.get('dob')
+                    )
+                    ubos_entities.append(ubo_entity)
+            
+            verification_request = CustomerVerifyRequest(
+                customer=customer_entity,
+                directors=directors_entities,
+                ubos=ubos_entities
+            )
+            
+            verification_result = await unified_verification_service.verify_customer(verification_request)
+            
+            logger.info(f"Compliance verification completed for client {client.name}. "
+                       f"Report ID: {verification_result.get('report', {}).get('id')}")
+            
+        except Exception as e:
+            logger.error(f"Error during compliance verification for client {client.name}: {str(e)}")
 
 client_service = ClientService()

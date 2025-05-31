@@ -41,6 +41,16 @@ A specialized internal tool for a company in the Zona Libre de Colón perfumery 
 - Document retention policy enforcement
 - Comprehensive compliance dashboard
 
+### KYC/UAF Autonomous Compliance System
+- **Automated Client Onboarding**: Dynamic forms for Individual and Legal Entity clients with type-specific field validation
+- **OCR Document Processing**: EasyOCR-powered extraction of identification data from ID cards and passports
+- **Enhanced Client Models**: Extended client data structure supporting date of birth, nationality, registration numbers, incorporation details, directors, and UBOs (Ultimate Beneficial Owners)
+- **Document Management**: Comprehensive document storage system with validation, expiry tracking, and automated alerts
+- **Autonomous Compliance Verification**: Integrated PEP/sanctions screening with automatic risk assessment for new client fields
+- **UAF Report Generation**: Enhanced UAF reporting with support for legal entities, directors, and UBOs
+- **Compliance Monitoring Tasks**: Automated daily risk recalculation and document expiry monitoring
+- **Law 23 (2015) Compliance**: Full adherence to Panamanian UAF regulations for Colon Free Zone operations
+
 ### Modular Architecture
 - Legal & Contracts module with client management, contract analysis, and compliance features
 - User Management module with role-based access control
@@ -323,7 +333,23 @@ For the compliance automation features to work properly:
 ### Legal Module Endpoints
 
 - `GET /api/v1/legal/clients` - List all clients
-- `POST /api/v1/legal/clients` - Create a new client
+- `POST /api/v1/legal/clients` - Create a new client with KYC fields
+  ```json
+  {
+    "name": "Carlos Pérez",
+    "client_type": "individual",
+    "contact_email": "carlos@example.com",
+    "contact_phone": "+507-1234-5678",
+    "passport": "E-8-123456",
+    "dob": "1987-05-12",
+    "nationality": "PA",
+    "country": "PA",
+    "industry": "finance",
+    "address": "Calle 50, Panama City",
+    "directors": [],
+    "ubos": []
+  }
+  ```
 - `GET /api/v1/legal/workflows` - List all workflows
 - `GET /api/v1/legal/tasks` - List all tasks
 - `POST /api/v1/legal/verify-client` - Unified client verification with due diligence checks
@@ -333,6 +359,42 @@ For the compliance automation features to work properly:
     "passport": "A123456",
     "country": "US",
     "type": "natural"
+  }
+  ```
+
+### KYC/UAF Compliance Endpoints
+
+- `POST /api/v1/clients/extract-id` - Extract identification data from uploaded documents using OCR
+- `POST /api/v1/clients/{client_id}/documents` - Upload documents for a specific client
+- `GET /api/v1/clients/{client_id}/documents` - Get all documents for a client
+- `GET /api/v1/clients/documents/{document_id}` - Get specific document details
+- `PUT /api/v1/clients/documents/{document_id}/validate` - Mark document as validated
+- `DELETE /api/v1/clients/documents/{document_id}` - Delete a document
+- `GET /api/v1/clients/expiring-documents` - Get documents expiring within specified days
+- `POST /api/v1/compliance/verify-customer` - Enhanced customer verification with directors and UBOs
+  ```json
+  {
+    "customer": {
+      "name": "Test Legal Entity Corp",
+      "country": "PA",
+      "type": "legal_entity",
+      "incorporation_date": "2020-01-15"
+    },
+    "directors": [
+      {
+        "name": "Director Name",
+        "country": "PA",
+        "dob": "1980-05-10"
+      }
+    ],
+    "ubos": [
+      {
+        "name": "UBO Name",
+        "country": "PA",
+        "dob": "1975-03-20",
+        "percentage_ownership": 25.5
+      }
+    ]
   }
   ```
 - `POST /api/v1/legal/ask` - Conversational legal assistant for legal queries

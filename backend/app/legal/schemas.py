@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, EmailStr, Field
 
@@ -16,6 +16,13 @@ class ClientBase(BaseModel):
 class ClientCreate(ClientBase):
     client_type: Optional[str] = "individual"
     country: Optional[str] = "PA"
+    dob: Optional[date] = None
+    nationality: Optional[str] = None
+    registration_number: Optional[str] = None
+    incorporation_date: Optional[date] = None
+    incorporation_country: Optional[str] = None
+    directors: List[Dict[str, Any]] = []
+    ubos: List[Dict[str, Any]] = []
 
 
 class ClientUpdate(ClientBase):

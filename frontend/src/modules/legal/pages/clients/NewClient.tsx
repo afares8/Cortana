@@ -16,9 +16,10 @@ import { Alert } from '../../../../components/ui/alert';
 import { AlertCircle, Loader2, Save, ArrowLeft, ShieldAlert } from 'lucide-react';
 import { Toast, ToastProvider, ToastViewport, ToastTitle, ToastDescription } from '../../../../components/ui/toast';
 import { createClient } from '../../api/legalApi';
-import { ClientCreate } from '../../types';
+import { ClientCreate, Director, UBO } from '../../types';
 import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../../../../constants';
+import OCRDocumentUpload from '../../../../components/OCRDocumentUpload';
 
 const NewClient: React.FC = () => {
   const { t } = useTranslation();
@@ -35,11 +36,34 @@ const NewClient: React.FC = () => {
   const [clientType, setClientType] = useState('individual');
   const [country, setCountry] = useState('PA');
   
+  const [dob, setDob] = useState('');
+  const [nationality, setNationality] = useState('');
+  
+  const [registrationNumber, setRegistrationNumber] = useState('');
+  const [incorporationDate, setIncorporationDate] = useState('');
+  const [incorporationCountry, setIncorporationCountry] = useState('');
+  const [directors, setDirectors] = useState<Director[]>([]);
+  const [ubos, setUbos] = useState<UBO[]>([]);
+  
+  const [documents, setDocuments] = useState<File[]>([]);
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [riskLevel, setRiskLevel] = useState<string | null>(null);
   const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
+  
+  const handleOCRDataExtracted = (data: any) => {
+    if (data.name) {
+      setName(data.name);
+    }
+    if (data.dob) {
+      setDob(data.dob);
+    }
+    if (data.id_number) {
+      setPassport(data.id_number);
+    }
+  };
   
   const handleSubmit = async (e: React.FormEvent) => {
    e.preventDefault();
@@ -52,6 +76,30 @@ const NewClient: React.FC = () => {
    if (!contactEmail) {
     setError(t('Please enter a contact email'));
     return;
+   }
+
+   if (clientType === 'individual') {
+     if (!dob) {
+       setError(t('Date of birth is required for individual clients'));
+       return;
+     }
+     if (!nationality) {
+       setError(t('Nationality is required for individual clients'));
+       return;
+     }
+   } else if (clientType === 'legal') {
+     if (!registrationNumber) {
+       setError(t('Registration number is required for legal entities'));
+       return;
+     }
+     if (!incorporationDate) {
+       setError(t('Incorporation date is required for legal entities'));
+       return;
+     }
+     if (!incorporationCountry) {
+       setError(t('Incorporation country is required for legal entities'));
+       return;
+     }
    }
 
    if (loading) {
@@ -72,7 +120,18 @@ const NewClient: React.FC = () => {
       kyc_verified: kycVerified,
       notes: notes || '',
       client_type: clientType,
-      country: country
+      country: country,
+      ...(clientType === 'individual' && {
+        dob: dob || undefined,
+        nationality: nationality || undefined
+      }),
+      ...(clientType === 'legal' && {
+        registration_number: registrationNumber || undefined,
+        incorporation_date: incorporationDate || undefined,
+        incorporation_country: incorporationCountry || undefined,
+        directors: directors,
+        ubos: ubos
+      })
     };
 
     console.log('Submitting client data:', clientData);
@@ -129,6 +188,14 @@ const NewClient: React.FC = () => {
     setAddress('');
     setKycVerified(false);
     setNotes('');
+    setDob('');
+    setNationality('');
+    setRegistrationNumber('');
+    setIncorporationDate('');
+    setIncorporationCountry('');
+    setDirectors([]);
+    setUbos([]);
+    setDocuments([]);
 
     setSuccess(true);
 
@@ -179,6 +246,12 @@ const NewClient: React.FC = () => {
               <CardDescription>{t('Enter the client details below')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* OCR Document Upload */}
+              <OCRDocumentUpload 
+                onDataExtracted={handleOCRDataExtracted}
+                disabled={loading}
+              />
+              
               <div className="grid w-full items-center gap-1.5">
                 <Label htmlFor="name">{t('Name')}</Label>
                 <Input
@@ -218,11 +291,7 @@ const NewClient: React.FC = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="individual">{t('Individual')}</SelectItem>
-                      <SelectItem value="empresa">{t('Company')}</SelectItem>
-                      <SelectItem value="gobierno">{t('Government')}</SelectItem>
-                      <SelectItem value="ong">{t('NGO')}</SelectItem>
-                      <SelectItem value="pep">{t('PEP')}</SelectItem>
-                      <SelectItem value="fideicomiso">{t('Trust')}</SelectItem>
+                      <SelectItem value="legal">{t('Legal Entity')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -309,6 +378,272 @@ const NewClient: React.FC = () => {
                 />
               </div>
               
+              {/* Individual-specific fields */}
+              {clientType === 'individual' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid w-full items-center gap-1.5">
+                    <Label htmlFor="dob">{t('Date of Birth')}</Label>
+                    <Input
+                      id="dob"
+                      type="date"
+                      value={dob}
+                      onChange={(e) => setDob(e.target.value)}
+                      disabled={loading}
+                    />
+                  </div>
+                  
+                  <div className="grid w-full items-center gap-1.5">
+                    <Label htmlFor="nationality">{t('Nationality')}</Label>
+                    <Select value={nationality} onValueChange={setNationality} disabled={loading}>
+                      <SelectTrigger id="nationality">
+                        <SelectValue placeholder={t('Select nationality')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="PA">{t('Panamanian')}</SelectItem>
+                        <SelectItem value="US">{t('American')}</SelectItem>
+                        <SelectItem value="CO">{t('Colombian')}</SelectItem>
+                        <SelectItem value="VE">{t('Venezuelan')}</SelectItem>
+                        <SelectItem value="MX">{t('Mexican')}</SelectItem>
+                        <SelectItem value="BR">{t('Brazilian')}</SelectItem>
+                        <SelectItem value="AR">{t('Argentinian')}</SelectItem>
+                        <SelectItem value="CL">{t('Chilean')}</SelectItem>
+                        <SelectItem value="PE">{t('Peruvian')}</SelectItem>
+                        <SelectItem value="EC">{t('Ecuadorian')}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              )}
+
+              {/* Legal entity-specific fields */}
+              {clientType === 'legal' && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid w-full items-center gap-1.5">
+                      <Label htmlFor="registration-number">{t('Registration Number')}</Label>
+                      <Input
+                        id="registration-number"
+                        value={registrationNumber}
+                        onChange={(e) => setRegistrationNumber(e.target.value)}
+                        placeholder={t('RUC or ZLC License')}
+                        disabled={loading}
+                      />
+                    </div>
+                    
+                    <div className="grid w-full items-center gap-1.5">
+                      <Label htmlFor="incorporation-date">{t('Incorporation Date')}</Label>
+                      <Input
+                        id="incorporation-date"
+                        type="date"
+                        value={incorporationDate}
+                        onChange={(e) => setIncorporationDate(e.target.value)}
+                        disabled={loading}
+                      />
+                    </div>
+                    
+                    <div className="grid w-full items-center gap-1.5">
+                      <Label htmlFor="incorporation-country">{t('Incorporation Country')}</Label>
+                      <Select value={incorporationCountry} onValueChange={setIncorporationCountry} disabled={loading}>
+                        <SelectTrigger id="incorporation-country">
+                          <SelectValue placeholder={t('Select country')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="PA">{t('Panama')}</SelectItem>
+                          <SelectItem value="US">{t('United States')}</SelectItem>
+                          <SelectItem value="CO">{t('Colombia')}</SelectItem>
+                          <SelectItem value="VE">{t('Venezuela')}</SelectItem>
+                          <SelectItem value="MX">{t('Mexico')}</SelectItem>
+                          <SelectItem value="BR">{t('Brazil')}</SelectItem>
+                          <SelectItem value="AR">{t('Argentina')}</SelectItem>
+                          <SelectItem value="CL">{t('Chile')}</SelectItem>
+                          <SelectItem value="PE">{t('Peru')}</SelectItem>
+                          <SelectItem value="EC">{t('Ecuador')}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Directors Section */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label>{t('Directors')}</Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setDirectors([...directors, { name: '', dob: '', country: '' }])}
+                        disabled={loading}
+                      >
+                        {t('Add Director')}
+                      </Button>
+                    </div>
+                    {directors.map((director, index) => (
+                      <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-2 p-3 border rounded">
+                        <Input
+                          placeholder={t('Director Name')}
+                          value={director.name}
+                          onChange={(e) => {
+                            const newDirectors = [...directors];
+                            newDirectors[index].name = e.target.value;
+                            setDirectors(newDirectors);
+                          }}
+                          disabled={loading}
+                        />
+                        <Input
+                          type="date"
+                          placeholder={t('Date of Birth')}
+                          value={director.dob}
+                          onChange={(e) => {
+                            const newDirectors = [...directors];
+                            newDirectors[index].dob = e.target.value;
+                            setDirectors(newDirectors);
+                          }}
+                          disabled={loading}
+                        />
+                        <Select
+                          value={director.country}
+                          onValueChange={(value) => {
+                            const newDirectors = [...directors];
+                            newDirectors[index].country = value;
+                            setDirectors(newDirectors);
+                          }}
+                          disabled={loading}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder={t('Country')} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="PA">{t('Panama')}</SelectItem>
+                            <SelectItem value="US">{t('United States')}</SelectItem>
+                            <SelectItem value="CO">{t('Colombia')}</SelectItem>
+                            <SelectItem value="VE">{t('Venezuela')}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setDirectors(directors.filter((_, i) => i !== index))}
+                          disabled={loading}
+                        >
+                          {t('Remove')}
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* UBOs Section */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label>{t('Ultimate Beneficial Owners (UBOs)')}</Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setUbos([...ubos, { name: '', dob: '', country: '', percentage_ownership: 0 }])}
+                        disabled={loading}
+                      >
+                        {t('Add UBO')}
+                      </Button>
+                    </div>
+                    {ubos.map((ubo, index) => (
+                      <div key={index} className="grid grid-cols-1 md:grid-cols-5 gap-2 p-3 border rounded">
+                        <Input
+                          placeholder={t('UBO Name')}
+                          value={ubo.name}
+                          onChange={(e) => {
+                            const newUbos = [...ubos];
+                            newUbos[index].name = e.target.value;
+                            setUbos(newUbos);
+                          }}
+                          disabled={loading}
+                        />
+                        <Input
+                          type="date"
+                          placeholder={t('Date of Birth')}
+                          value={ubo.dob}
+                          onChange={(e) => {
+                            const newUbos = [...ubos];
+                            newUbos[index].dob = e.target.value;
+                            setUbos(newUbos);
+                          }}
+                          disabled={loading}
+                        />
+                        <Select
+                          value={ubo.country}
+                          onValueChange={(value) => {
+                            const newUbos = [...ubos];
+                            newUbos[index].country = value;
+                            setUbos(newUbos);
+                          }}
+                          disabled={loading}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder={t('Country')} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="PA">{t('Panama')}</SelectItem>
+                            <SelectItem value="US">{t('United States')}</SelectItem>
+                            <SelectItem value="CO">{t('Colombia')}</SelectItem>
+                            <SelectItem value="VE">{t('Venezuela')}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Input
+                          type="number"
+                          placeholder={t('Ownership %')}
+                          value={ubo.percentage_ownership}
+                          onChange={(e) => {
+                            const newUbos = [...ubos];
+                            newUbos[index].percentage_ownership = parseFloat(e.target.value) || 0;
+                            setUbos(newUbos);
+                          }}
+                          disabled={loading}
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setUbos(ubos.filter((_, i) => i !== index))}
+                          disabled={loading}
+                        >
+                          {t('Remove')}
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Document Upload Section */}
+              <div className="grid w-full items-center gap-1.5">
+                <Label htmlFor="documents">{t('Required Documents')}</Label>
+                <Input
+                  id="documents"
+                  type="file"
+                  multiple
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  onChange={(e) => {
+                    if (e.target.files) {
+                      setDocuments(Array.from(e.target.files));
+                    }
+                  }}
+                  disabled={loading}
+                />
+                <p className="text-sm text-gray-500">
+                  {t('Upload required documents (PDF, JPG, PNG). For individuals: ID/Passport. For legal entities: Incorporation documents, director IDs.')}
+                </p>
+                {documents.length > 0 && (
+                  <div className="mt-2">
+                    <p className="text-sm font-medium">{t('Selected files:')}</p>
+                    <ul className="text-sm text-gray-600">
+                      {documents.map((file, index) => (
+                        <li key={index}>• {file.name}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+
               <div className="grid w-full items-center gap-1.5">
                 <Label htmlFor="notes">{t('Notes')}</Label>
                 <Textarea
