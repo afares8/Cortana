@@ -28,6 +28,7 @@ const NewClient: React.FC = () => {
   const [industry, setIndustry] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   const [contactPhone, setContactPhone] = useState('');
+  const [passport, setPassport] = useState('');
   const [address, setAddress] = useState('');
   const [kycVerified, setKycVerified] = useState(false);
   const [notes, setNotes] = useState('');
@@ -104,9 +105,10 @@ const NewClient: React.FC = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          client_id: response.id,
-          name: name,
-          country: country
+          full_name: name,
+          passport: passport || contactPhone || "N/A",  // Use passport, fallback to phone if empty
+          country: country,
+          type: clientType === 'individual' ? 'natural' : 'legal'
         })
       });
 
@@ -123,6 +125,7 @@ const NewClient: React.FC = () => {
     setIndustry('');
     setContactEmail('');
     setContactPhone('');
+    setPassport('');
     setAddress('');
     setKycVerified(false);
     setNotes('');
@@ -259,7 +262,7 @@ const NewClient: React.FC = () => {
                 </Select>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="grid w-full items-center gap-1.5">
                   <Label htmlFor="contact-email">{t('Contact Email')}</Label>
                   <Input
@@ -279,6 +282,17 @@ const NewClient: React.FC = () => {
                     value={contactPhone}
                     onChange={(e) => setContactPhone(e.target.value)}
                     placeholder={t('Enter contact phone number')}
+                    disabled={loading}
+                  />
+                </div>
+                
+                <div className="grid w-full items-center gap-1.5">
+                  <Label htmlFor="passport">{t('Passport/ID Number')}</Label>
+                  <Input
+                    id="passport"
+                    value={passport}
+                    onChange={(e) => setPassport(e.target.value)}
+                    placeholder={t('Enter passport or ID number')}
                     disabled={loading}
                   />
                 </div>

@@ -7,7 +7,14 @@ from datetime import datetime
 from typing import Dict, Any, List
 from pathlib import Path
 import jinja2
-import weasyprint
+
+try:
+    import weasyprint
+    WEASYPRINT_AVAILABLE = True
+except ImportError:
+    WEASYPRINT_AVAILABLE = False
+    logger = logging.getLogger(__name__)
+    logger.warning("weasyprint module not available. PDF generation will be limited to fallback mode.")
 
 from app.services.compliance.services.risk_matrix import risk_matrix, RiskLevel
 from app.services.compliance.utils.open_sanctions import OpenSanctionsClient
@@ -768,6 +775,10 @@ class UnifiedVerificationService:
     ) -> Path:
         """Generate UAF report for the customer."""
         try:
+            if not WEASYPRINT_AVAILABLE:
+                logger.warning("WeasyPrint not available, using fallback PDF generation")
+                raise ImportError("WeasyPrint not available")
+                
             from app.services.compliance.utils.pdf_generator import generate_uaf_report_pdf
             
             customer_name = customer.get("name", "unknown")

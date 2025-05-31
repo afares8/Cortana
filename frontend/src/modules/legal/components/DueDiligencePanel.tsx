@@ -6,7 +6,8 @@ const DueDiligencePanel: React.FC = () => {
   const [formData, setFormData] = useState({
     full_name: '',
     passport: '',
-    country: ''
+    country: '',
+    type: 'natural'  // Default to natural person
   });
   const [result, setResult] = useState<DueDiligenceResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -93,6 +94,20 @@ const DueDiligencePanel: React.FC = () => {
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, country: e.target.value})}
               required
             />
+          </div>
+          
+          <div className="space-y-2">
+            <label htmlFor="type" className="block text-sm font-medium">Client Type</label>
+            <select
+              id="type"
+              className="w-full p-2 border rounded"
+              value={formData.type}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData({...formData, type: e.target.value})}
+              required
+            >
+              <option value="natural">Individual (Natural Person)</option>
+              <option value="legal">Company (Legal Entity)</option>
+            </select>
           </div>
           
           <button 
