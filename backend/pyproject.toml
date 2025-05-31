@@ -46,6 +46,7 @@ pandas = "^2.2.2"
 bcrypt = "3.2.0"
 websockets = "^15.0.1"
 python-socketio = "^5.13.0"
+easyocr = "^1.7.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.5"
