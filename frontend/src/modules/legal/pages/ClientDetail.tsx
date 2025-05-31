@@ -265,7 +265,7 @@ const ClientDetail: React.FC = () => {
                   {/* Add Risk Level Display */}
                   {client && client.risk_level && (
                     <div className="space-y-2">
-                      <Label htmlFor="risk-level">{t('Risk Level')}</Label>
+                      <Label htmlFor="risk-level">{t('legal.riskLevel')}</Label>
                       <div className={`p-2 rounded flex items-center ${
                         client.risk_level === 'HIGH' ? 'bg-red-100 text-red-800' :
                         client.risk_level === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' :

@@ -72,16 +72,16 @@ const ObligationTable: React.FC<ObligationTableProps> = ({
       );
       
       if (result.success) {
-        toast.success("Payment registered successfully");
+        toast.success(t('accounting.payments.success'));
         if (onMakePayment) {
           onMakePayment(id);
         }
       } else {
-        toast.error(result.message || "Failed to process payment");
+        toast.error(result.message || t('accounting.payments.failure'));
       }
     } catch (error) {
       console.error("Payment error:", error);
-      toast.error("An error occurred while processing the payment");
+      toast.error(t('accounting.payments.error'));
     }
   };
 

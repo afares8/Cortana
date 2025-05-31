@@ -192,7 +192,7 @@ const LegalDashboard: React.FC = () => {
                   className="px-4 py-2 bg-blue-500 text-white rounded"
                   onClick={() => navigate('/legal/contracts/analyze')}
                 >
-                  {t('Calculate Risk Score')}
+                  {t('legal.calculateRiskScore')}
                 </button>
                 <button 
                   className="px-4 py-2 bg-blue-500 text-white rounded"
